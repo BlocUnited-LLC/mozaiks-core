@@ -120,6 +120,18 @@ Your Generated App
 - **MozaiksAI** = Workflow runtime (generates your app)
 - **MozaiksCore** = App runtime (executes your app)
 
+### How MozaiksCore Interacts With MozaiksAI
+
+MozaiksCore and MozaiksAI usually coexist in the same product, but they run at different times for different jobs:
+
+- **Build-time (generation):** MozaiksAI runs workflows that generate or modify an app codebase that targets MozaiksCore conventions/SDK.
+- **Run-time (execution):** the generated app runs on MozaiksCore; MozaiksAI is not required for normal app execution.
+- **Optional “live assistant” UX:** if your product embeds MozaiksAI’s ChatUI, the **frontend typically uses WebSockets (or SSE)** to stream tokens/events from the MozaiksAI runtime. That WebSocket is **between the browser and MozaiksAI**, not between MozaiksCore and MozaiksAI.
+
+In most deployments, **MozaiksCore ↔ MozaiksAI** is a backend-to-backend integration over **HTTP** (start job, poll status, fetch artifacts), while WebSockets are reserved for the interactive chat experience.
+
+See also: `docs/AIRuntimeIntegration.md` and `docs/MozaiksAI_Build_Deploy_Runtime_Contract.md`.
+
 ---
 
 ## Plugin Development
