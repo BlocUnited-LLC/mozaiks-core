@@ -1,0 +1,54 @@
+{
+    "settings": {
+      "show_subscription_status": true,
+      "show_cancel_button": true,
+      "trial_period_days": 14,
+      "trial_plan": "premium",
+      "default_plan": "free"
+    },
+    "subscription_plans": [
+      {
+        "name": "free",
+        "display_name": "Free",
+        "price": 0,
+        "billing_cycle": "monthly",
+        "features": [
+          "Basic access to the platform",
+          "Limited number of plugins",
+          "Up to 5 notes"
+        ],
+        "plugins_unlocked": [
+        ]
+      },
+      {
+        "name": "basic",
+        "display_name": "Basic",
+        "price": 9.99,
+        "billing_cycle": "monthly",
+        "features": [
+          "Full access to the platform",
+          "Access to basic plugins",
+          "Unlimited notes",
+          "Email support"
+        ],
+        "plugins_unlocked": [
+          "notes_manager"
+        ]
+      },
+      {
+        "name": "premium",
+        "display_name": "Premium",
+        "price": 19.99,
+        "billing_cycle": "monthly",
+        "features": [
+          "Everything in Basic",
+          "Access to all plugins",
+          "Priority support",
+          "Advanced features"
+        ],
+        "plugins_unlocked": [
+          "*"
+        ]
+      }
+    ]
+  }

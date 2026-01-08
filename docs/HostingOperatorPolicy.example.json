@@ -1,0 +1,413 @@
+{
+  "schema_version": "v1",
+  "name": "Mozaiks Hosting Operator Policy (Example)",
+  "description": "Example policy the Mozaiks Hosting Operator can use to turn metrics into actions (notify, throttle, upgrade, scale). In production this likely lives in the Mozaiks Platform DB, not inside customer app repos.",
+  "action_cooldowns_s": {
+    "platform.notify": 60,
+    "platform.require_upgrade": 3600,
+    "platform.block_deploy": 0,
+    "runtime.set_env": 300,
+    "azure.scale_out": 600,
+    "azure.scale_up": 3600,
+    "azure.move_to_dedicated_plan": 3600,
+    "azure.rollback": 0
+  },
+  "profiles": {
+    "starter": {
+      "description": "1 instance, direct websockets, inline work. Safe for small/early apps.",
+      "auto_actions_allowed": [
+        "platform.notify",
+        "platform.block_deploy",
+        "runtime.set_env"
+      ],
+      "thresholds": {
+        "active_websocket_connections": { "warn": 250, "critical": 400 },
+        "concurrent_workflows": { "warn": 8, "critical": 16 },
+        "http_5xx_rate": { "warn": 0.01, "critical": 0.05 },
+        "p95_start_session_ms": { "warn": 800, "critical": 1500 },
+        "p95_mongo_ms": { "warn": 80, "critical": 200 },
+        "token_spend_usd_1h": { "warn": 2.0, "critical": 5.0 },
+        "storage_gb": { "warn": 10.0, "critical": 25.0 }
+      },
+      "responses": {
+        "active_websocket_connections": {
+          "warn": [
+            {
+              "kind": "platform.notify",
+              "requires_approval": false,
+              "message": "High WebSocket connections for Starter. Consider upgrading to Scale if this persists."
+            },
+            {
+              "kind": "runtime.set_env",
+              "requires_approval": false,
+              "env": { "WEBSOCKET_MAX_CONNECTIONS_PER_USER": "3" },
+              "note": "Tighten per-user fanout to reduce load."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "platform.require_upgrade",
+              "requires_approval": false,
+              "to_profile": "scale",
+              "reason": "Starter is over realtime connection capacity; Scale enables higher connection limits and additional capacity."
+            },
+            {
+              "kind": "platform.block_deploy",
+              "requires_approval": false,
+              "reason": "Block new deploys until upgrade or limits are reduced."
+            }
+          ]
+        },
+        "concurrent_workflows": {
+          "warn": [
+            {
+              "kind": "platform.notify",
+              "requires_approval": false,
+              "message": "High concurrent workflows for Starter. Tighten concurrency or upgrade."
+            },
+            {
+              "kind": "runtime.set_env",
+              "requires_approval": false,
+              "env": { "PLUGIN_EXEC_MAX_CONCURRENCY": "4" },
+              "note": "Protects the instance by limiting module execution fanout."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "platform.require_upgrade",
+              "requires_approval": false,
+              "to_profile": "scale",
+              "reason": "Sustained concurrency needs additional execution capacity."
+            },
+            {
+              "kind": "platform.block_deploy",
+              "requires_approval": false,
+              "reason": "Block deploys that would increase load beyond profile."
+            }
+          ]
+        },
+        "http_5xx_rate": {
+          "warn": [
+            {
+              "kind": "platform.notify",
+              "requires_approval": false,
+              "message": "Elevated 5xx rate. Investigate logs and dependencies; prepare rollback."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "azure.rollback",
+              "requires_approval": true,
+              "reason": "Critical error rate: roll back to last known-good image/tag."
+            }
+          ]
+        },
+        "p95_start_session_ms": {
+          "warn": [
+            {
+              "kind": "platform.notify",
+              "requires_approval": false,
+              "message": "High p95 latency. Consider upgrading to Scale or reducing expensive work in requests."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "platform.require_upgrade",
+              "requires_approval": false,
+              "to_profile": "scale",
+              "reason": "Sustained latency indicates CPU/IO saturation for Starter."
+            }
+          ]
+        },
+        "p95_mongo_ms": {
+          "warn": [
+            {
+              "kind": "platform.notify",
+              "requires_approval": false,
+              "message": "Mongo p95 is high. Add indexes / reduce query payloads."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "platform.block_deploy",
+              "requires_approval": false,
+              "reason": "Block deploys that add new heavy queries until indexing/migrations are in place."
+            }
+          ]
+        },
+        "token_spend_usd_1h": {
+          "warn": [
+            {
+              "kind": "platform.notify",
+              "requires_approval": false,
+              "message": "AI spend is rising. Consider plan upgrade or enable stricter quotas."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "platform.block_deploy",
+              "requires_approval": false,
+              "reason": "Budget protection: block deploys that increase AI spend until upgrade."
+            }
+          ]
+        },
+        "storage_gb": {
+          "warn": [
+            {
+              "kind": "platform.notify",
+              "requires_approval": false,
+              "message": "Storage approaching limit. Consider archiving, retention policy, or upgrading plan."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "platform.require_upgrade",
+              "requires_approval": false,
+              "to_profile": "scale",
+              "reason": "Storage at/over Starter limit."
+            }
+          ]
+        }
+      }
+    },
+    "scale": {
+      "description": "2+ instances and higher capacity. For growing apps.",
+      "auto_actions_allowed": [
+        "platform.notify",
+        "runtime.set_env",
+        "azure.scale_out",
+        "azure.scale_up",
+        "azure.move_to_dedicated_plan"
+      ],
+      "limits": {
+        "max_instances": 10
+      },
+      "thresholds": {
+        "active_websocket_connections": { "warn": 1500, "critical": 2500 },
+        "concurrent_workflows": { "warn": 30, "critical": 60 },
+        "http_5xx_rate": { "warn": 0.01, "critical": 0.05 },
+        "p95_start_session_ms": { "warn": 700, "critical": 1200 },
+        "p95_mongo_ms": { "warn": 70, "critical": 180 },
+        "token_spend_usd_1h": { "warn": 10.0, "critical": 25.0 },
+        "storage_gb": { "warn": 50.0, "critical": 100.0 },
+        "noisy_neighbor_cpu_share_pct": { "warn": 0.5, "critical": 0.75 }
+      },
+      "responses": {
+        "active_websocket_connections": {
+          "warn": [
+            {
+              "kind": "azure.scale_out",
+              "requires_approval": false,
+              "mode": "step",
+              "step": 1,
+              "max_instances": 6,
+              "reason": "Scale out to spread realtime connections."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "platform.require_upgrade",
+              "requires_approval": false,
+              "to_profile": "enterprise",
+              "reason": "At Scale critical realtime load, prefer dedicated resources and stricter limits."
+            }
+          ]
+        },
+        "concurrent_workflows": {
+          "warn": [
+            {
+              "kind": "azure.scale_out",
+              "requires_approval": false,
+              "mode": "step",
+              "step": 1,
+              "max_instances": 8,
+              "reason": "Scale out app capacity."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "platform.require_upgrade",
+              "requires_approval": false,
+              "to_profile": "enterprise",
+              "reason": "Sustained workflow concurrency needs stronger isolation and managed services."
+            }
+          ]
+        },
+        "http_5xx_rate": {
+          "warn": [
+            {
+              "kind": "platform.notify",
+              "requires_approval": false,
+              "message": "Elevated 5xx rate. Investigate; prepare rollback."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "azure.rollback",
+              "requires_approval": true,
+              "reason": "Critical error rate: roll back to last known-good."
+            }
+          ]
+        },
+        "p95_start_session_ms": {
+          "warn": [
+            {
+              "kind": "azure.scale_up",
+              "requires_approval": false,
+              "reason": "Scale up plan size if CPU bound; otherwise investigate DB/IO."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "azure.scale_up",
+              "requires_approval": false,
+              "reason": "Critical p95: scale up now, then fix code/queries."
+            }
+          ]
+        },
+        "p95_mongo_ms": {
+          "warn": [
+            {
+              "kind": "platform.notify",
+              "requires_approval": false,
+              "message": "Mongo p95 is high. Add indexes / reduce query payloads."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "platform.block_deploy",
+              "requires_approval": false,
+              "reason": "Block deploys that add heavier queries until indexing/migrations exist."
+            }
+          ]
+        },
+        "token_spend_usd_1h": {
+          "warn": [
+            {
+              "kind": "platform.notify",
+              "requires_approval": false,
+              "message": "AI spend rising; tighten quotas or upgrade."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "platform.block_deploy",
+              "requires_approval": false,
+              "reason": "Budget protection until user upgrades or quotas are applied."
+            }
+          ]
+        },
+        "noisy_neighbor_cpu_share_pct": {
+          "warn": [
+            {
+              "kind": "platform.notify",
+              "requires_approval": false,
+              "message": "App is consuming a large share of shared plan CPU. Consider isolation."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "azure.move_to_dedicated_plan",
+              "requires_approval": false,
+              "reason": "Noisy neighbor isolation: move app to dedicated App Service Plan."
+            }
+          ]
+        }
+      }
+    },
+    "enterprise": {
+      "description": "Dedicated resources + stronger observability/quotas.",
+      "auto_actions_allowed": [
+        "platform.notify",
+        "runtime.set_env",
+        "azure.scale_out",
+        "azure.scale_up",
+        "azure.move_to_dedicated_plan"
+      ],
+      "limits": {
+        "max_instances": 30
+      },
+      "thresholds": {
+        "active_websocket_connections": { "warn": 5000, "critical": 8000 },
+        "concurrent_workflows": { "warn": 200, "critical": 400 },
+        "http_5xx_rate": { "warn": 0.01, "critical": 0.05 },
+        "p95_start_session_ms": { "warn": 600, "critical": 1000 },
+        "p95_mongo_ms": { "warn": 60, "critical": 150 },
+        "token_spend_usd_1h": { "warn": 50.0, "critical": 150.0 },
+        "storage_gb": { "warn": 200.0, "critical": 500.0 }
+      },
+      "responses": {
+        "active_websocket_connections": {
+          "warn": [
+            {
+              "kind": "azure.scale_out",
+              "requires_approval": false,
+              "mode": "step",
+              "step": 2,
+              "max_instances": 20,
+              "reason": "Scale out aggressively for realtime."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "platform.notify",
+              "requires_approval": false,
+              "message": "Critical realtime load in Enterprise. Consider dedicated realtime hub capacity or sharding by region."
+            }
+          ]
+        },
+        "concurrent_workflows": {
+          "warn": [
+            {
+              "kind": "azure.scale_out",
+              "requires_approval": false,
+              "mode": "step",
+              "step": 2,
+              "max_instances": 25,
+              "reason": "Scale app instances."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "platform.notify",
+              "requires_approval": false,
+              "message": "Critical workflow concurrency. Consider per-tenant quotas and dedicated capacity."
+            }
+          ]
+        },
+        "http_5xx_rate": {
+          "warn": [
+            {
+              "kind": "platform.notify",
+              "requires_approval": false,
+              "message": "Elevated 5xx rate. Investigate and roll back if needed."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "azure.rollback",
+              "requires_approval": true,
+              "reason": "Critical error rate: roll back to last known-good."
+            }
+          ]
+        },
+        "p95_start_session_ms": {
+          "warn": [
+            {
+              "kind": "azure.scale_up",
+              "requires_approval": false,
+              "reason": "Scale up plan if CPU bound; otherwise investigate DB/IO."
+            }
+          ],
+          "critical": [
+            {
+              "kind": "azure.scale_up",
+              "requires_approval": false,
+              "reason": "Critical p95: scale up now, then fix the bottleneck."
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "ask_mozaiks",
+  "display_name": "AskMozaiks (Example)",
+  "description": "Example declarative capability spec. AppGenerator should generate a real spec for your app.",
+  "icon": "help-circle",
+  "visibility": "user",
+  "workflow_id": "chat",
+  "enabled": false,
+  "spec": {
+    "system_prompt_template": "You are AskMozaiks for {{app_name}}. Answer questions using approved retrieval sources only.",
+    "allowed_tools": [],
+    "retrieval_sources": []
+  }
+}

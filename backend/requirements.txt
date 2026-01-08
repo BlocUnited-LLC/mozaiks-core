@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+pydantic
+python-jose
+passlib
+python-multipart
+bcrypt
+pymongo
+motor
+python-dateutil
+requests
+openai
+PyJWT
+bandit
+python-dotenv
+aiohttp

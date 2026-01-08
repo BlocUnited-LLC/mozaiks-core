@@ -1,0 +1,58 @@
+{
+    "branding": {
+        "logo_url": "/assets/logo.png",
+        "favicon_url": "/assets/favicon.ico",
+        "app_name": "Plutus"
+    },
+    "available_themes": [
+        {
+            "name": "Day Light",
+            "id": "light",
+            "colors": {
+                "primary": "#FFFFFF",
+                "secondary": "#F5F7FA",
+                "accent": "#0047AB",
+                "background": "#FFFFFF",
+                "text_primary": "#000000",
+                "text_secondary": "#555555"
+            }
+        },
+        {
+            "name": "Midnight Dark",
+            "id": "dark",
+            "colors": {
+                "primary": "#1E1E1E",
+                "secondary": "#252526",
+                "accent": "#007ACC",
+                "background": "#1E1E1E",
+                "text_primary": "#FFFFFF",
+                "text_secondary": "#A1A1A1"
+            }
+        },
+        {
+            "name": "Purple Dream",
+            "id": "purple",
+            "colors": {
+                "primary": "#2D1B4E",
+                "secondary": "#513D7F",
+                "accent": "#8367C7",
+                "background": "#1A0E2E",
+                "text_primary": "#FFFFFF",
+                "text_secondary": "#C8B6E2"
+            }
+        }
+    ],
+    "default_theme": "light",
+    "typography": {
+        "font_family": "Inter, sans-serif",
+        "base_font_size": "16px",
+        "heading_weight": "600",
+        "body_weight": "400"
+    },
+    "layout": {
+        "border_radius": "8px",
+        "spacing_unit": "10px",
+        "max_width": "1200px",
+        "container_padding": "20px"
+    }
+}

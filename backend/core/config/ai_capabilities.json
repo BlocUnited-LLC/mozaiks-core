@@ -1,0 +1,22 @@
+{
+  "capabilities": [
+    {
+      "id": "ai_chat",
+      "display_name": "AI Chat",
+      "description": "Launch a chat-native MozaiksAI session (ChatUI owned by the runtime).",
+      "icon": "message-circle",
+      "workflow_id": "chat",
+      "enabled": true
+    },
+    {
+      "id": "ai_insights_demo",
+      "display_name": "Insights (Demo)",
+      "description": "Example premium capability mapped to a runtime workflow id.",
+      "icon": "bar-chart",
+      "workflow_id": "insights",
+      "enabled": true,
+      "allowed_plans": ["premium"]
+    }
+  ]
+}
+

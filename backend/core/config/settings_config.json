@@ -1,0 +1,221 @@
+{
+  "profile_sections": [
+    {
+      "id": "personal",
+      "title": "Personal Information",
+      "icon": "user",
+      "order": 1,
+      "visible": true,
+      "editable": true,
+      "fields": [
+        {
+          "id": "full_name",
+          "label": "Full Name",
+          "type": "text",
+          "required": true,
+          "editable": true
+        },
+        {
+          "id": "email",
+          "label": "Email Address",
+          "type": "email",
+          "required": true,
+          "editable": false
+        },
+        {
+          "id": "bio",
+          "label": "Bio",
+          "type": "textarea",
+          "required": false,
+          "editable": true
+        },
+        {
+          "id": "profile_picture",
+          "label": "Profile Picture",
+          "type": "image",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "id": "security",
+      "title": "Security",
+      "icon": "lock",
+      "order": 2,
+      "visible": true,
+      "editable": true,
+      "fields": [
+        {
+          "id": "password",
+          "label": "Password",
+          "type": "password-change",
+          "required": false,
+          "editable": true
+        },
+        {
+          "id": "two_factor",
+          "label": "Two-Factor Authentication",
+          "type": "toggle",
+          "required": false,
+          "editable": true
+        }
+      ]
+    },
+    {
+      "id": "notifications",
+      "title": "Notifications",
+      "icon": "bell",
+      "order": 3,
+      "visible": true,
+      "editable": true,
+      "fields": [
+        {
+          "id": "email_notifications",
+          "label": "Email Notifications",
+          "type": "toggle",
+          "category": "account",
+          "description": "Receive notifications via email",
+          "required": false,
+          "editable": true
+        },
+        {
+          "id": "subscription_updates",
+          "label": "Subscription Updates",
+          "type": "toggle",
+          "category": "subscription",
+          "description": "Receive updates about your subscription status",
+          "required": false,
+          "editable": true,
+          "channels": [
+            "in_app",
+            "email"
+          ],
+          "default_enabled": true
+        }
+      ],
+      "plugin_notification_fields": [
+        {
+          "id": "notes_manager_deadline_passed",
+          "plugin": "notes_manager",
+          "label": "Note Deadline Passed",
+          "type": "toggle",
+          "category": "plugins",
+          "description": "Notifies you when a note deadline is missed",
+          "required": false,
+          "editable": true,
+          "channels": [
+            "in_app",
+            "email"
+          ],
+          "default_enabled": true
+        },
+        {
+          "id": "notes_manager_shared",
+          "plugin": "notes_manager",
+          "label": "Note Shared With You",
+          "type": "toggle",
+          "category": "plugins",
+          "description": "You've been granted access to a shared note",
+          "required": false,
+          "editable": true,
+          "channels": [
+            "in_app"
+          ],
+          "default_enabled": true
+        },
+        {
+          "id": "task_manager_due_today",
+          "plugin": "task_manager",
+          "label": "Task Due Today",
+          "type": "toggle",
+          "category": "plugins",
+          "description": "Notifies you when tasks are due today",
+          "required": false,
+          "editable": true,
+          "channels": [
+            "in_app",
+            "email"
+          ],
+          "default_enabled": true
+        },
+        {
+          "id": "task_manager_completed",
+          "plugin": "task_manager",
+          "label": "Task Completed",
+          "type": "toggle",
+          "category": "plugins",
+          "description": "Notifies you when a task is marked as complete",
+          "required": false,
+          "editable": true,
+          "channels": [
+            "in_app"
+          ],
+          "default_enabled": true
+        },
+        {
+          "id": "notes_manager_note_created",
+          "plugin": "notes_manager",
+          "label": "Note Created",
+          "type": "toggle",
+          "category": "plugins",
+          "description": "Notifies you when you create a new note",
+          "required": false,
+          "editable": true,
+          "channels": [
+            "in_app",
+            "email"
+          ],
+          "default_enabled": true
+        },
+        {
+          "id": "notes_manager_note_updated",
+          "plugin": "notes_manager",
+          "label": "Note Updated",
+          "type": "toggle",
+          "category": "plugins",
+          "description": "Notifies you when you update a note",
+          "required": false,
+          "editable": true,
+          "channels": [
+            "in_app",
+            "email"
+          ],
+          "default_enabled": true
+        },
+        {
+          "id": "notes_manager_note_deleted",
+          "plugin": "notes_manager",
+          "label": "Note Deleted",
+          "type": "toggle",
+          "category": "plugins",
+          "description": "Notifies you when you delete a note",
+          "required": false,
+          "editable": true,
+          "channels": [
+            "in_app",
+            "email"
+          ],
+          "default_enabled": true
+        }
+      ]
+    },
+    {
+      "id": "appearance",
+      "title": "Appearance",
+      "icon": "palette",
+      "order": 4,
+      "visible": true,
+      "editable": true,
+      "fields": [
+        {
+          "id": "theme",
+          "label": "Theme",
+          "type": "theme-selector",
+          "required": false,
+          "editable": true
+        }
+      ]
+    }
+  ]
+}

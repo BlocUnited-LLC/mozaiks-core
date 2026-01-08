@@ -1,0 +1,108 @@
+{
+  "_readme": "Notification templates for different channels. LLMs can add new templates here.",
+  "_usage": "Templates use {{variable}} syntax. Variables come from notification metadata.",
+  
+  "templates": {
+    "subscription_updates": {
+      "in_app": {
+        "title": "{{title}}",
+        "body": "{{message}}"
+      },
+      "email": {
+        "subject": "Subscription Update - {{app_name}}",
+        "html_template": "subscription_update.html",
+        "text_body": "Hi {{username}},\n\n{{message}}\n\nBest regards,\n{{app_name}} Team"
+      },
+      "sms": {
+        "body": "{{app_name}}: {{message}}"
+      },
+      "push": {
+        "title": "{{title}}",
+        "body": "{{message}}",
+        "icon": "/assets/icons/subscription.png",
+        "action_url": "/subscriptions"
+      }
+    },
+    
+    "security_alerts": {
+      "in_app": {
+        "title": "🔐 {{title}}",
+        "body": "{{message}}"
+      },
+      "email": {
+        "subject": "Security Alert - {{app_name}}",
+        "html_template": "security_alert.html",
+        "text_body": "SECURITY ALERT\n\n{{message}}\n\nIf this wasn't you, please contact support immediately."
+      },
+      "sms": {
+        "body": "SECURITY: {{message}} - {{app_name}}"
+      },
+      "push": {
+        "title": "🔐 Security Alert",
+        "body": "{{message}}",
+        "icon": "/assets/icons/security.png",
+        "action_url": "/profile",
+        "require_interaction": true
+      }
+    },
+    
+    "welcome": {
+      "in_app": {
+        "title": "Welcome to {{app_name}}! 🎉",
+        "body": "We're excited to have you on board. Explore your dashboard to get started."
+      },
+      "email": {
+        "subject": "Welcome to {{app_name}}!",
+        "html_template": "welcome.html",
+        "text_body": "Hi {{username}},\n\nWelcome to {{app_name}}! We're thrilled to have you.\n\nGet started by exploring your dashboard.\n\nBest regards,\n{{app_name}} Team"
+      }
+    },
+    
+    "password_reset": {
+      "email": {
+        "subject": "Password Reset Request - {{app_name}}",
+        "html_template": "password_reset.html",
+        "text_body": "Hi {{username}},\n\nYou requested a password reset. Click here to reset: {{reset_link}}\n\nThis link expires in {{expiry_hours}} hours.\n\nIf you didn't request this, ignore this email."
+      },
+      "sms": {
+        "body": "{{app_name}} password reset code: {{reset_code}}. Expires in {{expiry_minutes}} min."
+      }
+    },
+    
+    "_default": {
+      "in_app": {
+        "title": "{{title}}",
+        "body": "{{message}}"
+      },
+      "email": {
+        "subject": "{{title}} - {{app_name}}",
+        "text_body": "Hi {{username}},\n\n{{message}}\n\nBest regards,\n{{app_name}} Team"
+      },
+      "sms": {
+        "body": "{{app_name}}: {{message}}"
+      },
+      "push": {
+        "title": "{{title}}",
+        "body": "{{message}}",
+        "icon": "/assets/icons/notification.png"
+      }
+    }
+  },
+  
+  "digest_templates": {
+    "daily": {
+      "email": {
+        "subject": "Your Daily Summary - {{app_name}}",
+        "html_template": "daily_digest.html",
+        "text_body": "Hi {{username}},\n\nHere's your daily summary:\n\n{{#notifications}}- {{title}}: {{message}}\n{{/notifications}}\n\nBest regards,\n{{app_name}} Team"
+      }
+    },
+    "weekly": {
+      "email": {
+        "subject": "Your Weekly Summary - {{app_name}}",
+        "html_template": "weekly_digest.html",
+        "text_body": "Hi {{username}},\n\nHere's your weekly summary:\n\n{{#notifications}}- {{title}}: {{message}}\n{{/notifications}}\n\nBest regards,\n{{app_name}} Team"
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+    "plugins": [
+        {
+            "name": "notes_manager",
+            "display_name": "Notes Manager",
+            "description": "Plugin for notes_manager",
+            "version": "1.0.0",
+            "enabled": true,
+            "backend": "plugins.notes_manager.logic"
+        },
+        {
+            "name": "task_manager",
+            "display_name": "Task Manager",
+            "description": "Plugin for task_manager",
+            "version": "1.0.0",
+            "enabled": true,
+            "backend": "plugins.task_manager.logic"
+        }
+    ]
+}

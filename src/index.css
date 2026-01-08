@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Root variables (will be overridden by theme manager) */
+:root {
+    --primary: #0047AB;
+    --secondary: #F5F7FA;
+    --accent: #FF5733;
+    --background: #FFFFFF;
+    --text_primary: #000000;
+    --text_secondary: #555555;
+
+    --font-family: 'Inter', sans-serif;
+    --base-font-size: 16px;
+    --heading-weight: 600;
+    --body-weight: 400;
+
+    --border-radius: 8px;
+    --spacing-unit: 10px;
+    --max-width: 1200px;
+    --container-padding: 20px;
+}
+
+/* Custom component styles */
+@layer components {
+  .plugin-container {
+    @apply bg-secondary p-4 rounded-lg shadow;
+  }
+  
+  .plugin-header {
+    @apply text-xl font-semibold text-text-primary mb-4;
+  }
+  
+  .btn {
+    @apply px-4 py-2 rounded font-medium transition-colors duration-200;
+  }
+  
+  .btn-primary {
+    @apply bg-accent text-white hover:opacity-90;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-text-primary border border-gray-300 hover:bg-gray-100;
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "default": [
+    {
+      "label": "AI",
+      "path": "/ai",
+      "icon": "sparkles"
+    },
+    {
+      "label": "Profile",
+      "path": "/profile",
+      "icon": "user"
+    },
+    {
+      "label": "Subscription",
+      "path": "/subscriptions",
+      "icon": "credit-card"
+    }
+  ],
+  "plugins": [
+    {
+      "plugin_name": "task_manager",
+      "label": "Task Manager",
+      "path": "/plugins/task_manager",
+      "icon": "check-square"
+    },
+    {
+      "plugin_name": "notes_manager",
+      "label": "Notes Manager",
+      "path": "/plugins/notes_manager",
+      "icon": "file-text"
+    }
+  ]
+}

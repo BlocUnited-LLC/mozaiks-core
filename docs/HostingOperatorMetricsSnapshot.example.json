@@ -1,0 +1,15 @@
+{
+  "app_id": "app_demo_123",
+  "profile": "starter",
+  "current_instances": 1,
+  "metrics": {
+    "active_websocket_connections": 450,
+    "concurrent_workflows": 20,
+    "http_5xx_rate": 0.06,
+    "p95_start_session_ms": 1600,
+    "p95_mongo_ms": 210,
+    "token_spend_usd_1h": 6.5,
+    "storage_gb": 12.4
+  }
+}
+
