@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <base href="/resources/16par/admin/keycloak.v2/" />
+    <link rel="icon" type="image/svg+xml" href="/resources/16par/admin/keycloak.v2/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Web site to manage keycloak" />
+    
+
+    <title>Keycloak Administration UI</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "/resources/16par/common/keycloak/vendor/react/react.production.min.js",
+          "react/jsx-runtime": "/resources/16par/common/keycloak/vendor/react/react-jsx-runtime.production.min.js",
+          "react-dom": "/resources/16par/common/keycloak/vendor/react-dom/react-dom.production.min.js"
+        }
+      }
+    </script>
+
+    <style>
+      body {
+        margin: 0;
+      }
+
+      body, #app {
+        height: 100%;
+      }
+
+      .container {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+      }
+
+      .keycloak__loading-container {
+        height: 100vh;
+        width: 100%;
+        background-color: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        margin: 0;
+      }
+
+      #loading-text {
+        z-index: 1000;
+        font-size: 20px;
+        font-weight: 600;
+        padding-top: 32px;
+      }
+    </style>
+    <script type="module" crossorigin src="/resources/16par/admin/keycloak.v2/assets/index-ChCsj1Fi.js"></script>
+    <link rel="stylesheet" crossorigin href="/resources/16par/admin/keycloak.v2/assets/index-DmufuwSM.css">
+  
+
+  </head>
+
+
+  <body>
+    <div id="app">
+      <main class="container">
+        <div class="keycloak__loading-container">
+          <span class="pf-c-spinner pf-m-xl" role="progressbar" aria-valuetext="Loading...">
+            <span class="pf-c-spinner__clipper"></span>
+            <span class="pf-c-spinner__lead-ball"></span>
+            <span class="pf-c-spinner__tail-ball"></span>
+          </span>
+          <div>
+            <p id="loading-text">Loading the Admin UI</p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+  
+
+  <script id="environment" type="application/json">
+    {
+      "loginRealm": "master",
+      "clientId": "security-admin-console",
+      "authServerUrl": "https://auth.mozaiks.ai",
+      "authUrl": "https://auth.mozaiks.ai",
+      "consoleBaseUrl": "/admin/master/console/",
+      "resourceUrl": "/resources/16par/admin/keycloak.v2",
+      "masterRealm": "master",
+      "resourceVersion": "16par",
+      "logo": "",
+      "logoUrl": ""
+    }
+  </script>
+</body>
+
+
+</html>
