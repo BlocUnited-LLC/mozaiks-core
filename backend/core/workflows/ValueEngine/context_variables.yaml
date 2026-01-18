@@ -1,0 +1,36 @@
+definitions:
+- name: interview_complete
+  type: boolean
+  description: True when the interview agent signals completion (NEXT).
+  source:
+    type: state
+    default: false
+    triggers:
+    - type: agent_text
+      agent: ValueInterviewAgent
+      ui_hidden: true
+      match:
+        equals: NEXT
+- name: concept_presented
+  type: boolean
+  description: True once a refined concept has been presented (CONCEPT_READY).
+  source:
+    type: state
+    default: false
+    triggers:
+    - type: agent_text
+      agent: GapAnalysisAgent
+      ui_hidden: true
+      match:
+        equals: CONCEPT_READY
+agents:
+- agent_name: ValueInterviewAgent
+  variables:
+  - interview_complete
+- agent_name: ResearchAgent
+  variables:
+  - interview_complete
+  - concept_presented
+- agent_name: GapAnalysisAgent
+  variables:
+  - concept_presented

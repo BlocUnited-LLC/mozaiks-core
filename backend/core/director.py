@@ -1,4 +1,14 @@
 # backend/core/director.py
+"""
+MozaiksCore Director - Per-App Runtime Container
+
+BOUNDARY CONTRACT:
+- This is a PER-APP runtime (one deployment = one app)
+- All requests MUST be scoped by app_id (from env) + user_id (from JWT)
+- Platform founders/admins NEVER authenticate here
+- Subscriptions are READ-ONLY (enforced, not managed)
+- Business logic lives in plugins ONLY
+"""
 from fastapi import FastAPI, Request, HTTPException, Depends, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -24,11 +34,36 @@ from core.routes.notifications import router as notifications_router
 from core.routes.ai import router as ai_router
 from core.settings_manager import settings_manager
 
+# Admin and internal routes (require X-Internal-API-Key or superadmin JWT)
+from core.routes.admin_users import router as admin_users_router
+from core.routes.notifications_admin import router as notifications_admin_router
+from core.routes.analytics import router as analytics_router
+from core.routes.status import router as status_router
+from core.routes.app_metadata import router as app_metadata_router
+from core.routes.push_subscriptions import router as push_subscriptions_router
+from core.routes.events import router as events_router
+from core.routes.subscription_sync import router as subscription_sync_router
+
 logger = logging.getLogger("mozaiks_core")
 logging.basicConfig(level=logging.INFO)
 
+# ============================================================================
+# APP IDENTITY (Per-App Runtime)
+# ============================================================================
+# MOZAIKS_APP_ID is the unique identifier for this app instance.
+# It MUST be set in production and is injected into all requests.
+APP_ID = os.getenv("MOZAIKS_APP_ID", "").strip()
+if not APP_ID and os.getenv("ENV", "development").lower() == "production":
+    logger.critical("❌ MOZAIKS_APP_ID is required in production")
+    raise RuntimeError("MOZAIKS_APP_ID must be set in production")
+elif not APP_ID:
+    APP_ID = "dev_app"
+    logger.warning(f"⚠️ MOZAIKS_APP_ID not set, using default: {APP_ID}")
+
+logger.info(f"🏷️ App ID: {APP_ID}")
+
 # Create FastAPI app
-app = FastAPI()
+app = FastAPI(title=f"MozaiksCore Runtime ({APP_ID})")
 
 # Configure CORS based on environment
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
@@ -50,6 +85,17 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api/auth")
 app.include_router(notifications_router, prefix="/api/notifications")
 app.include_router(ai_router)
+
+# Admin and internal routes (require X-Internal-API-Key or superadmin JWT)
+# These are Control Plane integration points for MozaiksAI
+app.include_router(admin_users_router)  # Has prefix /__mozaiks/admin/users
+app.include_router(notifications_admin_router)  # Has prefix /__mozaiks/admin/notifications
+app.include_router(analytics_router, prefix="/__mozaiks/admin/analytics", tags=["admin-analytics"])
+app.include_router(status_router, prefix="/__mozaiks/admin/status", tags=["admin-status"])
+app.include_router(app_metadata_router, prefix="/__mozaiks/admin/app", tags=["admin-app-metadata"])
+app.include_router(push_subscriptions_router)  # Has prefix /api/push
+app.include_router(events_router, prefix="/api/events", tags=["events"])
+app.include_router(subscription_sync_router)
 
 # Determine if monetization is enabled
 MONETIZATION = os.getenv("MONETIZATION", "0") == "1"
@@ -76,6 +122,30 @@ _last_config_refresh = {}  # Cache timestamps for config reloads
 # Cache for config files
 config_cache = {}
 CONFIG_CACHE_TTL = 300  # 5 minutes in seconds
+
+
+def get_app_id() -> str:
+    """Return the app_id for this runtime instance."""
+    return APP_ID
+
+
+def inject_request_context(user: dict, data: dict) -> dict:
+    """
+    Inject app_id and user_id into request data.
+    
+    SECURITY: These values are server-derived and cannot be overridden by client.
+    """
+    data["app_id"] = APP_ID
+    data["user_id"] = user["user_id"]
+    data["_context"] = {
+        "app_id": APP_ID,
+        "user_id": user["user_id"],
+        "username": user.get("username"),
+        "roles": user.get("roles", []),
+        "is_superadmin": user.get("is_superadmin", False),
+    }
+    return data
+
 
 async def ensure_plugins_up_to_date():
     """
@@ -463,8 +533,9 @@ async def execute_plugin(plugin_name: str, request: Request, user: dict = Depend
         logger.error(f"Error parsing request JSON: {e}")
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
-    # Add user_id to the data
-    data["user_id"] = user["user_id"]
+    # SECURITY: Inject server-derived context (app_id + user_id)
+    # Client cannot override these values
+    data = inject_request_context(user, data)
     
     # Validate user access to the plugin (if monetization is enabled)
     # Skip access check if monetization is disabled
@@ -478,7 +549,7 @@ async def execute_plugin(plugin_name: str, request: Request, user: dict = Depend
         result = await plugin_manager.execute_plugin(plugin_name, data)
         
         execution_time = time.time() - execution_start
-        logger.info(f"Plugin {plugin_name} executed in {execution_time:.2f}s")
+        logger.info(f"Plugin {plugin_name} executed in {execution_time:.2f}s for app={APP_ID} user={user['user_id']}")
         
         if isinstance(result, dict) and "error" in result:
             logger.error(f"Execution error for plugin {plugin_name}: {result['error']}")
@@ -486,6 +557,7 @@ async def execute_plugin(plugin_name: str, request: Request, user: dict = Depend
 
         # Publish event when a plugin is successfully executed
         event_bus.publish("plugin_executed", {
+            "app_id": APP_ID,
             "plugin": plugin_name, 
             "user": user["user_id"],
             "execution_time": execution_time

@@ -1,0 +1,12 @@
+tools:
+- agent: GapAnalysisAgent
+  file: concept_blueprint.py
+  function: save_concept_blueprint
+  description: Persist the refined concept blueprint into Mongo (autogen_ai_agents.Concepts)
+    and render the ConceptBlueprint artifact.
+  tool_type: Agent_Tool
+  auto_invoke: false
+  ui:
+    component: null
+    mode: null
+lifecycle_tools: []

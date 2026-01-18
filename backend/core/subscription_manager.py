@@ -1,4 +1,25 @@
 # /backend/core/subscription_manager.py
+"""
+BOUNDARY CONTRACT: Subscription Manager (READ-ONLY for App Users)
+
+This manager enforces subscription-based access control for plugins.
+It is READ-ONLY for app users - subscription mutations are only allowed
+via the MozaiksAI Control Plane using X-Internal-API-Key authentication.
+
+READ (available to all authenticated users):
+  - get_user_subscription(user_id)
+  - is_plugin_accessible(user_id, plugin_name)
+  - get_available_plans()
+
+WRITE (Control Plane only, via X-Internal-API-Key):
+  - change_user_subscription(user_id, new_plan, *, _internal_call=False)
+  - cancel_user_subscription(user_id, *, _internal_call=False)
+  - start_user_trial(user_id, *, _internal_call=False)
+  - sync_subscription_from_control_plane(user_id, subscription_data)
+
+NOTE: Payment processing is handled by MozaiksAI Control Plane (Stripe),
+not by this runtime. This module only stores/reads subscription state.
+"""
 import os
 import json
 import logging
@@ -14,12 +35,35 @@ from core.config.database import (
 logger = logging.getLogger("mozaiks_core.subscription_manager")
 
 # Load environment variables
-SUBSCRIPTION_API_URL = os.getenv("SUBSCRIPTION_API_URL", "https://your-subscription-service.com")
+SUBSCRIPTION_API_URL = os.getenv("SUBSCRIPTION_API_URL", "")
 
+# Control whether subscription writes are allowed (for local dev only)
+ALLOW_LOCAL_SUBSCRIPTION_WRITES = os.getenv("ALLOW_LOCAL_SUBSCRIPTION_WRITES", "false").lower() in ("1", "true", "yes")
+
+# Default config when no subscription_config.json exists.
+# NOTE: Payment integration is handled by Mozaiks Control Plane, not MozaiksCore.
+# This runtime only enforces subscription state — it does NOT process payments.
 DEFAULT_SUBSCRIPTION_CONFIG = {
-    "payment_integration": "stripe_connect",
     "subscription_plans": []
 }
+
+
+def _require_internal_call(operation: str, _internal_call: bool) -> None:
+    """
+    Guard function to ensure write operations are only called internally.
+    In production, subscription mutations must come from Control Plane.
+    """
+    if _internal_call:
+        return  # Allowed - internal service call
+    
+    if ALLOW_LOCAL_SUBSCRIPTION_WRITES:
+        logger.warning(f"⚠️ {operation}: Allowing local write (ALLOW_LOCAL_SUBSCRIPTION_WRITES=true)")
+        return  # Allowed - local dev mode
+    
+    raise HTTPException(
+        status_code=403,
+        detail=f"Subscription {operation} is not allowed. Subscription changes must come from Control Plane."
+    )
 
 class SubscriptionManager:
     def __init__(self):
@@ -123,10 +167,14 @@ class SubscriptionManager:
             "updated_at": subscription["updated_at"],
         }
 
-    async def change_user_subscription(self, user_id: str, new_plan: str):
+    async def change_user_subscription(self, user_id: str, new_plan: str, *, _internal_call: bool = False):
         """
         Updates the user's subscription plan in MongoDB and logs the change.
+        
+        WRITE OPERATION - Control Plane only.
+        Set _internal_call=True when called from admin routes with X-Internal-API-Key.
         """
+        _require_internal_call("change", _internal_call)
         available_plans = self.get_available_plans()
         valid_plans = [plan["name"].lower() for plan in available_plans]
         if new_plan.lower() not in valid_plans:
@@ -157,10 +205,14 @@ class SubscriptionManager:
         else:
             raise HTTPException(status_code=500, detail="Failed to update subscription")
 
-    async def cancel_user_subscription(self, user_id: str):
+    async def cancel_user_subscription(self, user_id: str, *, _internal_call: bool = False):
         """
         Cancels the user's subscription, downgrades to free, and logs the change.
+        
+        WRITE OPERATION - Control Plane only.
+        Set _internal_call=True when called from admin routes with X-Internal-API-Key.
         """
+        _require_internal_call("cancel", _internal_call)
         now = datetime.now(timezone.utc)
         subscription = await self.get_user_subscription(user_id)
         previous_plan = subscription["plan"]
@@ -187,8 +239,14 @@ class SubscriptionManager:
         else:
             raise HTTPException(status_code=500, detail="Failed to cancel subscription")
 
-    async def start_user_trial(self, user_id: str):
-        """Start a trial subscription for a new user"""
+    async def start_user_trial(self, user_id: str, *, _internal_call: bool = False):
+        """
+        Start a trial subscription for a new user.
+        
+        WRITE OPERATION - Control Plane only.
+        Set _internal_call=True when called from admin routes with X-Internal-API-Key.
+        """
+        _require_internal_call("start_trial", _internal_call)
         # Get trial plan from config, with fallbacks
         settings = self.subscription_config.get("settings", {})
         trial_plan = settings.get("trial_plan")
@@ -273,10 +331,14 @@ class SubscriptionManager:
             "days_remaining": (trial_end - now).days
         }
 
-    async def log_billing_event(self, user_id: str, amount: float, event_type: str, status: str, metadata=None):
+    async def log_billing_event(self, user_id: str, amount: float, event_type: str, status: str, metadata=None, *, _internal_call: bool = False):
         """
         Logs billing events such as payments, refunds, and invoices.
+        
+        WRITE OPERATION - Control Plane only.
+        Set _internal_call=True when called from admin routes with X-Internal-API-Key.
         """
+        _require_internal_call("log_billing", _internal_call)
         now = datetime.now(timezone.utc)
         billing_event = {
             "user_id": user_id,
@@ -311,6 +373,70 @@ class SubscriptionManager:
         Calculates the next billing date based on the user's plan cycle.
         """
         return current_date + relativedelta(months=1)
+
+    async def sync_subscription_from_control_plane(self, user_id: str, subscription_data: dict, *, _internal_call: bool = False):
+        """
+        Sync subscription state from MozaiksAI Control Plane.
+        
+        This is the PRIMARY method for subscription updates in production.
+        Control Plane pushes subscription state after payment events.
+        
+        Expected subscription_data:
+        {
+            "plan": "premium",
+            "status": "active" | "trialing" | "inactive" | "canceled",
+            "billing_cycle": "monthly" | "yearly",
+            "next_billing_date": "2024-02-01T00:00:00Z",
+            "trial_end_date": "2024-01-15T00:00:00Z",  # optional
+            "stripe_subscription_id": "sub_xxx",  # optional, for reference
+        }
+        
+        WRITE OPERATION - Control Plane only.
+        """
+        _require_internal_call("sync_from_control_plane", _internal_call)
+        
+        now = datetime.now(timezone.utc)
+        
+        # Build update document
+        update_doc = {
+            "user_id": user_id,
+            "plan": subscription_data.get("plan", "free"),
+            "status": subscription_data.get("status", "inactive"),
+            "billing_cycle": subscription_data.get("billing_cycle", "monthly"),
+            "updated_at": now.isoformat(),
+            "synced_from_control_plane": True,
+            "last_sync_at": now.isoformat(),
+        }
+
+        app_id = subscription_data.get("app_id") or subscription_data.get("appId")
+        if app_id:
+            update_doc["app_id"] = app_id
+        
+        # Optional fields
+        if subscription_data.get("next_billing_date"):
+            update_doc["next_billing_date"] = subscription_data["next_billing_date"]
+        if subscription_data.get("trial_end_date"):
+            update_doc["trial_end_date"] = subscription_data["trial_end_date"]
+            update_doc["is_trial"] = subscription_data.get("status") == "trialing"
+        if subscription_data.get("stripe_subscription_id"):
+            update_doc["external_subscription_id"] = subscription_data["stripe_subscription_id"]
+        
+        # Upsert subscription
+        result = await subscriptions_collection.update_one(
+            {"user_id": user_id},
+            {"$set": update_doc},
+            upsert=True
+        )
+        
+        logger.info(f"✅ Subscription synced from Control Plane for user {user_id}: plan={update_doc['plan']}, status={update_doc['status']}")
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "plan": update_doc["plan"],
+            "status": update_doc["status"],
+        }
+
 
 # Initialize the subscription manager
 subscription_manager = SubscriptionManager()

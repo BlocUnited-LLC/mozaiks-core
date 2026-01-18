@@ -2,6 +2,20 @@
 
 > **Architecture Principle**: Plugins should be **self-contained** and integrate via configuration files. The core system handles orchestration — plugins should not require core modifications to function.
 
+Your open-source **“tenant runtime core.”**  
+
+**Contains:**
+
+- App shell runtime (frontend + backend skeletons)  
+- Plugin runtime contract + loaders  
+- Keycloak assets (already migrated)  
+- UI theme rendering system (reads `ui-theme.yaml`)  
+- Example tenant config (NightyNite)  
+
+This is what **“apps are built on.”**
+
+---
+
 ## Project Overview
 
 **MozaiksCore** is a production-grade application scaffold with authentication, routing, subscriptions, and plugin infrastructure. The architecture is designed so that features are added through **sandboxed plugins** that register via JSON configurations.

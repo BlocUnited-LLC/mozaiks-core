@@ -1,0 +1,6 @@
+structured_outputs:
+  models: {}
+  registry:
+    ValueInterviewAgent: null
+    ResearchAgent: null
+    GapAnalysisAgent: null

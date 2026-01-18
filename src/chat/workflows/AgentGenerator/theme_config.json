@@ -1,0 +1,62 @@
+{
+  "branding": {
+    "logo_url": "/mozaik_logo.svg",
+    "favicon_url": "/mozaik.png",
+    "app_name": "MozaiksAI"
+  },
+  "available_themes": [
+    {
+      "name": "Light (Default)",
+      "id": "light",
+      "colors": {
+        "primary": "#06b6d4",
+        "primary_light": "#67e8f9",
+        "primary_dark": "#0891b2",
+        "secondary": "#7c3aed",
+        "accent": "#06b6d4",
+        "background": "#f8fafc",
+        "surface": "#ffffff",
+        "surface_alt": "#f1f5f9",
+        "text_primary": "#0f172a",
+        "text_secondary": "#475569",
+        "text_muted": "#64748b",
+        "text_on_accent": "#f8fafc",
+        "border_subtle": "#cbd5f5",
+        "border_strong": "#94a3b8"
+      }
+    },
+    {
+      "name": "Midnight Dark",
+      "id": "dark",
+      "colors": {
+        "primary": "#06b6d4",
+        "primary_light": "#67e8f9",
+        "primary_dark": "#0891b2",
+        "secondary": "#8b5cf6",
+        "accent": "#8b5cf6",
+        "background": "#0b1220",
+        "surface": "#0f1724",
+        "surface_alt": "#131d33",
+        "text_primary": "#e6eef8",
+        "text_secondary": "#94a3b8",
+        "text_muted": "#64748b",
+  "text_on_accent": "#f8fafc",
+        "border_subtle": "#1e293b",
+        "border_strong": "#334155"
+      }
+    }
+  ],
+  "default_theme": "dark",
+  "typography": {
+    "font_family": "Rajdhani, Inter, sans-serif",
+    "base_font_size": "16px",
+    "heading_weight": "700",
+    "body_weight": "400"
+  },
+  "layout": {
+    "border_radius": "12px",
+    "spacing_unit": "8px",
+    "max_width": "1200px",
+    "container_padding": "20px"
+  }
+}

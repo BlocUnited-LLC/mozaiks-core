@@ -1,0 +1,49 @@
+{
+  "pack_name": "DefaultPack",
+  "version": 2,
+  "description": "Workflow registry + journeys. A journey step can be a string (single workflow) or an array of strings (parallel workflows).",
+  "workflows": [
+    {
+      "id": "ValueEngine",
+      "description": "Concept & value decomposition"
+    },
+    {
+      "id": "DesignDocs",
+      "description": "Generates frontend/backend/database design docs"
+    },
+    {
+      "id": "AgentGenerator",
+      "description": "Generates workflow artifacts and agent specs"
+    },
+    {
+      "id": "AppGenerator",
+      "description": "Generates files for app repo"
+    },
+    {
+      "id": "ValidationEngine",
+      "description": "Validation execution for an app",
+      "dependencies": ["AppGenerator"]
+    },
+    {
+      "id": "InvestorAnalytics",
+      "description": "Reporting and analytics for investors",
+      "dependencies": []
+    },
+    {
+      "id": "GovernanceVotes",
+      "description": "Compliance/audit workflows",
+      "dependencies": ["AppGenerator"]
+    }
+  ],
+  "journeys": [
+    {
+      "id": "build",
+      "description": "Builds an app in order; runs some steps in parallel.",
+      "steps": [
+        "ValueEngine",
+        ["AgentGenerator", "DesignDocs"],
+        "AppGenerator"
+      ]
+    }
+  ]
+}

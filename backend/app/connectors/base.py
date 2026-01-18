@@ -1,4 +1,19 @@
 # backend/app/connectors/base.py
+"""
+Payment connector interfaces for MozaiksCore.
+
+BOUNDARY CONTRACT:
+- MozaiksCore does NOT process payments directly
+- PaymentConnector is an abstraction for DELEGATING to external services
+- In hosted mode: delegates to Mozaiks Gateway (Control Plane)
+- In self-host mode: uses mock connector (no real payments)
+- Direct Stripe/PayPal integration is FORBIDDEN in this repo
+
+The Control Plane (.NET) owns billing. This runtime only:
+1. Checks subscription status (via gateway or config)
+2. Redirects to hosted checkout (via gateway)
+3. Enforces feature gating based on subscription state
+"""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

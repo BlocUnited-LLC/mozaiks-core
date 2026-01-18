@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime
+import hmac
 import logging
 import os
 import time
@@ -11,7 +12,7 @@ from typing import Any, Optional
 
 import aiohttp
 from bson import ObjectId
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Header, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
@@ -438,3 +439,116 @@ async def get_current_active_user(current_user: dict = Depends(get_current_user)
     if user.get("disabled"):
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+
+# ---------------------------------------------------------------------------
+# Admin Auth Helpers (for /__mozaiks/admin/* routes)
+# ---------------------------------------------------------------------------
+
+def _get_internal_api_key() -> Optional[str]:
+    """Get the internal API key from environment or settings."""
+    from core.config.settings import settings
+    return os.getenv("INTERNAL_API_KEY") or getattr(settings, "internal_api_key", None)
+
+
+def _safe_compare(a: str, b: str) -> bool:
+    """Constant-time comparison to prevent timing attacks."""
+    return hmac.compare_digest(a.encode(), b.encode())
+
+
+async def require_internal_api_key(
+    x_internal_api_key: Optional[str] = Header(None, alias="X-Internal-API-Key"),
+) -> dict[str, Any]:
+    """Dependency that validates X-Internal-API-Key only (no user JWT)."""
+    internal_key = _get_internal_api_key()
+
+    if not internal_key:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Internal API not configured (no INTERNAL_API_KEY set)",
+        )
+
+    if not x_internal_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing X-Internal-API-Key header",
+        )
+
+    if not _safe_compare(internal_key, x_internal_api_key):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid internal API key",
+        )
+
+    return {
+        "username": "_internal_service",
+        "user_id": "_internal",
+        "auth_mode": "internal_api_key",
+        "is_internal_service": True,
+    }
+
+
+async def get_current_admin_user(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+) -> dict[str, Any]:
+    """
+    Get the current user and verify they have admin (superadmin) privileges.
+    
+    This is for admin dashboard endpoints that require a logged-in superadmin user.
+    Use require_admin_or_internal for endpoints that can also be called by internal services.
+    """
+    current_user = await get_current_user(request, credentials)
+    
+    if not is_superadmin(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required (superadmin role not found)"
+        )
+    
+    return current_user
+
+
+async def require_admin_or_internal(
+    request: Request,
+    x_internal_api_key: Optional[str] = Header(None, alias="X-Internal-API-Key"),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+) -> dict[str, Any]:
+    """
+    Dependency that allows access via:
+    1. X-Internal-API-Key header (for MozaiksAI/Control Plane service-to-service calls)
+    2. Bearer token with superadmin role (for admin dashboard)
+    
+    Returns a user dict (real user for JWT, synthetic for API key).
+    """
+    internal_key = _get_internal_api_key()
+    
+    # Check internal API key first (service-to-service)
+    if x_internal_api_key and internal_key:
+        if _safe_compare(internal_key, x_internal_api_key):
+            return {
+                "username": "_internal_service",
+                "user_id": "_internal",
+                "email": "",
+                "auth_mode": "internal_api_key",
+                "identity_user_id": "_internal",
+                "roles": ["internal_service"],
+                "is_superadmin": True,
+                "is_internal_service": True,
+            }
+    
+    # Fall back to JWT-based admin auth
+    if credentials and (credentials.scheme or "").lower() == "bearer":
+        try:
+            current_user = await get_current_user(request, credentials)
+            if is_superadmin(current_user):
+                return current_user
+        except HTTPException:
+            pass  # Fall through to final error
+    
+    # Neither method succeeded
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Admin access required (provide X-Internal-API-Key or superadmin Bearer token)",
+        headers={"WWW-Authenticate": "Bearer"},
+    )

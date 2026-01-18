@@ -1,4 +1,5 @@
 {
+    "_comment": "BOUNDARY: This config defines feature gating ONLY. Billing/payments are handled by Mozaiks Control Plane. Prices here are for display purposes in self-hosted mode.",
     "settings": {
       "show_subscription_status": true,
       "show_cancel_button": true,

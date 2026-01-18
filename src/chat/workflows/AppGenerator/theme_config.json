@@ -1,0 +1,72 @@
+{
+  "workflow": "AppGenerator",
+  "version": "1.0.0",
+  "artifacts": {
+    "code-editor": {
+      "enabled": true,
+      "defaultLanguage": "javascript",
+      "theme": "vs-dark",
+      "readOnly": false,
+      "showLineNumbers": true,
+      "showMinimap": false,
+      "fontSize": 14,
+      "wordWrap": "on",
+      "autoFormat": true,
+      "supportedLanguages": ["javascript", "typescript", "jsx", "tsx", "json", "css", "html", "python"]
+    },
+    "e2b-preview": {
+      "enabled": true,
+      "autoStart": true,
+      "defaultPort": 3000,
+      "showDevTools": false,
+      "refreshOnChange": false,
+      "sandboxTimeout": 120,
+      "showLoadingIndicator": true
+    },
+    "build-status": {
+      "enabled": true,
+      "showLogs": true,
+      "autoScroll": true,
+      "showTimestamps": false,
+      "collapseWarnings": false,
+      "errorHighlighting": true
+    },
+    "file-tree": {
+      "enabled": true,
+      "showHiddenFiles": false,
+      "defaultExpanded": ["src"],
+      "sortFoldersFirst": true,
+      "showFileIcons": true
+    },
+    "export-actions": {
+      "enabled": true,
+      "showGitHubExport": true,
+      "showDownloadZip": true,
+      "showDeploy": false,
+      "requireValidation": true
+    }
+  },
+  "layout": {
+    "defaultView": "split",
+    "views": {
+      "split": {
+        "leftPanel": "file-tree",
+        "centerPanel": "code-editor",
+        "rightPanel": "e2b-preview"
+      },
+      "code-only": {
+        "mainPanel": "code-editor"
+      },
+      "preview-only": {
+        "mainPanel": "e2b-preview"
+      }
+    }
+  },
+  "colors": {
+    "buildSuccess": "#10b981",
+    "buildError": "#ef4444",
+    "buildWarning": "#f59e0b",
+    "buildRunning": "#3b82f6"
+  }
+}
+
