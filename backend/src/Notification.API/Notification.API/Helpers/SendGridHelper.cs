@@ -7,9 +7,17 @@ namespace Notification.API.Helpers
     {
         public static async Task<string> SendEmailAsync(string toAddress, string name, string subject, string body)
         {
-            var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY") ?? throw new InvalidOperationException("SENDGRID_API_KEY not configured");
+            var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY") 
+                ?? throw new InvalidOperationException("SENDGRID_API_KEY not configured");
+            
+            var fromEmail = Environment.GetEnvironmentVariable("SENDGRID_FROM_EMAIL") 
+                ?? throw new InvalidOperationException("SENDGRID_FROM_EMAIL not configured");
+            
+            var fromName = Environment.GetEnvironmentVariable("SENDGRID_FROM_NAME") 
+                ?? "Mozaiks"; // Default fallback
+            
             var client = new SendGridClient(apiKey);
-            var from = new EmailAddress("no-reply@mozaiks.io", "Mozaiks");
+            var from = new EmailAddress(fromEmail, fromName);
             var to = new EmailAddress(toAddress, name);
             var plainTextContent = "";
             var htmlContent = body;
@@ -36,4 +44,3 @@ namespace Notification.API.Helpers
         }
     }
 }
-
