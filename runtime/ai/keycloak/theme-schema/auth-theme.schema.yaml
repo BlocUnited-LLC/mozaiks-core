@@ -1,0 +1,146 @@
+# Mozaiks Auth Theme Configuration Schema
+# 
+# This YAML file defines the visual appearance of the auth (login/register) pages
+# for a Mozaiks-hosted app. AI agents generate this during the app creation process.
+#
+# The file is stored at: /apps/{appId}/auth-theme.yaml
+# Assets are stored at:  /apps/{appId}/auth-assets/
+#
+# ==============================================================================
+
+# Schema version (for future compatibility)
+schema_version: "1.0"
+
+# App identification
+app:
+  id: "example-app-id"
+  name: "NightyNite"
+  tagline: "Your dreams, delivered"  # Optional subtitle
+
+# Brand identity
+brand:
+  # Logo displayed at top of login card
+  # Path relative to auth-assets/ folder, or absolute URL
+  logo: "logo.svg"
+  logo_width: 48    # px
+  logo_height: 48   # px
+  
+  # App name displayed next to/below logo
+  # If omitted, uses app.name
+  display_name: "nightynite"
+  
+  # Font for brand name (Google Fonts name or system font)
+  brand_font: "Poppins"
+  brand_font_weight: 700
+
+# Color palette
+colors:
+  # Background
+  background:
+    type: "gradient"  # "solid", "gradient", or "image"
+    # For solid:
+    # color: "#1a0a2e"
+    # For gradient:
+    gradient_start: "#1a0a2e"
+    gradient_end: "#2d1b4e"
+    gradient_angle: 135  # degrees
+    # For image:
+    # image: "background.jpg"
+    # overlay_color: "rgba(0,0,0,0.5)"  # Optional overlay
+  
+  # Glass card
+  card:
+    background: "rgba(139, 92, 246, 0.12)"
+    border: "rgba(167, 139, 250, 0.35)"
+    blur: 24  # px
+    border_radius: 28  # px
+  
+  # Text colors
+  text:
+    primary: "#ffffff"
+    secondary: "rgba(255, 255, 255, 0.85)"
+    muted: "rgba(255, 255, 255, 0.6)"
+  
+  # Input fields
+  inputs:
+    background: "rgba(139, 92, 246, 0.15)"
+    border: "rgba(167, 139, 250, 0.45)"
+    text: "#ffffff"
+    placeholder: "rgba(255, 255, 255, 0.5)"
+    border_radius: 14  # px
+  
+  # Primary button (Sign In)
+  button:
+    type: "gradient"  # "solid" or "gradient"
+    # For solid:
+    # color: "#8b5cf6"
+    # For gradient:
+    gradient_start: "#a78bfa"
+    gradient_end: "#22d3ee"
+    gradient_angle: 90
+    text: "#0f172a"
+    border_radius: 14  # px
+    shadow: "0 8px 32px rgba(167, 139, 250, 0.4)"
+  
+  # Links
+  links:
+    color: "#e879f9"
+    hover: "#ffffff"
+  
+  # Focus state
+  focus:
+    ring_color: "rgba(167, 139, 250, 0.6)"
+
+# Background image/decoration (optional)
+background_assets:
+  # Main background image
+  image: "bg.png"  # or "bg.jpg", "bg.svg"
+  
+  # Additional decorative elements (optional)
+  decorations:
+    - type: "blob"
+      position: "top-left"
+      color: "rgba(167, 139, 250, 0.2)"
+      blur: 100
+    - type: "blob"
+      position: "bottom-right"
+      color: "rgba(34, 211, 238, 0.15)"
+      blur: 120
+
+# Social login providers to show
+# Order determines display order; only configured providers are shown
+social_providers:
+  - google
+  - apple
+  - facebook
+  # - github
+  # - microsoft
+  # - twitter
+
+# Custom text overrides (optional)
+text:
+  sign_in_title: "Sign In"
+  sign_up_title: "Create Account"
+  forgot_password: "Forgot Password?"
+  no_account: "Don't have an account?"
+  sign_up_link: "Sign Up"
+  has_account: "Already have an account?"
+  sign_in_link: "Sign In"
+  or_continue_with: "or continue with"
+
+# Advanced customization (optional)
+advanced:
+  # Custom CSS to inject (for power users)
+  custom_css: |
+    /* Any additional CSS overrides */
+  
+  # Custom fonts to load (Google Fonts)
+  fonts:
+    - "Inter:400,500,600,700"
+    - "Poppins:700,800"
+  
+  # Animation settings
+  animations:
+    enabled: true
+    button_hover: "lift"  # "lift", "glow", "scale", "none"
+    input_focus: "glow"   # "glow", "border", "none"

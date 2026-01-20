@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html class="login-pf">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="robots" content="noindex, nofollow">
+
+            <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Sign in to Keycloak</title>
+    <link rel="icon" href="/resources/16par/login/mozaiks/img/favicon.ico" />
+            <link href="/resources/16par/common/keycloak/node_modules/@patternfly-v5/patternfly/patternfly.min.css" rel="stylesheet" />
+            <link href="/resources/16par/common/keycloak/node_modules/@patternfly-v5/patternfly/patternfly-addons.css" rel="stylesheet" />
+            <link href="/resources/16par/login/mozaiks/css/mozaiks.css" rel="stylesheet" />
+            <script src="/resources/16par/login/mozaiks/script/cdn.min.js" type="text/javascript"></script>
+</head>
+
+<body id="keycloak-bg" class="">
+<div id="kc-header" class="login-pf-page-header">
+    <div id="kc-header-wrapper"
+             class=""><div class="kc-logo-text"><span>Keycloak</span></div></div>
+    </div>
+</div>
+<div class="pf-v5-c-login"
+    x-data="{
+        open: false,
+        toggle() {
+            if (this.open) {
+                return this.close()
+            }
+
+            this.$refs.button.focus()
+
+            this.open = true
+        },
+        close(focusAfter) {
+            if (! this.open) return
+
+            this.open = false
+
+            focusAfter && focusAfter.focus()
+        }
+    }"
+    x-on:keydown.escape.prevent.stop="close($refs.button)"
+    x-on:focusin.window="! $refs.panel?.contains($event.target) && close()"
+    x-id="['language-select']"
+>
+  <div class="pf-v5-c-login__container">
+    <main class="pf-v5-c-login__main">
+      <header class="pf-v5-c-login__main-header">
+        <h1 class="pf-v5-c-title pf-m-3xl">        We are sorry...
+</h1>
+      </header>
+      <div class="pf-v5-c-login__main-body">
+
+
+        <div id="kc-error-message">
+            <p class="instruction">Cookie not found. Please make sure cookies are enabled in your browser.</p>
+                    <p><a id="backToApplication" href="https://auth.mozaiks.ai/realms/master/account/">┬½ Back to Application</a></p>
+        </div>
+
+
+      </div>
+      <footer class="pf-v5-c-login__main-footer">
+      </footer>
+    </main>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,160 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # FRONTEND
+  # ============================================
+  shell:
+    build:
+      context: ./runtime/packages/shell
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:8010
+      - VITE_AUTH_URL=http://localhost:8020
+    depends_on:
+      - identity-api
+
+  # ============================================
+  # AI RUNTIME (Python)
+  # ============================================
+  ai-runtime:
+    build:
+      context: ./runtime/ai
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MONGODB_URI=mongodb://mongodb:27017/MozaiksDB
+      - KEYCLOAK_URL=http://keycloak:8080
+    depends_on:
+      - mongodb
+
+  # ============================================
+  # BACKEND SERVICES (.NET)
+  # ============================================
+  identity-api:
+    build:
+      context: ./backend/src/Identity.API/AuthServer.Api
+      dockerfile: Dockerfile
+    ports:
+      - "8020:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - MongoDB__ConnectionString=mongodb://mongodb:27017
+      - MongoDB__DatabaseName=MozaiksDB
+      - Jwt__Issuer=https://mozaiks.io
+      - Jwt__Audience=mozaiks-api
+      - Redis__ConnectionString=redis:6379
+    depends_on:
+      - mongodb
+      - redis
+
+  billing-api:
+    build:
+      context: ./backend/src/Billing.API/Payment.API
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - MongoDB__ConnectionString=mongodb://mongodb:27017
+      - MongoDB__DatabaseName=MozaiksDB
+      - Stripe__ApiKey=${STRIPE_API_KEY}
+      - Stripe__WebhookSecret=${STRIPE_WEBHOOK_SECRET}
+    depends_on:
+      - mongodb
+
+  insights-api:
+    build:
+      context: ./backend/src/Insights.API/Insights.API
+      dockerfile: Dockerfile
+    ports:
+      - "8060:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - MongoDB__ConnectionString=mongodb://mongodb:27017
+      - MongoDB__DatabaseName=MozaiksDB
+    depends_on:
+      - mongodb
+
+  user-api:
+    build:
+      context: ./backend/src/User.API/User.API
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - MongoDB__ConnectionString=mongodb://mongodb:27017
+      - MongoDB__DatabaseName=MozaiksDB
+    depends_on:
+      - mongodb
+
+  notification-api:
+    build:
+      context: ./backend/src/Notification.API/Notification.API
+      dockerfile: Dockerfile
+    ports:
+      - "8007:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - MongoDB__ConnectionString=mongodb://mongodb:27017
+      - MongoDB__DatabaseName=MozaiksDB
+      - RabbitMQ__Host=rabbitmq
+    depends_on:
+      - mongodb
+      - rabbitmq
+
+  # ============================================
+  # INFRASTRUCTURE
+  # ============================================
+  mongodb:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    ports:
+      - "8080:8080"
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_DB=dev-mem
+    command: start-dev
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+
+volumes:
+  mongodb_data:
+  redis_data:
+  rabbitmq_data:
+  keycloak_data:

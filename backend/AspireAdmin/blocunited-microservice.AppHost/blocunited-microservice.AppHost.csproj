@@ -1,0 +1,24 @@
+﻿<Project Sdk="Aspire.AppHost.Sdk/9.0.0-rc.1.24511.1">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>18a4068d-9d51-48f1-a1f2-4194def89e9e</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.0.0-rc.1.24511.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Services\AuthServer\AuthServer.Api\AuthServer.Api.csproj" />
+    <ProjectReference Include="..\..\Services\App\App.API\App.API.csproj" />
+    <ProjectReference Include="..\..\Services\Notification\Notification.API\Notification.API.csproj" />
+    <ProjectReference Include="..\..\Services\Payment\Payment.API\Payment.API.csproj" />
+    <ProjectReference Include="..\..\Services\User\User.API\User.API.csproj" />
+    <ProjectReference Include="..\blocunited-microservice.ServiceDefaults\blocunited-microservice.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,22 @@
+{
+  "name": "mozaiks-core",
+  "version": "1.0.0",
+  "description": "MozaiksCore - Self-hostable app runtime with AI capabilities",
+  "private": true,
+  "workspaces": [
+    "runtime/packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@mozaiks/shell",
+    "build": "npm run build --workspace=@mozaiks/shell",
+    "build:all": "npm run build --workspaces",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BlocUnited/mozaiks-core.git"
+  },
+  "keywords": ["mozaiks", "saas", "runtime", "ai"],
+  "author": "BlocUnited",
+  "license": "MIT"
+}

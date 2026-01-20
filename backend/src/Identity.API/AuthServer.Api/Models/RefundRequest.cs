@@ -1,0 +1,3 @@
+﻿namespace AuthServer.Api.Models
+{
+}

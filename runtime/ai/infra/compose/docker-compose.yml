@@ -1,0 +1,64 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: mozaiksai-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mozaiksai_mongo_data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "mongodb://127.0.0.1:27017/admin", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build:
+      context: ../../..    # repo root (mozaiks-core-public)
+      dockerfile: backend/infra/docker/Dockerfile
+    image: mozaiksai-app:latest
+    pull_policy: never
+    container_name: mozaiksai-app
+    working_dir: /app/backend
+    command: >
+      watchmedo auto-restart 
+      --patterns="*.py" 
+      --recursive -- 
+      python run_server.py
+    env_file:
+      - ../../../backend/.env
+    ports:
+      - "8080:8080"
+    environment:
+      # Cloud Native: Azure Container Apps expects port 8080
+      PORT: "8080"
+      # Python path for imports
+      PYTHONPATH: "/app:/app/backend"
+      # Local dev default: disable auth so ChatUI can call APIs without tokens.
+      # Override in ../../.env if you want to test real JWT/OIDC behavior.
+      AUTH_ENABLED: "false"
+      MOZAIKS_AUTH_MODE: "local"
+      AG2_RUNTIME_LOGGING: "sqlite"
+      LOGS_BASE_DIR: /app/logs
+      DOCKERIZED: "true"
+      # In docker mode, use the compose-network mongo service.
+      # Override by setting MONGO_URI in the repo-root .env (or your shell env).
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/MozaiksAI}
+      # AZURE_* still supplied via env_file
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - ../../../:/app
+      - ../../../logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/api/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  mozaiksai_mongo_data:
+
