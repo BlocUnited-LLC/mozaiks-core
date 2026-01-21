@@ -128,15 +128,16 @@ Comprehensive documentation organized by use case:
 
 | Topic | Document |
 |-------|----------|
-| **Architecture** | [Platform Architecture](docs/overview/architecture.md) |
-| **Request Lifecycle** | [End-to-End Flow](docs/overview/lifecycle.md) |
-| **Multi-Tenancy** | [Security & Isolation](docs/overview/tenancy_and_security.md) |
-| **Event System** | [Event Pipeline](docs/runtime/event_pipeline.md) |
-| **Transport** | [WebSocket](docs/runtime/transport_and_streaming.md) |
-| **Persistence** | [MongoDB & Resume](docs/runtime/persistence_and_resume.md) |
-| **Observability** | [Metrics & Logging](docs/runtime/observability.md) |
-| **Workflow Authoring** | [Creating Workflows](docs/workflows/workflow_authoring.md) |
-| **UI Integration** | [Unified UI Tools](docs/frontend/unified_ui_tools_and_design.md) |
+| **Core Architecture** | [Core Architecture](docs/core/architecture.md) |
+| **Plugins** | [Plugin Runtime](docs/core/plugins.md) |
+| **Authentication** | [Auth & Identity](docs/core/authentication.md) |
+| **Events & WebSockets** | [Events](docs/core/events.md) |
+| **Database** | [MongoDB & Persistence](docs/core/database.md) |
+| **AI Runtime** | [AI Runtime Architecture](docs/ai-runtime/architecture.md) |
+| **Quickstart** | [Getting Started](docs/guides/quickstart.md) |
+| **Creating Plugins** | [Plugin Guide](docs/guides/creating-plugins.md) |
+| **Deployment** | [Deployment Guide](docs/guides/deployment.md) |
+| **Platform Integration** | [Connector Specs](docs/platform-integration/overview.md) |
 
 
 ### 🏢 Core Platform Services
@@ -145,7 +146,7 @@ Comprehensive documentation organized by use case:
 |---------|---------|
 | **🔐 Identity** | Authentication, app registry, API keys, JWT tokens |
 | **💳 Billing** | Stripe integration, subscriptions, usage metering |
-| **👤 User** | Profiles, preferences, social features |
+| **🧩 Plugins** | Plugin catalog, manifests, installations |
 | **📊 Insights** | KPI ingestion, analytics dashboards |
 | **🔔 Notifications** | Multi-channel delivery (email, push, in-app) |
 
@@ -187,13 +188,13 @@ dotnet run
 
 ## Services
 
-| Service | Port | Description |
-|---------|------|-------------|
-| Identity API | 8020 | Auth, app registry, JWT tokens |
-| Billing API | 8002 | Stripe, subscriptions, ledger |
-| User API | 8001 | User profiles |
-| Insights API | 8060 | KPI analytics |
-| Notification API | 8070 | Email/push via SendGrid |
+| Service | Description |
+|---------|-------------|
+| Identity API | Auth, app registry, JWT tokens |
+| Billing API | Stripe, subscriptions, ledger |
+| Plugins API | Plugin catalog + installations |
+| Insights API | KPI analytics |
+| Notification API | Email/push/in-app delivery |
 
 ## Configuration
 
@@ -221,12 +222,12 @@ mozaiks-core/
 │   ├── src/
 │   │   ├── Identity.API/        # Auth + App Registry
 │   │   ├── Billing.API/         # Payments + Subscriptions
-│   │   ├── User.API/            # User Profiles
+│   │   ├── Plugins.API/         # Plugin catalog + installs
 │   │   ├── Insights.API/        # Analytics
 │   │   └── Notification.API/    # Notifications
 │   └── MozaiksCore.sln
-├── shell/                        # React web shell
-├── ai-runtime/                   # Python AI wizard runtime
+├── runtime/ai/                   # Python AI runtime
+├── runtime/packages/shell/       # React web shell
 ├── docker-compose.yml
 └── .env.example
 ```
@@ -242,10 +243,7 @@ var users = await _collection.Find(u => u.AppId == appId).ToListAsync();
 
 ## API Documentation
 
-Each service exposes Swagger UI:
-- Identity: http://localhost:8020/swagger
-- Billing: http://localhost:8002/swagger
-- User: http://localhost:8001/swagger
+Each service exposes Swagger UI; see docker-compose.yml for ports in your environment.
 
 ## License
 
@@ -253,4 +251,4 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ## Related Repositories
 
-- [mozaiks-platform](https://github.com/YOUR_ORG/mozaiks-platform) - Proprietary platform services
+- [mozaiks-platform](https://github.com/BlocUnited-LLC/mozaiks-platform) - Proprietary platform services
