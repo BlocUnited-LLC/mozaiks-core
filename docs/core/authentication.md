@@ -84,20 +84,20 @@ KEYCLOAK_CLIENT_SECRET=secret
 
 ---
 
-## 🧩 Keycloak Integration (Optional)
+## 🧩 OIDC Providers (Keycloak, WorkOS)
 
-Keycloak is **not bundled or wired by default**. MozaiksCore ships with **JWT auth first**, and Keycloak is a pluggable option that you can enable.
+MozaiksCore ships **JWT auth by default** and supports **OIDC providers** via configuration. Keycloak and WorkOS are common choices, but neither is wired by default.
 
 What exists today:
-- Backend-side auth expects JWTs (see the FastAPI middleware examples below).
-- The frontend has a **pluggable provider slot** at `runtime/packages/shell/src/auth/providers/`.
-- Reference assets/config for Keycloak live under `runtime/ai/keycloak/` (runtime-side).
+- Backend validates JWTs (JWKS + issuer + audience).
+- Frontend uses a generic OIDC client (`oidc-client-ts`) and can be configured via `VITE_AUTH_*` envs.
+- A **pluggable provider slot** exists at `runtime/packages/shell/src/auth/providers/` for custom adapters.
 
-To use Keycloak end-to-end, you’ll wire:
-1. A **frontend auth provider** (OIDC login/redirect handling).
-2. Backend **JWT validation** against the Keycloak issuer/JWKS.
+To enable an IdP end‑to‑end:
+1. Configure frontend OIDC settings (`VITE_AUTH_*`).
+2. Configure backend JWT validation (`MOZAIKS_JWKS_URL`, `MOZAIKS_ISSUER`, `MOZAIKS_AUDIENCE`).
 
-This keeps core flexible and avoids hard-coupling to a single IdP.
+See **OIDC Provider Integration** below for step‑by‑step templates.
 
 ---
 
@@ -304,34 +304,53 @@ async def admin_action(data: dict) -> dict:
 
 ---
 
-## 🔗 Keycloak Integration
+## 🔗 OIDC Provider Integration (Keycloak, WorkOS)
 
-For enterprise SSO:
+Any OIDC provider can be used by configuring the frontend OIDC settings and backend JWKS validation.
 
 ```mermaid
 sequenceDiagram
     participant User
     participant Frontend
+    participant IdP as OIDC Provider
     participant Core API
-    participant Keycloak
     
-    User->>Frontend: Click "Login with SSO"
-    Frontend->>Keycloak: Redirect to /auth
-    User->>Keycloak: Enter credentials
-    Keycloak-->>Frontend: Authorization code
-    Frontend->>Core API: POST /api/auth/keycloak/callback
-    Core API->>Keycloak: Exchange code for token
-    Keycloak-->>Core API: Access token + user info
-    Core API->>Core API: Create/update local user
-    Core API-->>Frontend: JWT token
+    User->>Frontend: Click "Sign in"
+    Frontend->>IdP: OIDC redirect
+    User->>IdP: Authenticate
+    IdP-->>Frontend: Authorization code
+    Frontend->>IdP: Token exchange (via OIDC client)
+    Frontend->>Core API: API call with Bearer token
+    Core API->>Core API: Validate JWT (JWKS)
 ```
 
-### Keycloak Setup
+### Keycloak (OIDC) Template
 
-1. Create realm in Keycloak admin
-2. Create client with `confidential` access type
-3. Configure redirect URIs
-4. Set environment variables
+```env
+# Frontend (OIDC)
+VITE_AUTH_AUTHORITY=https://<keycloak-host>/realms/<realm>
+VITE_AUTH_CLIENT_ID=<client-id>
+
+# Backend (JWT validation)
+MOZAIKS_JWKS_URL=https://<keycloak-host>/realms/<realm>/protocol/openid-connect/certs
+MOZAIKS_ISSUER=https://<keycloak-host>/realms/<realm>
+MOZAIKS_AUDIENCE=<client-id-or-audience>
+```
+
+### WorkOS (OIDC) Template
+
+Use the **issuer** and **JWKS URL** shown in your WorkOS dashboard.
+
+```env
+# Frontend (OIDC)
+VITE_AUTH_AUTHORITY=<workos-issuer-url>
+VITE_AUTH_CLIENT_ID=<workos-client-id>
+
+# Backend (JWT validation)
+MOZAIKS_JWKS_URL=<workos-jwks-url>
+MOZAIKS_ISSUER=<workos-issuer-url>
+MOZAIKS_AUDIENCE=<workos-client-id-or-audience>
+```
 
 ---
 
