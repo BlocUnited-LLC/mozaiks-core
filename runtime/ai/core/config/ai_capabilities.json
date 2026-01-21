@@ -1,0 +1,9 @@
+{
+  "_comment": "AI capabilities are app-specific and should NOT be hardcoded here.",
+  "_note": "Capabilities can be loaded from:",
+  "_source_1": "1. External capability_specs/*.json files",
+  "_source_2": "2. Plugins that register capabilities",
+  "_source_3": "3. Workflows directory (auto-discovered)",
+  "_source_4": "4. Platform API integration",
+  "capabilities": []
+}

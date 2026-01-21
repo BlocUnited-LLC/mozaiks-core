@@ -1,0 +1,15 @@
+{
+  "_comment": "This is a template showing how to define an AI capability",
+  "_instructions": "Copy this file and remove the .template suffix to register a capability",
+  "capability": {
+    "id": "example-capability",
+    "display_name": "Example Capability",
+    "description": "A template showing the capability spec format",
+    "icon": "lightbulb",
+    "workflow_id": "ExampleWorkflow",
+    "enabled": false,
+    "visibility": "user",
+    "allowed_plans": ["*"],
+    "requires_superadmin": false
+  }
+}

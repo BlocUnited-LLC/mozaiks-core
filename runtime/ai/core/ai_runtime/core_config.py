@@ -77,7 +77,7 @@ def get_secret(name: str) -> str:
             pass
 
     raise ValueError(f"Secret '{name}' not found in environment or Key Vault")
-
+ 
 # -----------------------------
 # MongoDB Connection
 # -----------------------------

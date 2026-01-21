@@ -1,3 +1,4 @@
+using Azure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -13,6 +14,18 @@ using System.Text;
 using Mozaiks.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Azure Key Vault (if URL is provided)
+var keyVaultUrl = builder.Configuration["KeyVault:Url"] 
+    ?? Environment.GetEnvironmentVariable("KEYVAULT_URL");
+if (!string.IsNullOrEmpty(keyVaultUrl))
+{
+    builder.Configuration.AddAzureKeyVault(
+        new Uri(keyVaultUrl),
+        new DefaultAzureCredential());
+    Console.WriteLine($"[Notification.API] Azure Key Vault configured: {keyVaultUrl}");
+}
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

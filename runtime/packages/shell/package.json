@@ -1,6 +1,6 @@
 {
-  "name": "@mozaiks/shell",
-  "version": "0.1.0",
+  "name": "mozaikscore",
+  "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "dev": "vite --host",
@@ -9,9 +9,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "BlocUnited",
-  "license": "MIT",
-  "description": "MozaiksCore app shell with authentication, navigation, and plugin architecture",
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "oidc-client-ts": "^3.1.0",
@@ -27,13 +27,5 @@
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
     "vite": "^7.3.1"
-  },
-  "repository": {
-    "directory": "runtime/packages/shell",
-    "type": "git",
-    "url": "https://github.com/BlocUnited/mozaiks-core.git"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }
