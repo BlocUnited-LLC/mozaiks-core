@@ -228,6 +228,7 @@ mozaiks-core/
 │   └── MozaiksCore.sln
 ├── runtime/ai/                   # Python AI runtime
 ├── runtime/packages/shell/       # React web shell
+├── runtime/packages/sdk/         # (Placeholder) future public SDK
 ├── docker-compose.yml
 └── .env.example
 ```
