@@ -15,6 +15,7 @@ ConnectorMode = Literal["managed", "self_hosted"]
 
 @dataclass(frozen=True)
 class ConnectorBundle:
+    """Bundle of all platform service connectors."""
     mode: ConnectorMode
     payment: PaymentConnector
 

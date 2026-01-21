@@ -1,0 +1,39 @@
+# MozaiksAI Runtime Dependencies
+# Core Web Framework
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+starlette>=0.35.0
+
+# Data Validation
+pydantic>=2.5.0
+
+# Database
+motor>=3.3.0
+pymongo>=4.6.0
+
+# Authentication
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+
+# HTTP Client
+httpx>=0.26.0
+
+# AI/LLM
+openai>=1.10.0
+pyautogen>=0.2.0
+
+# Async Support
+anyio>=4.2.0
+
+# Utilities
+python-dotenv>=1.0.0
+python-multipart>=0.0.6
+
+# Logging
+structlog>=24.1.0
+
+# WebSockets
+websockets>=12.0
+
+# YAML Processing
+pyyaml>=6.0.1

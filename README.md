@@ -1,19 +1,156 @@
 # Mozaiks Core
 
-**The open-source, self-hostable runtime for the Mozaiks platform.**
+# 🎯 MozaikCore Runtime
 
-[![CI](https://github.com/YOUR_ORG/mozaiks-core/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_ORG/mozaiks-core/actions/workflows/ci.yml)
+<div align="center">
+
+![MozaiksAI Logo](runtime\packages\shell\public\mozaik_logo.svg)
+
+**OWN THE AGENTIC ERA**  
+*Event-Driven • Declarative • Multi-Tenant • Production-Ready*
+
+[![AG2 Framework](https://img.shields.io/badge/AG2-Autogen-green?style=flat&logo=microsoft)](https://microsoft.github.io/autogen/)
+[![Python](https://img.shields.io/badge/Python-3.9+-blue?style=flat&logo=python)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Latest-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Persistence-47A248?style=flat&logo=mongodb)](https://www.mongodb.com/)
+[![C#](https://img.shields.io/badge/C%23-.NET%208-512BD4?style=flat&logo=csharp)](https://docs.microsoft.com/en-us/dotnet/csharp/)
+
+**Production-grade runtime for multi-agent AI workflows built on Microsoft's AG2 framework.**
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Overview
+[Quick Start](#-quick-start) • [Documentation](#-documentation) • [Architecture](#-architecture) • [Features](#-features)
 
-Mozaiks Core provides the essential services needed to run a Mozaiks-powered application:
+</div>
 
-- **Identity Service** - User authentication, app registry, API keys
-- **Billing Service** - Stripe integration, subscriptions, revenue tracking
-- **User Service** - User profiles and social features
-- **Insights Service** - KPI ingestion and analytics
-- **Notification Service** - Email/push notifications via SendGrid
+---
+
+# 🎯 What is MozaiksCore?
+
+The **MozaiksCore** is a production-ready orchestration engine that transforms AG2 (Microsoft Autogen) into an app-grade platform with:
+
+## Mozaiks AI
+
+### ⚡ Real-Time Event Streaming
+Every agent message, tool call, and state change flows through WebSocket to your frontend.
+
+- **Dual Protocol Support** → WebSocket with SSE fallback
+- **Message Filtering** → Show only relevant agents to end users
+- **Event Correlation** → Track request/response flows with unique IDs
+- **Bi-Directional** → Frontend can trigger backend handlers
+
+### 💾 Persistent State Management
+Never lose context—every workflow execution is fully persisted and resumable.
+
+- **AG2 State Serialization** → Complete groupchat state to MongoDB
+- **Message History** → Full chat transcripts with metadata
+- **Session Resume** → Pick up any conversation exactly where it left off
+- **Token Tracking** → Real-time cost metrics per chat/agent/workflow
+
+### 🔐 Multi-Tenant by Design
+app-grade isolation and security built from the ground up.
+
+- **App Isolation** → Separate MongoDB collections per `app_id`
+- **Cache Seed Propagation** → Deterministic per-chat seeds prevent state bleed
+- **Secret Management** → Secure credential collection and storage
+- **Context Boundaries** → No data leakage across tenants
+
+### 📊 App Observability
+Comprehensive monitoring, metrics, and analytics out of the box.
+
+- **Performance Metrics** → `/metrics/perf/*` endpoints for monitoring
+- **Structured Logging** → JSON Lines or pretty text format
+- **AG2 Runtime Logger** → SQLite-backed execution traces
+- **Real-Time Analytics** → Live token usage and cost tracking
+
+### 🎯 Dynamic UI Integration
+Agents can invoke React components dynamically during workflow execution.
+
+- **UI Tools** → Agents call `display_action_plan()` → frontend renders artifact
+- **Auto-Tool Mode** → Execute tools without asking permission
+- **Context Sync** → Shared state between agents and UI components
+- **Theme System** → Per-app design system customization
+
+---
+
+### 🏗️ Architecture
+
+MozaiksAI follows a **clean, modular architecture** where every component has a single responsibility.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              ChatUI (React Frontend)                    │
+│  • WebSocket Client                                     │
+│  • Dynamic Component Renderer                           │
+│  • Artifact Design System                               │
+└──────────────────┬──────────────────────────────────────┘
+                   │ WebSocket/HTTP
+┌──────────────────▼──────────────────────────────────────┐
+│         MozaiksAI Runtime (FastAPI + AG2)               │
+│                                                         │
+│  ┌────────────────────────────────────────────────┐     │
+│  │  Transport Layer (WebSocket)                   │     │
+│  │  • Connection lifecycle                        │     │
+│  │  • Message filtering (visual_agents)           │     │
+│  └────────────────────────────────────────────────┘     │
+│  ┌────────────────────────────────────────────────┐     │
+│  │  Unified Event Dispatcher                      │     │
+│  │  • Business Events → Logging                   │     │
+│  │  • UI Tool Events → WebSocket                  │     │
+│  │  • AG2 Events → Serialization                  │     │
+│  └────────────────────────────────────────────────┘     │
+│  ┌────────────────────────────────────────────────┐     │
+│  │  Orchestration Engine                          │     │
+│  │  • Workflow discovery & loading                │     │
+│  │  • AG2 pattern execution                       │     │
+│  │  • Tool registry & binding                     │     │
+│  └────────────────────────────────────────────────┘     │
+│  ┌────────────────────────────────────────────────┐     │
+│  │  Persistence Layer (MongoDB)                   │     │
+│  │  • Chat sessions & message history             │     │
+│  │  • Token & cost tracking                       │     │
+│  └───────────────┬────────────────────────────────┘     │
+└──────────────────│──────────────────────────────────────┘
+                   │ MongoDB Protocol
+┌──────────────────▼──────────────────────────────────────┐
+│              MongoDB (Atlas / Local)                    │
+│  • chat_sessions                                        │
+│  • workflow_stats_{app}_{workflow}                      │
+└─────────────────────────────────────────────────────────┘
+```
+## 📚 Documentation
+
+Comprehensive documentation organized by use case:
+
+👉 **[Documentation Portal](docs/README.md)** 👈
+
+### Quick Links
+
+| Topic | Document |
+|-------|----------|
+| **Architecture** | [Platform Architecture](docs/overview/architecture.md) |
+| **Request Lifecycle** | [End-to-End Flow](docs/overview/lifecycle.md) |
+| **Multi-Tenancy** | [Security & Isolation](docs/overview/tenancy_and_security.md) |
+| **Event System** | [Event Pipeline](docs/runtime/event_pipeline.md) |
+| **Transport** | [WebSocket](docs/runtime/transport_and_streaming.md) |
+| **Persistence** | [MongoDB & Resume](docs/runtime/persistence_and_resume.md) |
+| **Observability** | [Metrics & Logging](docs/runtime/observability.md) |
+| **Workflow Authoring** | [Creating Workflows](docs/workflows/workflow_authoring.md) |
+| **UI Integration** | [Unified UI Tools](docs/frontend/unified_ui_tools_and_design.md) |
+
+
+### 🏢 Core Platform Services
+
+| Service | Purpose |
+|---------|---------|
+| **🔐 Identity** | Authentication, app registry, API keys, JWT tokens |
+| **💳 Billing** | Stripe integration, subscriptions, usage metering |
+| **👤 User** | Profiles, preferences, social features |
+| **📊 Insights** | KPI ingestion, analytics dashboards |
+| **🔔 Notifications** | Multi-channel delivery (email, push, in-app) |
+
+
+**MozaikCore = AG2 + Production Infrastructure + Event-Driven Core**
 
 ## Quick Start
 

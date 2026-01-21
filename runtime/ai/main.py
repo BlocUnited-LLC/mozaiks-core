@@ -23,7 +23,7 @@ from core.config.database import (
     ensure_enterprise_exists,
     users_collection
 )
-from core.http.websocket_auth import get_ws_auth, WS_SUBPROTOCOL
+from core.http_utils.websocket_auth import get_ws_auth, WS_SUBPROTOCOL
 import logging
 import asyncio
 from core.plugin_manager import plugin_manager, register_websockets

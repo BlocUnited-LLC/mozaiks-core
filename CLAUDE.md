@@ -2,17 +2,33 @@
 
 > **Architecture Principle**: Plugins should be **self-contained** and integrate via configuration files. The core system handles orchestration — plugins should not require core modifications to function.
 
+Your open-source **"tenant runtime core"** with **integrated AI runtime**.  
+
+**Contains:**
+
+- App shell runtime (frontend + backend skeletons)  
+- Plugin runtime contract + loaders  
+- **AI Runtime** (`backend/core/ai_runtime/`) — AG2-based agent orchestration  
+- **ChatUI** (`src/chat/`) — Full chat interface for AI interactions  
+- **AI Bridge** (`backend/core/ai_bridge/`) — Core ↔ AI runtime integration  
+- Keycloak assets (already migrated)  
+- UI theme rendering system (reads `ui-theme.yaml`)  
+
+This is what **“apps are built on.”**
+
+---
+
 ## Project Overview
 
-**MozaiksCore** is a production-grade application scaffold with authentication, routing, subscriptions, and plugin infrastructure. The architecture is designed so that features are added through **sandboxed plugins** that register via JSON configurations.
+**MozaiksCore** is a production-grade application scaffold with authentication, routing, subscriptions, plugin infrastructure, and **integrated AI agent runtime**. Features are added through **sandboxed plugins** that register via JSON configurations.
 
-**Tech Stack**: FastAPI + MongoDB (backend) | React + Tailwind + Vite (frontend) | JWT auth | WebSockets
+**Tech Stack**: FastAPI + MongoDB (backend) | React + Tailwind + Vite (frontend) | JWT auth | WebSockets | AG2 (AI agents)
 
 ---
 
 ## 🏗️ Core System Files (Reference)
 
-These files handle the core orchestration. Plugins integrate with them but shouldn't need to modify them. They should remain workflow/plugin agnostic:
+These files handle the core orchestration. Plugins integrate with them but shouldn't need to modify them:
 
 ```
 /backend/main.py              # FastAPI entry point
@@ -20,11 +36,45 @@ These files handle the core orchestration. Plugins integrate with them but shoul
 /backend/core/plugin_manager.py  # Plugin loading & execution
 /backend/core/event_bus.py    # Event pub/sub system
 /backend/core/state_manager.py   # State management
-/src/App.jsx                  # Main React app
+/backend/core/ai_bridge/      # Core ↔ AI runtime bridge
+/backend/core/ai_runtime/     # AI Runtime (workflow, transport, data, auth)
+/backend/shared_app.py        # AI runtime FastAPI app
+/src/App.jsx                  # Main React app (with ChatUI integration)
 /src/main.jsx                 # React entry point
 /src/core/plugins/*           # Plugin system components
 /src/core/theme/*             # Theme system components
+/src/chat/                    # ChatUI components
+/src/chat/adapters/MozaiksCoreAuthAdapter.js  # Auth bridge for ChatUI
+/src/chat/components/layout/GlobalChatWidgetWrapper.js  # Global widget renderer
+/src/chat/hooks/useWidgetMode.js  # Widget mode hook for pages
+/src/ai/runtimeBridge.js      # Frontend auth bridge for AI
 ```
+
+---
+
+## 💬 Chat Widget Integration
+
+The ChatUI system provides a persistent chat widget that appears on all non-chat pages.
+
+### Enabling Widget Mode on a Page
+
+When creating a page that should have chat widget access:
+
+```javascript
+import { useWidgetMode } from '../chat/hooks/useWidgetMode';
+
+function MyPage() {
+  useWidgetMode(); // ← Add this line
+  return <div>My page content</div>;
+}
+```
+
+The page will now have:
+- Floating chat widget in bottom-left corner
+- 🧠 brain toggle to return to active workflow
+- Automatic state management during navigation
+
+**See [docs/WIDGET_MODE.md](docs/WIDGET_MODE.md) for full documentation.**
 
 ---
 
@@ -404,3 +454,257 @@ npm run dev
 - [ ] Works with different subscription tiers (if monetization enabled)
 - [ ] Error states handled gracefully
 - [ ] Loading states shown to user
+
+---
+
+## 📬 Notification System
+
+MozaiksCore includes a multi-channel notification system with templates, scheduling, and admin broadcast capabilities.
+
+### Available Channels
+
+| Channel | Environment Variables | Description |
+|---------|----------------------|-------------|
+| `in_app` | Always enabled | Database + WebSocket real-time |
+| `email` | `EMAIL_SERVICE_URL` | External email service |
+| `sms` | `SMS_ACCOUNT_SID`, `SMS_AUTH_TOKEN`, `SMS_FROM_NUMBER` | Twilio SMS |
+| `web_push` | `PUSH_VAPID_PUBLIC_KEY`, `PUSH_VAPID_PRIVATE_KEY` | Browser push |
+
+### Sending Notifications
+
+```python
+# Simple notification (uses existing notifications_manager)
+from core.notifications_manager import notifications_manager
+
+await notifications_manager.create_notification(
+    user_id=user_id,
+    notification_type="your_plugin_event",
+    title="Action Complete",
+    message="Your action was completed successfully.",
+    metadata={"item_id": item_id}
+)
+
+# Direct channel access (for specific channels)
+from core.notifications import in_app_channel, email_channel
+
+await in_app_channel.send(
+    user_id=user_id,
+    notification_type="reminder",
+    title="Task Due",
+    message="Your task is due tomorrow"
+)
+```
+
+### Admin Broadcast
+
+```python
+from core.notifications import broadcast_service
+
+# Broadcast to all users
+await broadcast_service.broadcast(
+    notification_type="announcement",
+    title="System Update",
+    message="We've added new features!",
+    target={"type": "all"},
+    channels=["in_app", "email"]
+)
+
+# Target specific subscription tier
+await broadcast_service.broadcast(
+    notification_type="premium_feature",
+    title="New Premium Feature",
+    message="Check out your new premium features!",
+    target={"type": "subscription", "tier": "premium"},
+    channels=["in_app"]
+)
+```
+
+### Scheduled Notifications
+
+```python
+from core.notifications import digest_scheduler
+from datetime import datetime, timedelta
+
+# Schedule a notification for later
+await digest_scheduler.schedule_notification(
+    user_id="user123",
+    notification_type="reminder",
+    title="Task Due",
+    message="Your task is due now!",
+    scheduled_for=datetime.utcnow() + timedelta(hours=24)
+)
+```
+
+### Adding Notification Templates
+
+Edit `/backend/core/config/notification_templates.json`:
+
+```json
+{
+  "templates": {
+    "your_notification_type": {
+      "in_app": {
+        "title": "{{title}}",
+        "body": "{{message}}"
+      },
+      "email": {
+        "subject": "{{title}} - {{app_name}}",
+        "text_body": "Hi {{username}},\n\n{{message}}\n\nBest,\n{{app_name}}"
+      },
+      "sms": {
+        "body": "{{app_name}}: {{message}}"
+      },
+      "push": {
+        "title": "{{title}}",
+        "body": "{{message}}"
+      }
+    }
+  }
+}
+```
+
+### Admin API Endpoints
+
+All require `X-Mozaiks-App-Admin-Key` header:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/__mozaiks/admin/notifications/broadcast` | POST | Send broadcast notification |
+| `/__mozaiks/admin/notifications/broadcasts` | GET | Get broadcast history |
+| `/__mozaiks/admin/notifications/schedule` | POST | Schedule notification |
+| `/__mozaiks/admin/notifications/channels` | GET | Get channel status |
+| `/__mozaiks/admin/notifications/templates` | GET | List templates |
+
+### Push Subscription API (User-facing)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/push/vapid-public-key` | GET | Get VAPID public key |
+| `/api/push/subscribe` | POST | Subscribe device to push |
+| `/api/push/unsubscribe` | POST | Unsubscribe device |
+| `/api/push/status` | GET | Get push status for user |
+
+### File Locations
+
+```
+/backend/core/notifications/
+  __init__.py                    # Module exports
+  templates.py                   # Template rendering
+  scheduler.py                   # Digest/scheduled notifications
+  broadcast.py                   # Admin broadcast service
+  channels/
+    __init__.py                  # Channel registry
+    base.py                      # Base channel interface
+    in_app.py                    # In-app + WebSocket
+    email_channel.py             # Email delivery
+    sms.py                       # SMS via Twilio
+    web_push.py                  # Browser push (VAPID)
+
+/backend/core/config/
+  notification_templates.json    # Template definitions
+  notifications_config.json      # Category/type definitions
+```
+
+---
+
+## 🤖 AI Runtime Integration
+
+MozaiksCore includes an integrated AI runtime for agent orchestration and chat-based AI interactions.
+
+### Architecture
+
+The AI runtime lives in `backend/core/ai_runtime/` with module aliasing for `mozaiksai.*` imports. Communication between core and AI runtime goes through the **bridge layer** (`backend/core/ai_bridge/`).
+
+```
+┌─────────────────────────────────────────────────────┐
+│                  mozaiks-core                        │
+│  ┌─────────────┐          ┌──────────────────────┐  │
+│  │ core/       │ ◄──────► │ core/ai_runtime/     │  │
+│  │ (plugins,   │ ai_bridge│ (AI runtime,         │  │
+│  │  auth, ws)  │          │  chat, workflows)    │  │
+│  └─────────────┘          └──────────────────────┘  │
+└─────────────────────────────────────────────────────┘
+```
+
+### Backend Structure
+
+```
+/backend/core/ai_runtime/        # AI Runtime
+  auth/                          # JWT/OIDC validation
+  transport/                     # WebSocket session management
+  workflow/                      # Agent factory, orchestration
+  events/                        # Event dispatcher
+  data/                          # MongoDB persistence
+  observability/                 # Logging, metrics
+
+/backend/core/ai_bridge/         # Bridge Layer
+  runtime_proxy.py               # Facade for core → runtime calls
+  auth_bridge.py                 # Auth context translation
+  event_bridge.py                # AI events → notifications
+  websocket_bridge.py            # WebSocket routing
+
+/backend/shared_app.py           # AI runtime FastAPI app
+```
+
+### Frontend Structure
+
+```
+/src/chat/                       # ChatUI
+  components/                    # Chat interface components
+  context/                       # ChatUIContext state management
+  hooks/                         # useChat, useStreaming
+  services/                      # WebSocket/REST adapters
+  workflows/                     # Per-workflow UI components
+
+/src/ai/
+  AICapabilitiesPage.jsx         # Capability browser
+  runtimeBridge.js               # Auth bridge for ChatUI
+```
+
+### WebSocket Routing
+
+| Path | Handler | Purpose |
+|------|---------|---------|
+| `/ws/notifications/{user_id}` | `core/websocket_manager.py` | Notifications |
+| `/ws/{workflow}/{app}/{chat}/{user}` | `mozaiksai` runtime | Chat streaming |
+
+### Environment Variables
+
+```env
+# AI Runtime
+MOZAIKS_AI_ENABLED=true
+OPENAI_API_KEY=sk-...            # Required for AI features
+
+# Auth (shared with core)
+AUTH_ENABLED=true
+MOZAIKS_OIDC_AUTHORITY=https://mozaiks.ciamlogin.com
+AUTH_AUDIENCE=api://mozaiks-auth
+```
+
+### MongoDB Collections (AI)
+
+| Collection | Purpose |
+|------------|---------|
+| `chat_sessions` | Conversation metadata |
+| `chat_messages` | Message history |
+| `tool_executions` | Tool call audit log |
+| `agent_traces` | Execution traces |
+| `artifacts` | Generated outputs |
+
+### Deployment Options
+
+**Same Process** (Simple):
+```python
+# main.py
+from mozaiksai.shared_app import app as runtime_app
+director_app.mount("/ai", runtime_app)
+```
+
+**Separate Processes** (Production):
+```bash
+# Core
+uvicorn backend.main:app --port 8080
+
+# AI Runtime
+uvicorn backend.shared_app:app --port 8080
+```
