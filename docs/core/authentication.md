@@ -84,6 +84,23 @@ KEYCLOAK_CLIENT_SECRET=secret
 
 ---
 
+## 🧩 Keycloak Integration (Optional)
+
+Keycloak is **not bundled or wired by default**. MozaiksCore ships with **JWT auth first**, and Keycloak is a pluggable option that you can enable.
+
+What exists today:
+- Backend-side auth expects JWTs (see the FastAPI middleware examples below).
+- The frontend has a **pluggable provider slot** at `runtime/packages/shell/src/auth/providers/`.
+- Reference assets/config for Keycloak live under `runtime/ai/keycloak/` (runtime-side).
+
+To use Keycloak end-to-end, you’ll wire:
+1. A **frontend auth provider** (OIDC login/redirect handling).
+2. Backend **JWT validation** against the Keycloak issuer/JWKS.
+
+This keeps core flexible and avoids hard-coupling to a single IdP.
+
+---
+
 ## 📡 Auth Endpoints
 
 ### `POST /api/auth/login`
