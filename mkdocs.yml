@@ -12,14 +12,10 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/BlocUnited-LLC/mozaiks-core
   generator: false
-  # analytics:
-  #   provider: google
-  #   property: G-XXXXXXXXXX
 
 theme:
   name: material
   palette:
-    # Light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: indigo
@@ -27,7 +23,6 @@ theme:
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    # Dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
       primary: indigo
@@ -85,50 +80,67 @@ nav:
   - Home: index.md
   - Getting Started:
     - Quickstart: getting-started/quickstart.md
+    - Deployment: guides/deployment.md
+    - Configuration: guides/configuration.md
+  
   - Concepts:
     - Overview: concepts/overview.md
-    - Interactive Artifacts: concepts/interactive-artifacts/01-CONCEPTS.md
-  - Guides:
-    - Configuration: guides/configuration.md
-    - Creating Plugins: guides/creating-plugins.md
-    - Creating Workflows: guides/creating-workflows.md
-    - Deployment: guides/deployment.md
-    - Operations Runbook: guides/operations-runbook.md
-    - Troubleshooting: guides/troubleshooting.md
-    - Advanced Workflows:
-        - Authoring: guides/workflows/workflow_authoring.md
-        - Semantic Model: guides/workflows/WORKFLOW_SEMANTIC_MODEL.md
-        - Tool Pipeline: guides/workflows/ui_tool_pipeline.md
-    - Patterns: guides/patterns/README.md
-  - Core:
+    - Interactive Artifacts: concepts/interactive-artifacts/01-concepts.md
+  
+  - Core System:
     - Architecture: core/architecture.md
     - Authentication: core/authentication.md
     - Database: core/database.md
+    - Plugins: core/plugins.md
     - Events: core/events.md
     - Notifications: core/notifications.md
-    - Plugins: core/plugins.md
     - WebSockets: core/websockets.md
+
   - AI Runtime:
+    - Overview: ai-runtime/runtime-overview.md
     - Architecture: ai-runtime/architecture.md
-    - Overview: ai-runtime/runtime_overview.md
-    - Event Pipeline: ai-runtime/event_pipeline.md
-    - Transport & Streaming: ai-runtime/transport_and_streaming.md
-    - Persistence: ai-runtime/persistence_and_resume.md
+    - Event Pipeline: ai-runtime/event-pipeline.md
+    - Transport & Streaming: ai-runtime/transport-and-streaming.md
+    - Persistence: ai-runtime/persistence-and-resume.md
     - Observability: ai-runtime/observability.md
-    - MCP Integration: ai-runtime/MCP_INTEGRATION.md
+    - Lifecycle Tools: ai-runtime/lifecycle-tools.md
+  
   - Frontend:
-    - Architecture: frontend/chatui_architecture.md
-    - Components: frontend/ui_components.md
-    - Workflow Integration: frontend/workflow_integration.md
-    - Interactive Artifacts Plan: frontend/INTERACTIVE_ARTIFACTS_IMPLEMENTATION_PLAN.md
-  - Architecture:
-    - System Overview: architecture/specs/00_SYSTEM_OVERVIEW.md
-    - Runtime Boundary: architecture/specs/05_RUNTIME_BOUNDARY_CONTRACT.md
-    - Repo Architecture: architecture/specs/repository_architecture_explained.md
+    - Architecture: frontend/chatui-architecture.md
+    - Components: frontend/ui-components.md
+    - Workflow Integration: frontend/workflow-integration.md
+    - Inline Persistence: frontend/inline-component-persistence.md
+
+  - Guides:
+    - Creating Plugins: guides/creating-plugins.md
+    - Creating Workflows: guides/creating-workflows.md
+    - Operations Runbook: guides/operations-runbook.md
+    - Troubleshooting: guides/troubleshooting.md
+    - Workflow Deep Dive:
+        - Authoring: guides/workflows/workflow-authoring.md
+        - Semantic Model: guides/workflows/workflow-semantic-model.md
+        - Tool Pipeline: guides/workflows/ui-tool-pipeline.md
+    - Patterns: guides/patterns/readme.md
+
   - Platform Integration:
     - Overview: platform-integration/overview.md
     - Connector Contract: platform-integration/connector-contract.md
     - Billing API: platform-integration/billing-api.md
     - Identity API: platform-integration/identity-api.md
+
+  - Architecture Specs:
+    - System Overview: architecture/specs/00-system-overview.md
+    - Repo Boundaries: architecture/specs/01-repo-boundaries.md
+    - Auth Boundary: architecture/specs/04-auth-boundary.md
+    - Runtime Contract: architecture/specs/05-runtime-boundary-contract.md
+  
+  - Future Roadmap:
+    - MCP Integration: roadmap/mcp-integration.md
+    - App Generator Spec: roadmap/appgenerator-specification.md
+    - Validation Engine: roadmap/validationengine-specification.md
+    - Artifacts Plan: roadmap/interactive-artifacts-implementation-plan.md
+    - UI .NET Integration: roadmap/moz-ui-dotnet-integration-plan.md
+    - Token Manager Plan: roadmap/token-manager-plan.md
+
   - Reference:
     - API: reference/api.md
