@@ -333,7 +333,6 @@ DATABASE_URI=mongodb://...
 
 ## 🔗 Related
 
-- 📖 [Workflow Configuration](./workflows/) — Detailed workflow docs
-- 🚀 [Transport](./transport.md) — WebSocket streaming
-- 💾 [Persistence](./persistence.md) — Chat storage
-- 📊 [Observability](./observability.md) — Metrics and tracing
+- 📖 [Core Architecture](../core/architecture.md) — Core system overview
+- 📡 [WebSockets](../core/websockets.md) — WebSocket streaming
+- 🗄️ [Database](../core/database.md) — MongoDB persistence

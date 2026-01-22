@@ -377,5 +377,5 @@ await collection.insert_one(doc3)
 ## 🔗 Related
 
 - 🔌 [Plugin System](./plugins.md)
-- 📋 [Database Schema Reference](../reference/database-schema.md)
-- 🌍 [Environment Variables](../reference/environment-variables.md)
+- � [Authentication](./authentication.md)
+- 📡 [WebSockets](./websockets.md)

@@ -1,0 +1,158 @@
+build_agents:
+  # LAYER 5: Context Planning
+  - name: ContextVariablesAgent
+    objective: Define canonical context variables and per-agent exposure
+    output_structure:
+      ContextVariablesPlan:  # Model: ContextVariablesPlan (wrapped by ContextVariablesPlanOutput)
+        definitions:  # list[ContextVariableDefinitionEntry]
+          - name: str
+            type: str | null
+            description: str | null
+            source: ContextVariableSource
+        agents:  # list[ContextVariableAgentExposure]
+          - agent: str
+            variables: list[str]
+
+  # LAYER 6: Runtime Tool Manifest
+  - name: ToolsManagerAgent
+    objective: Produce tools manifest entries for runtime loading (tools.json parity)
+    output_structure:  # Model: ToolsManifestOutput
+      tools:  # list[ToolSpec]
+        - agent: str
+          file: str
+          function: str
+          description: str
+          tool_type: enum(UI_Tool, Agent_Tool)
+          auto_invoke: bool | null
+          integration: str | null
+          ui:  # UIConfig
+            component: str | null
+            mode: enum(inline, artifact)
+      lifecycle_tools:  # list[LifecycleToolSpec]
+        - trigger: enum(before_chat, after_chat, before_agent, after_agent)
+          agent: str | null
+          file: str
+          function: str
+          description: str
+          tool_type: enum(UI_Tool, Agent_Tool)
+          auto_invoke: bool | null
+          ui:  # UIConfig
+            component: str | null
+            mode: enum(inline, artifact)
+
+  # LAYER 7a: UI Tool Files
+  - name: UIFileGenerator
+    objective: Generate UI tool implementation files (Python + React)
+    output_structure:  # Model: UIToolsFilesOutput
+      tools:  # list[CodeFile]
+        - filename: str
+          content: str
+          installRequirements: list[str]
+
+  # LAYER 7b: Agent Tool Files
+  - name: AgentToolsFileGenerator
+    objective: Generate backend agent tool implementation files (Python)
+    output_structure:  # Model: AgentToolsFilesOutput
+      tools:  # list[CodeFile]
+        - filename: str
+          content: str
+          installRequirements: list[str]
+
+  # LAYER 7c: Hook Files
+  - name: HookAgent
+    objective: Generate lifecycle/system hook Python files
+    output_structure:  # Model: HookFilesOutput
+      hook_files:  # list[HookFile]
+        - filename: str
+          hook_type: enum(before_chat, after_chat, update_agent_state, process_message_before_send, process_last_received_message, process_all_messages_before_reply)
+          py_content: str
+
+  # LAYER 8: Runtime Agents
+  - name: AgentsAgent
+    objective: Produce runtime agent definitions (prompts + settings)
+    output_structure:  # Model: RuntimeAgentsOutput
+      agents:  # list[AgentDefinition]
+        - name: str
+          display_name: str
+          prompt_sections:  # list[PromptSection]
+            - id: str
+              heading: str
+              content: str
+          max_consecutive_auto_reply: int
+          auto_tool_mode: bool
+          structured_outputs_required: bool
+
+  # LAYER 9: Orchestration Config
+  - name: OrchestratorAgent
+    objective: Produce runtime orchestration config for the workflow
+    output_structure:  # Model: OrchestrationConfigOutput
+      workflow_name: str
+      max_turns: int
+      human_in_the_loop: bool
+      startup_mode: enum(AgentDriven, UserDriven, BackendOnly)
+      orchestration_pattern: str
+      initial_message_to_user: str | null
+      initial_message: str | null
+      initial_agent: str
+      visual_agents: list[str]
+
+  # LAYER 10: Handoff Rules
+  - name: HandoffsAgent
+    objective: Define agent-to-agent/user/terminate handoff rules
+    output_structure:  # Model: HandoffRulesOutput
+      handoff_rules:  # list[HandoffRule]
+        - source_agent: str
+          target_agent: str
+          handoff_type: enum(condition, after_work)
+          condition: str | null
+          condition_type: str | null
+          condition_scope: str | null
+          transition_target: enum(AgentTarget, RevertToUserTarget, TerminateTarget)
+
+  # LAYER 11: Structured Output Registry
+  - name: StructuredOutputsAgent
+    objective: Publish the structured model registry for runtime enforcement
+    output_structure:  # Model: StructuredModelsOutput
+      models:  # list[StructuredModelDefinition]
+        - model_name: str
+          fields:  # list[StructuredModelField]
+            - name: str
+              type: str
+              description: str
+      registry:  # list[AgentRegistryEntry]
+        - agent: str
+          agent_definition: str | null
+
+  # LAYER 12: Pack Metadata
+  - name: PackMetadataAgent
+    objective: Produce pack-level metadata files for multi-workflow packs
+    output_structure:
+      PackMetadata:  # Model: PackMetadata (wrapped by PackMetadataOutput)
+        workflow_graph:  # WorkflowGraph (v2: workflows + journeys + gates)
+          pack_name: str
+          version: int  # must be 2
+          description: str | null
+          workflows:  # list[PackGraphWorkflow]
+            - id: str
+              type: str | null
+              description: str | null
+          journeys:  # list[PackGraphJourney]
+            - id: str
+              label: str | null
+              scope: enum(user, app)
+              enforce_step_gating: bool
+              auto_attach_on_start: bool
+              auto_advance: bool
+              steps: list[str]
+          gates:  # list[PackGraphGate]
+            - from: str
+              to: str
+              gating: enum(required, optional)
+              scope: enum(user, app)
+              reason: str | null
+
+  # LAYER 13: Download Prompt
+  - name: DownloadAgent
+    objective: Provide final user-facing download prompt text
+    output_structure:  # Model: DownloadRequestOutput
+      agent_message: str

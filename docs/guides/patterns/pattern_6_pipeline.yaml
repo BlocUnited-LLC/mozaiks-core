@@ -1,0 +1,815 @@
+#+#+#+#+---------------------------------------------------------------------
+# Pattern 6: Pipeline (Mozaiks AgentGenerator Example)
+# Domain: Automated ML Pipeline (Explore → Preprocess → Train → Summarize)
+#
+# This file shows the EXPECTED outputs from AgentGenerator agents when the user
+# asks for a sequential workflow and uploads a dataset (e.g., CSV).
+#
+# Key alignment points with the runtime:
+# - Pipeline is represented as ordered WorkflowStrategy.modules (not a state
+#   machine definition).
+# - Uploaded files are visible via ContextVariables.chat_attachments.
+# - StateArchitectAgent emits StateArchitecture.assets with bundle vs context.
+# - Downstream agents auto-tag attachments for bundling using:
+#   - datasets/<filename> for dataset-like files
+#   - assets/<filename> otherwise
+# - No agent asks the user for a bundle path.
+#+#+#+#+---------------------------------------------------------------------
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 0: PatternAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+PatternSelection:
+  is_multi_workflow: false
+  decomposition_reason: null
+  pack_name: "Pattern 6 - Pipeline Pack"
+  workflows:
+    - name: "Pattern6_PipelineWorkflow"
+      role: "primary"
+      description: "Sequential workflow to explore, preprocess, train models, and produce a reproducible script"
+      pattern_id: 6
+      pattern_name: "Pipeline"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 1: WorkflowStrategyAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+WorkflowStrategy:
+  workflow_name: "Pattern6_PipelineWorkflow"
+  workflow_description: "When a user wants a step-by-step ML workflow, the pipeline ingests an uploaded dataset, explores it, preprocesses it, trains models, and outputs an integrated script and summary."
+  startup_mode: "UserDriven"
+  human_in_loop: true
+  pattern:
+    - "Pipeline"
+  modules:
+    - module_index: 0
+      module_name: "Dataset Intake"
+      module_description: "Confirm which uploaded dataset(s) to use, infer task type (classification/regression), and set the working dataset path from bundled uploads (example: dataset_path=\"datasets/pattern_6_sample_data.csv\")."
+      pattern_id: 6
+      pattern_name: "Pipeline"
+      agents_needed: ["DatasetIntakeAgent"]
+
+    - module_index: 1
+      module_name: "Data Exploration"
+      module_description: "Analyze schema, missingness, distributions, and potential target column; produce an exploration summary and code."
+      pattern_id: 6
+      pattern_name: "Pipeline"
+      agents_needed: ["DataExplorerAgent"]
+
+    - module_index: 2
+      module_name: "Preprocessing"
+      module_description: "Define and apply preprocessing (imputation, encoding, scaling, splits) and confirm readiness for training."
+      pattern_id: 6
+      pattern_name: "Pipeline"
+      agents_needed: ["DataPreprocessorAgent"]
+
+    - module_index: 3
+      module_name: "Model Training"
+      module_description: "Train and compare at least two models; record metrics and select best approach."
+      pattern_id: 6
+      pattern_name: "Pipeline"
+      agents_needed: ["ModelTrainerAgent"]
+
+    - module_index: 4
+      module_name: "Summary & Export"
+      module_description: "Produce a final write-up and an integrated script (ml_pipeline.py) that reproduces the workflow end-to-end."
+      pattern_id: 6
+      pattern_name: "Pipeline"
+      agents_needed: ["WorkflowSummarizerAgent"]
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2a: StateArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+StateArchitecture:
+  global_context_variables:
+    - name: "assets"
+      type: "data_reference"
+      purpose: "Uploaded assets/datasets declared during intake; used to decide bundling and dataset selection"
+      trigger_hint: "Derived from StateArchitecture.assets output"
+
+    - name: "dataset_path"
+      type: "computed"
+      purpose: "Filesystem path to the selected dataset within the generated project (auto-chosen from bundled uploads). Example: datasets/pattern_6_sample_data.csv"
+      trigger_hint: "Computed as datasets/<filename> when a dataset asset is bundled"
+
+    - name: "pipeline_stage"
+      type: "state"
+      purpose: "Tracks which module/stage the pipeline is currently executing"
+      trigger_hint: "Updated after each module completes"
+
+    - name: "exploration_summary"
+      type: "state"
+      purpose: "Human-readable dataset exploration findings"
+      trigger_hint: "Set by DataExplorerAgent"
+
+    - name: "preprocessing_plan"
+      type: "state"
+      purpose: "Preprocessing steps applied and rationale"
+      trigger_hint: "Set by DataPreprocessorAgent"
+
+    - name: "model_metrics"
+      type: "data_entity"
+      purpose: "Persistent record of trained model metrics for comparison"
+      trigger_hint: "Written by save_model_metrics tool"
+
+    - name: "context_aware"
+      type: "config"
+      purpose: "Platform context awareness flag"
+      trigger_hint: "init"
+
+    - name: "monetization_enabled"
+      type: "config"
+      purpose: "Platform monetization flag"
+      trigger_hint: "init"
+
+  assets:
+    - attachment_id: "<filled when uniquely matched by filename>"
+      filename: "pattern_6_sample_data.csv"
+      description: "Training dataset for the ML pipeline"
+      usage: "bundle"
+      asset_type: "dataset"
+
+  lifecycle_requirements:
+    before_chat: null
+    after_chat: null
+
+  workflow_dependencies: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2b: UXArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+UXArchitecture:
+  ui_requirements: []
+  # Conversational workflow. File upload happens via chat attachments during intake.
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3a: AgentRosterAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+AgentRoster:
+  agents:
+    - agent_name: "DatasetIntakeAgent"
+      objective: "Confirm which uploaded dataset to use, infer task type, and set dataset_path from bundled assets."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "DataExplorerAgent"
+      objective: "Explore dataset schema and quality; produce findings and exploration code."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "DataPreprocessorAgent"
+      objective: "Define preprocessing and produce ML-ready dataset plus a preprocessing plan."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "ModelTrainerAgent"
+      objective: "Train and compare at least two models; record metrics and select best model."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "WorkflowSummarizerAgent"
+      objective: "Write a summary and assemble a single integrated script (ml_pipeline.py)."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3b: ToolPlanningAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+ToolPlanning:
+  agent_tools:
+    - name: "load_dataset"
+      agent: "DatasetIntakeAgent"
+      integration: null
+      purpose: "Load bundled dataset and return schema + sample"
+      interaction_mode: "none"
+
+    - name: "execute_code"
+      agent: "DataExplorerAgent"
+      integration: null
+      purpose: "Execute exploration code and capture outputs"
+      interaction_mode: "none"
+
+    - name: "check_preprocessing_readiness"
+      agent: "DataPreprocessorAgent"
+      integration: null
+      purpose: "Decide if preprocessing is sufficient to proceed to training"
+      interaction_mode: "none"
+
+    - name: "execute_code"
+      agent: "DataPreprocessorAgent"
+      integration: null
+      purpose: "Execute preprocessing code"
+      interaction_mode: "none"
+
+    - name: "execute_code"
+      agent: "ModelTrainerAgent"
+      integration: null
+      purpose: "Execute model training code"
+      interaction_mode: "none"
+
+    - name: "save_model_metrics"
+      agent: "ModelTrainerAgent"
+      integration: null
+      purpose: "Persist metrics for comparing models"
+      interaction_mode: "none"
+
+  lifecycle_tools: []
+  system_hooks: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 4: ProjectOverviewAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+MermaidSequenceDiagram:
+  workflow_name: "Pattern 6 - Pipeline"
+  mermaid_diagram: |
+    sequenceDiagram
+        participant User
+        participant DatasetIntakeAgent
+        participant DataExplorerAgent
+        participant DataPreprocessorAgent
+        participant ModelTrainerAgent
+        participant WorkflowSummarizerAgent
+
+        User->>DatasetIntakeAgent: Upload dataset + describe goal
+        DatasetIntakeAgent->>DatasetIntakeAgent: Resolve dataset_path from bundled asset
+        DatasetIntakeAgent->>DataExplorerAgent: Proceed to exploration
+        DataExplorerAgent->>DataExplorerAgent: execute_code()
+        DataExplorerAgent->>DataPreprocessorAgent: Hand off findings
+        DataPreprocessorAgent->>DataPreprocessorAgent: execute_code()
+        DataPreprocessorAgent->>DataPreprocessorAgent: check_preprocessing_readiness()
+        DataPreprocessorAgent->>ModelTrainerAgent: Proceed to training
+        ModelTrainerAgent->>ModelTrainerAgent: execute_code()
+        ModelTrainerAgent->>ModelTrainerAgent: save_model_metrics()
+        ModelTrainerAgent->>WorkflowSummarizerAgent: Provide metrics + artifacts
+        WorkflowSummarizerAgent->>WorkflowSummarizerAgent: Integrate ml_pipeline.py + summary
+  legend:
+    - "Pipeline: modules run sequentially, no branching"
+    - "Dataset files: bundled automatically under datasets/<filename>"
+
+agent_message: "This Pipeline workflow runs sequentially from dataset intake to a final integrated script. Approve to proceed with generation."
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 5: ContextVariablesAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+ContextVariablesPlan:
+  definitions:
+    - name: "context_aware"
+      type: "config"
+      description: "Platform context awareness flag"
+      source:
+        type: "config"
+        trigger: "init"
+
+    - name: "monetization_enabled"
+      type: "config"
+      description: "Platform monetization flag"
+      source:
+        type: "config"
+        trigger: "init"
+
+    - name: "assets"
+      type: "data_reference"
+      description: "Uploaded assets/datasets declared during intake"
+      source:
+        type: "data_reference"
+        trigger: "agent_text"
+
+    - name: "dataset_path"
+      type: "computed"
+      description: "Bundled dataset path inside generated project (datasets/<filename>)"
+      source:
+        type: "computed"
+        trigger: "agent_text"
+
+    - name: "pipeline_stage"
+      type: "state"
+      description: "Tracks which module/stage is currently executing"
+      source:
+        type: "state"
+        trigger: "agent_text"
+
+    - name: "exploration_summary"
+      type: "state"
+      description: "Human-readable exploration findings"
+      source:
+        type: "state"
+        trigger: "agent_text"
+
+    - name: "preprocessing_plan"
+      type: "state"
+      description: "Preprocessing steps applied and rationale"
+      source:
+        type: "state"
+        trigger: "agent_text"
+
+    - name: "model_metrics"
+      type: "data_entity"
+      description: "Record of trained model metrics for comparison"
+      source:
+        type: "data_entity"
+        trigger: "agent_text"
+
+  agents:
+    - agent: "DatasetIntakeAgent"
+      variables:
+        - "assets"
+        - "dataset_path"
+        - "pipeline_stage"
+
+    - agent: "DataExplorerAgent"
+      variables:
+        - "dataset_path"
+        - "exploration_summary"
+        - "pipeline_stage"
+
+    - agent: "DataPreprocessorAgent"
+      variables:
+        - "dataset_path"
+        - "preprocessing_plan"
+        - "pipeline_stage"
+
+    - agent: "ModelTrainerAgent"
+      variables:
+        - "dataset_path"
+        - "model_metrics"
+        - "pipeline_stage"
+
+    - agent: "WorkflowSummarizerAgent"
+      variables:
+        - "dataset_path"
+        - "exploration_summary"
+        - "preprocessing_plan"
+        - "model_metrics"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 6: ToolsManagerAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - agent: "DatasetIntakeAgent"
+    file: "tools/load_dataset.py"
+    function: "load_dataset"
+    description: "Load the bundled dataset and return schema + sample"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "DataExplorerAgent"
+    file: "tools/explorer_execute_code.py"
+    function: "execute_code"
+    description: "Execute exploration code and capture outputs"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "DataPreprocessorAgent"
+    file: "tools/preprocess_execute_code.py"
+    function: "execute_code"
+    description: "Execute preprocessing code"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "DataPreprocessorAgent"
+    file: "tools/check_preprocessing_readiness.py"
+    function: "check_preprocessing_readiness"
+    description: "Decide if preprocessing is sufficient to proceed to training"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "ModelTrainerAgent"
+    file: "tools/trainer_execute_code.py"
+    function: "execute_code"
+    description: "Execute model training code"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "ModelTrainerAgent"
+    file: "tools/save_model_metrics.py"
+    function: "save_model_metrics"
+    description: "Persist metrics for comparing models"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+lifecycle_tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7a: UIFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7b: AgentToolsFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - filename: "tools/load_dataset.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def load_dataset(dataset_path: str) -> Dict[str, Any]:
+          """Load a bundled dataset and return a small preview."""
+          if not dataset_path:
+              return {"ok": False, "reason": "missing_dataset_path"}
+
+          return {
+              "ok": True,
+              "dataset_path": dataset_path,
+              "schema": {"columns": [], "rows": 0},
+              "sample": [],
+          }
+
+  - filename: "tools/explorer_execute_code.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def execute_code(code: str) -> Dict[str, Any]:
+          """Execute exploration code in a sandboxed environment (stub)."""
+          if not code:
+              return {"ok": False, "reason": "missing_code"}
+          return {"ok": True, "stdout": "", "stderr": "", "artifacts": []}
+
+  - filename: "tools/preprocess_execute_code.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def execute_code(code: str) -> Dict[str, Any]:
+          """Execute preprocessing code (stub)."""
+          if not code:
+              return {"ok": False, "reason": "missing_code"}
+          return {"ok": True, "stdout": "", "stderr": "", "artifacts": []}
+
+  - filename: "tools/check_preprocessing_readiness.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def check_preprocessing_readiness(preprocessing_plan: str) -> Dict[str, Any]:
+          """Return whether preprocessing is sufficient to proceed (stub)."""
+          ready = bool(preprocessing_plan and preprocessing_plan.strip())
+          return {"ok": True, "ready": ready}
+
+  - filename: "tools/trainer_execute_code.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def execute_code(code: str) -> Dict[str, Any]:
+          """Execute training code (stub)."""
+          if not code:
+              return {"ok": False, "reason": "missing_code"}
+          return {"ok": True, "stdout": "", "stderr": "", "artifacts": []}
+
+  - filename: "tools/save_model_metrics.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def save_model_metrics(metrics: Dict[str, Any]) -> Dict[str, Any]:
+          """Persist metrics for comparing models (stub)."""
+          if metrics is None:
+              return {"ok": False, "reason": "missing_metrics"}
+          return {"ok": True, "saved": True, "metrics": metrics}
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7c: HookAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+hook_files: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 8: AgentsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agents:
+  - name: "DatasetIntakeAgent"
+    display_name: "Dataset Intake"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are the dataset intake agent for an ML pipeline workflow."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Confirm dataset selection and basic assumptions
+          - Set the dataset_path for downstream stages
+          - Handoff to DataExplorerAgent
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Inputs**: user-uploaded dataset filename/description.
+          **Downstream**: exploration, preprocessing, training, summarization.
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          - Confirm which uploaded dataset to use.
+          - Decide the bundled dataset_path (datasets/<filename>).
+          - Proceed to the next stage.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          Conversational.
+          - Confirm dataset_path in one line.
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "DataExplorerAgent"
+    display_name: "Data Exploration"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You explore the dataset and summarize key findings."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Produce exploration_summary
+          - Identify data issues (missingness, leakage, imbalance)
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Tool**: execute_code(code: str)
+          **Input**: dataset_path
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          - Use execute_code to compute summary stats.
+          - Produce a concise exploration_summary.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          Markdown with:
+          - Dataset overview
+          - Key issues
+          - Recommendations
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "DataPreprocessorAgent"
+    display_name: "Preprocessing"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You design preprocessing and prepare data for training."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Define preprocessing steps (cleaning, encoding, splits)
+          - Ensure readiness for training
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Tools**:
+          - execute_code(code: str)
+          - check_preprocessing_readiness(summary: str)
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          - Implement preprocessing steps.
+          - Use check_preprocessing_readiness before moving to training.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          - Brief preprocessing_summary
+          - Confirmation that readiness check passed
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "ModelTrainerAgent"
+    display_name: "Model Training"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You train and compare models, recording metrics."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Train at least two candidates
+          - Select a preferred model
+          - Persist metrics
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Tools**:
+          - execute_code(code: str)
+          - save_model_metrics(metrics: str)
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          - Train at least two candidate models.
+          - Save metrics via save_model_metrics.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          Markdown table of model metrics + a short recommendation.
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "WorkflowSummarizerAgent"
+    display_name: "Summary & Export"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You assemble an integrated script and write a final summary."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Summarize the pipeline stages and outcomes
+          - Emit a single integrated script name
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          Inputs: exploration_summary, preprocessing_summary, model_metrics
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          - Produce a final report.
+          - Emit a single integrated script name (ml_pipeline.py).
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          Markdown final report + a final line: "Script: ml_pipeline.py"
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: false
+    structured_outputs_required: false
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 9: OrchestratorAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+workflow_name: "Pattern6_PipelineWorkflow"
+max_turns: 60
+human_in_the_loop: true
+startup_mode: "UserDriven"
+orchestration_pattern: "Pipeline"
+initial_message_to_user: null
+initial_message: "Upload a dataset and describe your ML goal."
+initial_agent: "DatasetIntakeAgent"
+visual_agents: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 10: HandoffsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+handoff_rules:
+  - source_agent: "DatasetIntakeAgent"
+    target_agent: "DataExplorerAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "DataExplorerAgent"
+    target_agent: "DataPreprocessorAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "DataPreprocessorAgent"
+    target_agent: "ModelTrainerAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "ModelTrainerAgent"
+    target_agent: "WorkflowSummarizerAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "WorkflowSummarizerAgent"
+    target_agent: "User"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "RevertToUserTarget"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 11: StructuredOutputsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+models: []
+
+registry:
+  - agent: "DatasetIntakeAgent"
+    agent_definition: null
+  - agent: "DataExplorerAgent"
+    agent_definition: null
+  - agent: "DataPreprocessorAgent"
+    agent_definition: null
+  - agent: "ModelTrainerAgent"
+    agent_definition: null
+  - agent: "WorkflowSummarizerAgent"
+    agent_definition: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 12: PackMetadataAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+PackMetadata:
+  manifest:
+    pack_name: "Pattern 6 - Pipeline Pack"
+    pack_description: "Sequential workflow to explore, preprocess, train models, and export a reproducible script"
+    version: "1.0.0"
+    entry_point: "Pattern6_PipelineWorkflow"
+    workflows:
+      - name: "Pattern6_PipelineWorkflow"
+        description: "Sequential ML pipeline from intake to export"
+        role: "primary"
+        startup_mode: "UserDriven"
+    ui_config:
+      show_workflow_transitions: false
+      transition_style: "hidden"
+
+  workflow_graph:
+    nodes:
+      - id: "Pattern6_PipelineWorkflow"
+        type: "primary"
+    edges: []
+
+  shared_context:
+    variables: []
+    refresh_strategy: "explicit"
+    db_collection: "shared_context"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 13: DownloadAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agent_message: "Your pipeline workflow is ready to download. Generate the bundle now?"

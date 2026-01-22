@@ -1,0 +1,1317 @@
+# Multi-Workflow Decomposition Example: CRM Suite Pack
+# 
+# This example shows how PatternAgent decomposes a complex request into
+# MULTIPLE WORKFLOWS, each using a different orchestration pattern.
+#
+# User Prompt:
+#   "Build me a CRM with sales pipeline tracking, customer support ticketing,
+#    and analytics dashboards. Sales reps need to iterate on deals, support
+#    needs escalation tiers, and dashboards should process data sequentially."
+#
+# PatternAgent Decision:
+#   - is_multi_workflow: true
+#   - Three workflows with different patterns based on interaction needs
+#   - Macro-orchestrator (Pack) coordinates workflow dependencies
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 0: PatternAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+# 
+# PatternAgent analyzes the request and determines:
+# 1. This is too complex for a single workflow
+# 2. Different domains need different interaction models
+# 3. Multiple workflows are needed with a macro-orchestrator
+#
+PatternSelection:
+  is_multi_workflow: true
+  decomposition_reason: |
+    The CRM request spans three distinct domains with incompatible interaction models:
+    - Sales pipeline requires iterative refinement (deals go through multiple review cycles)
+    - Support ticketing requires tiered escalation (unresolved issues bubble up)
+    - Analytics dashboards require sequential data processing (ingest → transform → visualize)
+    A single workflow cannot efficiently serve all three; decomposition is required.
+  pack_name: "CRM Suite Pack"
+  workflows:
+    - name: "SalesPipelineWorkflow"
+      role: "primary"
+      description: "Manage sales deals through iterative qualification and negotiation cycles"
+      pattern_id: 3
+      pattern_name: "Feedback Loop"
+
+    - name: "SupportTicketingWorkflow"
+      role: "dependent"
+      description: "Handle customer support tickets with tiered escalation"
+      pattern_id: 2
+      pattern_name: "Escalation"
+
+    - name: "AnalyticsDashboardWorkflow"
+      role: "dependent"
+      description: "Process CRM data through sequential pipeline stages for visualization"
+      pattern_id: 6
+      pattern_name: "Pipeline"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 1: WorkflowStrategyAgent Output (WORKFLOW 1: SalesPipelineWorkflow)
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Each workflow gets its own WorkflowStrategy. The generator produces one
+# strategy document per workflow in the decomposition.
+#
+WorkflowStrategy:
+  workflow_name: "SalesPipelineWorkflow"
+  workflow_description: "When a sales rep enters a new deal, the workflow iterates through qualification, proposal drafting, review, and revision until the deal is ready to close or is disqualified."
+  startup_mode: "UserDriven"
+  human_in_loop: true
+  pattern:
+    - "Feedback Loop"
+  modules:
+    - module_index: 0
+      module_name: "Deal Intake"
+      module_description: "Capture deal details: company, contact, value, timeline, and initial qualification signals."
+      pattern_id: 3
+      pattern_name: "Feedback Loop"
+      agents_needed: ["DealIntakeAgent"]
+
+    - module_index: 1
+      module_name: "Qualification"
+      module_description: "Score the deal using BANT criteria; determine if it should proceed or be disqualified."
+      pattern_id: 3
+      pattern_name: "Feedback Loop"
+      agents_needed: ["QualificationAgent"]
+
+    - module_index: 2
+      module_name: "Proposal Drafting"
+      module_description: "Draft a proposal based on deal requirements and qualification insights."
+      pattern_id: 3
+      pattern_name: "Feedback Loop"
+      agents_needed: ["ProposalDraftAgent"]
+
+    - module_index: 3
+      module_name: "Review & Revision"
+      module_description: "Review proposal quality; iterate with revisions until approval or deal closure."
+      pattern_id: 3
+      pattern_name: "Feedback Loop"
+      agents_needed: ["ReviewAgent", "RevisionAgent"]
+
+    - module_index: 4
+      module_name: "Close"
+      module_description: "Finalize the deal outcome (won/lost/disqualified) and archive."
+      pattern_id: 3
+      pattern_name: "Feedback Loop"
+      agents_needed: ["CloseAgent"]
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 1: WorkflowStrategyAgent Output (WORKFLOW 2: SupportTicketingWorkflow)
+# ═══════════════════════════════════════════════════════════════════════════════
+WorkflowStrategy:
+  workflow_name: "SupportTicketingWorkflow"
+  workflow_description: "When a customer submits a support ticket, the workflow triages it, attempts resolution at Tier 1, escalates if needed, and tracks to resolution."
+  startup_mode: "UserDriven"
+  human_in_loop: true
+  pattern:
+    - "Escalation"
+  modules:
+    - module_index: 0
+      module_name: "Ticket Intake & Triage"
+      module_description: "Receive ticket, categorize priority/type, and route to initial support tier."
+      pattern_id: 2
+      pattern_name: "Escalation"
+      agents_needed: ["TicketTriageAgent"]
+
+    - module_index: 1
+      module_name: "Tier 1 Support"
+      module_description: "Attempt resolution with standard procedures and knowledge base."
+      pattern_id: 2
+      pattern_name: "Escalation"
+      agents_needed: ["Tier1SupportAgent"]
+
+    - module_index: 2
+      module_name: "Tier 2 Support"
+      module_description: "Handle escalated tickets requiring deeper investigation."
+      pattern_id: 2
+      pattern_name: "Escalation"
+      agents_needed: ["Tier2SupportAgent"]
+
+    - module_index: 3
+      module_name: "Expert Resolution"
+      module_description: "Expert-level resolution for complex or high-priority tickets."
+      pattern_id: 2
+      pattern_name: "Escalation"
+      agents_needed: ["ExpertSupportAgent"]
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 1: WorkflowStrategyAgent Output (WORKFLOW 3: AnalyticsDashboardWorkflow)
+# ═══════════════════════════════════════════════════════════════════════════════
+WorkflowStrategy:
+  workflow_name: "AnalyticsDashboardWorkflow"
+  workflow_description: "When a user requests analytics, the workflow ingests CRM data, transforms it, generates visualizations, and produces a dashboard report."
+  startup_mode: "UserDriven"
+  human_in_loop: true
+  pattern:
+    - "Pipeline"
+  modules:
+    - module_index: 0
+      module_name: "Data Ingestion"
+      module_description: "Connect to CRM data sources and extract relevant records."
+      pattern_id: 6
+      pattern_name: "Pipeline"
+      agents_needed: ["DataIngestionAgent"]
+
+    - module_index: 1
+      module_name: "Data Transformation"
+      module_description: "Clean, aggregate, and prepare data for visualization."
+      pattern_id: 6
+      pattern_name: "Pipeline"
+      agents_needed: ["DataTransformAgent"]
+
+    - module_index: 2
+      module_name: "Visualization Generation"
+      module_description: "Create charts, graphs, and KPI widgets."
+      pattern_id: 6
+      pattern_name: "Pipeline"
+      agents_needed: ["VisualizationAgent"]
+
+    - module_index: 3
+      module_name: "Dashboard Assembly"
+      module_description: "Assemble components into a cohesive dashboard and summary."
+      pattern_id: 6
+      pattern_name: "Pipeline"
+      agents_needed: ["DashboardAssemblyAgent"]
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2a: StateArchitectAgent Output (Pack-Level Shared Context)
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# In multi-workflow packs, there's SHARED CONTEXT that flows between workflows.
+# This goes into workflows/_pack/shared_context.json at deployment.
+#
+StateArchitecture:
+  # Pack-level shared context (flows between workflows)
+  shared_context_variables:
+    - name: "active_customer_id"
+      type: "data_reference"
+      purpose: "Current customer being worked with across all workflows"
+      scope: "pack"
+      trigger_hint: "Set by any workflow when customer is identified"
+
+    - name: "crm_connection_status"
+      type: "state"
+      purpose: "Whether CRM data source is connected and healthy"
+      scope: "pack"
+      trigger_hint: "Set by AnalyticsDashboardWorkflow on data ingestion"
+
+  # Per-workflow context (each workflow also has its own local context)
+  workflow_context:
+    SalesPipelineWorkflow:
+      - name: "current_deal"
+        type: "data_entity"
+        purpose: "Deal record being worked"
+        trigger_hint: "Set by DealIntakeAgent"
+      - name: "deal_stage"
+        type: "state"
+        purpose: "Current stage: intake, qualification, proposal, review, close"
+        trigger_hint: "Updated by stage transitions"
+      - name: "iteration_count"
+        type: "index"
+        purpose: "Number of review/revision cycles"
+        trigger_hint: "Incremented by ReviewAgent"
+
+    SupportTicketingWorkflow:
+      - name: "current_ticket"
+        type: "data_entity"
+        purpose: "Ticket record being worked"
+        trigger_hint: "Set by TicketTriageAgent"
+      - name: "escalation_level"
+        type: "state"
+        purpose: "Current tier: 1, 2, or expert"
+        trigger_hint: "Updated on escalation"
+      - name: "resolution_confidence"
+        type: "state"
+        purpose: "Agent confidence in current resolution (1-10)"
+        trigger_hint: "Set by support agents"
+
+    AnalyticsDashboardWorkflow:
+      - name: "data_source_path"
+        type: "data_reference"
+        purpose: "Path to CRM data export or connection string"
+        trigger_hint: "Set by DataIngestionAgent"
+      - name: "transformation_summary"
+        type: "content"
+        purpose: "Summary of data transformations applied"
+        trigger_hint: "Set by DataTransformAgent"
+      - name: "visualization_manifest"
+        type: "collection"
+        purpose: "List of generated charts and their metadata"
+        trigger_hint: "Appended by VisualizationAgent"
+
+  lifecycle_requirements:
+    before_chat: null
+    after_chat: null
+
+  workflow_dependencies:
+    - from: "SalesPipelineWorkflow"
+      to: "AnalyticsDashboardWorkflow"
+      shared_keys: ["active_customer_id"]
+    - from: "SupportTicketingWorkflow"
+      to: "AnalyticsDashboardWorkflow"
+      shared_keys: ["active_customer_id"]
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2b: UXArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+UXArchitecture:
+  ui_requirements:
+    - workflow: "SalesPipelineWorkflow"
+      components:
+        - type: "inline"
+          name: "DealCard"
+          purpose: "Display deal summary with stage indicator"
+        - type: "artifact"
+          name: "ProposalEditor"
+          purpose: "Rich text editor for proposal drafting"
+
+    - workflow: "SupportTicketingWorkflow"
+      components:
+        - type: "inline"
+          name: "TicketCard"
+          purpose: "Display ticket status and escalation level"
+        - type: "artifact"
+          name: "TicketTimeline"
+          purpose: "Show ticket history and agent interactions"
+
+    - workflow: "AnalyticsDashboardWorkflow"
+      components:
+        - type: "artifact"
+          name: "DashboardPreview"
+          purpose: "Interactive preview of generated dashboard"
+        - type: "inline"
+          name: "ChartThumbnail"
+          purpose: "Small preview of individual charts"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3a: AgentRosterAgent Output (All Workflows)
+# ═══════════════════════════════════════════════════════════════════════════════
+AgentRoster:
+  # SalesPipelineWorkflow agents
+  - workflow: "SalesPipelineWorkflow"
+    agents:
+      - agent_name: "DealIntakeAgent"
+        objective: "Capture new deal information and create the deal record."
+        agent_tools: []
+        lifecycle_tools: []
+        system_hooks: []
+        human_interaction: "context"
+        generation_mode: null
+
+      - agent_name: "QualificationAgent"
+        objective: "Score deal using BANT; recommend proceed or disqualify."
+        agent_tools: []
+        lifecycle_tools: []
+        system_hooks: []
+        human_interaction: "context"
+        generation_mode: null
+
+      - agent_name: "ProposalDraftAgent"
+        objective: "Draft proposal based on deal and qualification data."
+        agent_tools: []
+        lifecycle_tools: []
+        system_hooks: []
+        human_interaction: "context"
+        generation_mode: null
+
+      - agent_name: "ReviewAgent"
+        objective: "Review proposal quality; request revisions or approve."
+        agent_tools: []
+        lifecycle_tools: []
+        system_hooks: []
+        human_interaction: "feedback"
+        generation_mode: null
+
+      - agent_name: "RevisionAgent"
+        objective: "Revise proposal based on review feedback."
+        agent_tools: []
+        lifecycle_tools: []
+        system_hooks: []
+        human_interaction: "context"
+        generation_mode: null
+
+      - agent_name: "CloseAgent"
+        objective: "Finalize deal outcome and archive record."
+        agent_tools: []
+        lifecycle_tools: []
+        system_hooks: []
+        human_interaction: "approval"
+        generation_mode: null
+
+  # SupportTicketingWorkflow agents
+  - workflow: "SupportTicketingWorkflow"
+    agents:
+      - agent_name: "TicketTriageAgent"
+        objective: "Categorize and prioritize incoming tickets."
+        agent_tools: []
+        lifecycle_tools: []
+        system_hooks: []
+        human_interaction: "context"
+        generation_mode: null
+
+      - agent_name: "Tier1SupportAgent"
+        objective: "Attempt resolution with standard procedures."
+        agent_tools: []
+        lifecycle_tools: []
+        system_hooks: []
+        human_interaction: "context"
+        generation_mode: null
+
+      - agent_name: "Tier2SupportAgent"
+        objective: "Handle escalated tickets requiring deeper investigation."
+        agent_tools: []
+        lifecycle_tools: []
+        system_hooks: []
+        human_interaction: "context"
+        generation_mode: null
+
+      - agent_name: "ExpertSupportAgent"
+        objective: "Provide expert resolution for complex tickets."
+        agent_tools: []
+        lifecycle_tools: []
+        system_hooks: []
+        human_interaction: "context"
+        generation_mode: null
+
+  # AnalyticsDashboardWorkflow agents
+  - workflow: "AnalyticsDashboardWorkflow"
+    agents:
+      - agent_name: "DataIngestionAgent"
+        objective: "Connect to CRM data sources and extract records."
+        agent_tools: []
+        lifecycle_tools: []
+        system_hooks: []
+        human_interaction: "context"
+        generation_mode: null
+
+      - agent_name: "DataTransformAgent"
+        objective: "Clean, aggregate, and prepare data for visualization."
+        agent_tools: []
+        lifecycle_tools: []
+        system_hooks: []
+        human_interaction: "context"
+        generation_mode: null
+
+      - agent_name: "VisualizationAgent"
+        objective: "Generate charts, graphs, and KPI widgets."
+        agent_tools: []
+        lifecycle_tools: []
+        system_hooks: []
+        human_interaction: "context"
+        generation_mode: null
+
+      - agent_name: "DashboardAssemblyAgent"
+        objective: "Assemble visualizations into cohesive dashboard."
+        agent_tools: []
+        lifecycle_tools: []
+        system_hooks: []
+        human_interaction: "context"
+        generation_mode: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3b: ToolPlanningAgent Output - SalesPipelineWorkflow
+# ═══════════════════════════════════════════════════════════════════════════════
+ToolPlanning:
+  workflow: "SalesPipelineWorkflow"
+  agent_tools:
+    - name: "create_deal"
+      agent: "DealIntakeAgent"
+      integration: null
+      purpose: "Create a new deal record with initial data"
+      interaction_mode: "none"
+
+    - name: "score_deal"
+      agent: "QualificationAgent"
+      integration: null
+      purpose: "Apply BANT scoring to deal"
+      interaction_mode: "none"
+
+    - name: "draft_proposal"
+      agent: "ProposalDraftAgent"
+      integration: null
+      purpose: "Generate proposal document"
+      interaction_mode: "none"
+
+    - name: "submit_review"
+      agent: "ReviewAgent"
+      integration: null
+      purpose: "Record review feedback and iteration decision"
+      interaction_mode: "none"
+
+    - name: "apply_revision"
+      agent: "RevisionAgent"
+      integration: null
+      purpose: "Update proposal with revisions"
+      interaction_mode: "none"
+
+    - name: "close_deal"
+      agent: "CloseAgent"
+      integration: null
+      purpose: "Mark deal as won/lost/disqualified"
+      interaction_mode: "none"
+
+  lifecycle_tools: []
+  system_hooks: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3b: ToolPlanningAgent Output - SupportTicketingWorkflow
+# ═══════════════════════════════════════════════════════════════════════════════
+ToolPlanning:
+  workflow: "SupportTicketingWorkflow"
+  agent_tools:
+    - name: "create_ticket"
+      agent: "TicketTriageAgent"
+      integration: null
+      purpose: "Create and categorize new ticket"
+      interaction_mode: "none"
+
+    - name: "attempt_resolution"
+      agent: "Tier1SupportAgent"
+      integration: null
+      purpose: "Try standard resolution with confidence score"
+      interaction_mode: "none"
+
+    - name: "investigate_deeper"
+      agent: "Tier2SupportAgent"
+      integration: null
+      purpose: "Perform deeper investigation with confidence score"
+      interaction_mode: "none"
+
+    - name: "expert_resolve"
+      agent: "ExpertSupportAgent"
+      integration: null
+      purpose: "Apply expert knowledge to resolve"
+      interaction_mode: "none"
+
+    - name: "close_ticket"
+      agent: "ExpertSupportAgent"
+      integration: null
+      purpose: "Mark ticket resolved and record resolution"
+      interaction_mode: "none"
+
+  lifecycle_tools: []
+  system_hooks: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3b: ToolPlanningAgent Output - AnalyticsDashboardWorkflow
+# ═══════════════════════════════════════════════════════════════════════════════
+ToolPlanning:
+  workflow: "AnalyticsDashboardWorkflow"
+  agent_tools:
+    - name: "connect_data_source"
+      agent: "DataIngestionAgent"
+      integration: null
+      purpose: "Establish connection to CRM data"
+      interaction_mode: "none"
+
+    - name: "extract_records"
+      agent: "DataIngestionAgent"
+      integration: null
+      purpose: "Pull relevant records from CRM"
+      interaction_mode: "none"
+
+    - name: "transform_data"
+      agent: "DataTransformAgent"
+      integration: null
+      purpose: "Apply cleaning and aggregation"
+      interaction_mode: "none"
+
+    - name: "generate_chart"
+      agent: "VisualizationAgent"
+      integration: null
+      purpose: "Create individual visualization"
+      interaction_mode: "none"
+
+    - name: "assemble_dashboard"
+      agent: "DashboardAssemblyAgent"
+      integration: null
+      purpose: "Combine charts into dashboard layout"
+      interaction_mode: "none"
+
+  lifecycle_tools: []
+  system_hooks: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 4: ProjectOverviewAgent Output (Pack-Level Overview)
+# ═══════════════════════════════════════════════════════════════════════════════
+MermaidSequenceDiagram:
+  workflow_name: "CRM Suite Pack (Multi-Workflow)"
+  mermaid_diagram: |
+    sequenceDiagram
+        participant User
+        participant JourneyOrchestrator
+        participant SalesPipeline
+        participant SupportTicketing
+        participant AnalyticsDashboard
+
+        Note over JourneyOrchestrator: Macro orchestrator manages journey lifecycle
+
+        User->>JourneyOrchestrator: "I need to work on a deal"
+        JourneyOrchestrator->>SalesPipeline: Activate workflow
+        SalesPipeline->>SalesPipeline: Deal → Qualify → Propose → Review → Close
+        SalesPipeline->>JourneyOrchestrator: Deal closed (active_customer_id set)
+
+        User->>JourneyOrchestrator: "Customer has a support issue"
+        JourneyOrchestrator->>SupportTicketing: Activate workflow
+        SupportTicketing->>SupportTicketing: Triage → Tier1 → Tier2 → Expert
+        SupportTicketing->>JourneyOrchestrator: Ticket resolved
+
+        User->>JourneyOrchestrator: "Show me analytics"
+        JourneyOrchestrator->>AnalyticsDashboard: Activate workflow
+        Note over AnalyticsDashboard: Uses active_customer_id from shared context
+        AnalyticsDashboard->>AnalyticsDashboard: Ingest → Transform → Visualize → Assemble
+        AnalyticsDashboard->>User: Dashboard delivered
+
+  legend:
+    - "Multi-workflow: each domain has its own GroupChat"
+    - "Pack orchestrator coordinates which workflow is active"
+    - "Shared context flows between workflows"
+
+agent_message: |
+  I've analyzed your CRM request and determined it requires **three separate workflows**:
+
+  1. **SalesPipelineWorkflow** (Feedback Loop pattern)
+     - Iterative deal management: intake → qualify → propose → review/revise → close
+  
+  2. **SupportTicketingWorkflow** (Escalation pattern)
+     - Tiered support: triage → tier 1 → tier 2 → expert
+  
+  3. **AnalyticsDashboardWorkflow** (Pipeline pattern)
+     - Sequential data processing: ingest → transform → visualize → assemble
+
+  These workflows share context (like `active_customer_id`) but run independently.
+  
+  Approve this decomposition to proceed with detailed generation?
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 5: ContextVariablesAgent Output (BUILD PHASE - SalesPipelineWorkflow)
+# ═══════════════════════════════════════════════════════════════════════════════
+# In multi-workflow packs, each workflow has its own ContextVariablesPlan.
+# Shared context variables are defined at pack level in StateArchitecture.
+ContextVariablesPlan:
+  workflow_name: "SalesPipelineWorkflow"
+  variables:
+    - name: "current_deal"
+      var_type: "entity"
+      init: "null"
+      sources_from_agents:
+        - "DealIntakeAgent"
+      used_by_agents:
+        - "QualificationAgent"
+        - "ProposalDraftAgent"
+        - "ReviewAgent"
+        - "RevisionAgent"
+        - "CloseAgent"
+
+    - name: "deal_stage"
+      var_type: "state"
+      init: "'intake'"
+      sources_from_agents:
+        - "DealIntakeAgent"
+        - "QualificationAgent"
+        - "ReviewAgent"
+        - "CloseAgent"
+      used_by_agents:
+        - "All agents (routing)"
+
+    - name: "proposal_document"
+      var_type: "content"
+      init: "null"
+      sources_from_agents:
+        - "ProposalDraftAgent"
+        - "RevisionAgent"
+      used_by_agents:
+        - "ReviewAgent"
+        - "CloseAgent"
+
+    - name: "review_feedback"
+      var_type: "collection"
+      init: "[]"
+      sources_from_agents:
+        - "ReviewAgent"
+      used_by_agents:
+        - "RevisionAgent"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 6: ToolsManagerAgent Output (BUILD PHASE - SalesPipelineWorkflow)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - agent: "DealIntakeAgent"
+    file: "tools/create_deal.py"
+    function: "create_deal"
+    description: "Create a new deal record with initial data"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "QualificationAgent"
+    file: "tools/score_deal.py"
+    function: "score_deal"
+    description: "Apply BANT scoring to deal"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "ProposalDraftAgent"
+    file: "tools/draft_proposal.py"
+    function: "draft_proposal"
+    description: "Generate proposal document"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "ReviewAgent"
+    file: "tools/submit_review.py"
+    function: "submit_review"
+    description: "Record review feedback and iteration decision"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "RevisionAgent"
+    file: "tools/apply_revision.py"
+    function: "apply_revision"
+    description: "Update proposal with revisions"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "CloseAgent"
+    file: "tools/close_deal.py"
+    function: "close_deal"
+    description: "Mark deal as won/lost/disqualified"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+lifecycle_tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7a: UIFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools: []  # No UI tools needed for this workflow
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7b: AgentToolsFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tool_files:
+  - file: "tools/create_deal.py"
+    source: |
+      def create_deal(company: str, contact: str, estimated_value: float, timeline: str, notes: str = "") -> dict:
+          """Create a new deal record."""
+          return {
+              "deal_id": "DEAL-" + str(hash(company))[:8],
+              "company": company,
+              "contact": contact,
+              "estimated_value": estimated_value,
+              "timeline": timeline,
+              "notes": notes,
+              "stage": "intake"
+          }
+
+  - file: "tools/score_deal.py"
+    source: |
+      def score_deal(deal_id: str, budget_score: int, authority_score: int, need_score: int, timeline_score: int) -> dict:
+          """Apply BANT scoring to a deal."""
+          total = budget_score + authority_score + need_score + timeline_score
+          recommendation = "proceed" if total >= 12 else "gather_more" if total >= 8 else "disqualify"
+          return {
+              "deal_id": deal_id,
+              "bant_scores": {"budget": budget_score, "authority": authority_score, "need": need_score, "timeline": timeline_score},
+              "total_score": total,
+              "recommendation": recommendation
+          }
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7c: HookAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+hook_files: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 8: AgentsAgent Output (SalesPipelineWorkflow - Sample)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+agents:
+  - workflow: "SalesPipelineWorkflow"
+    agents:
+      - name: "DealIntakeAgent"
+        display_name: "Deal Intake"
+        prompt_sections:
+          - id: "role"
+            heading: "[ROLE]"
+            content: "You are the deal intake agent for a sales pipeline workflow."
+
+          - id: "objective"
+            heading: "[OBJECTIVE]"
+            content: |
+              - Capture essential deal information from the sales rep
+              - Create the initial deal record
+              - Set deal_stage to 'intake' and handoff to QualificationAgent
+
+          - id: "context"
+            heading: "[CONTEXT]"
+            content: |
+              **Context Variables**:
+              - `current_deal`: Deal entity you create
+              - `deal_stage`: Set to 'intake' initially
+              - `active_customer_id`: Shared across pack workflows
+
+              **Tools**:
+              - create_deal(company, contact, estimated_value, timeline, notes)
+
+          - id: "instructions"
+            heading: "[INSTRUCTIONS]"
+            content: |
+              1. Ask for: company name, primary contact, estimated deal value, expected close timeline
+              2. Optionally gather: pain points, competition, decision makers
+              3. Call create_deal with the collected information
+              4. Confirm deal creation with the rep
+              5. Handoff to QualificationAgent
+
+          - id: "output_format"
+            heading: "[OUTPUT FORMAT]"
+            content: |
+              Conversational.
+              - Confirm each piece of information as collected
+              - Summarize the deal record before handoff
+
+        max_consecutive_auto_reply: 10
+        auto_tool_mode: true
+        structured_outputs_required: false
+
+      - name: "QualificationAgent"
+        display_name: "Deal Qualification"
+        prompt_sections:
+          - id: "role"
+            heading: "[ROLE]"
+            content: "You qualify deals using BANT criteria (Budget, Authority, Need, Timeline)."
+
+          - id: "objective"
+            heading: "[OBJECTIVE]"
+            content: |
+              - Score the deal on each BANT dimension
+              - Recommend: proceed to proposal, gather more info, or disqualify
+              - Update deal_stage appropriately
+
+          - id: "context"
+            heading: "[CONTEXT]"
+            content: |
+              **Inputs**:
+              - `current_deal` with initial information
+
+              **Tools**:
+              - score_deal(budget_score, authority_score, need_score, timeline_score, recommendation)
+
+          - id: "instructions"
+            heading: "[INSTRUCTIONS]"
+            content: |
+              1. Review deal information from current_deal
+              2. Ask follow-up questions to assess BANT if needed
+              3. Score each dimension 1-10
+              4. If total score >= 28 → recommend 'proceed'
+              5. If total score 20-27 → recommend 'gather_more'
+              6. If total score < 20 → recommend 'disqualify'
+              7. Call score_deal with scores and recommendation
+              8. Handoff appropriately (ProposalDraftAgent or CloseAgent)
+
+          - id: "output_format"
+            heading: "[OUTPUT FORMAT]"
+            content: |
+              BANT Scorecard:
+              - Budget: X/10
+              - Authority: X/10
+              - Need: X/10
+              - Timeline: X/10
+              - Total: XX/40
+              - Recommendation: proceed | gather_more | disqualify
+
+        max_consecutive_auto_reply: 10
+        auto_tool_mode: true
+        structured_outputs_required: false
+
+      - name: "ProposalDraftAgent"
+        display_name: "Proposal Drafter"
+        prompt_sections:
+          - id: "role"
+            heading: "[ROLE]"
+            content: "You draft sales proposals based on deal and qualification data."
+
+          - id: "objective"
+            heading: "[OBJECTIVE]"
+            content: |
+              - Create a tailored proposal addressing customer pain points
+              - Include pricing, timeline, and value proposition
+              - Prepare for review cycle
+
+          - id: "context"
+            heading: "[CONTEXT]"
+            content: |
+              **Inputs**:
+              - `current_deal` with company/contact info
+              - Qualification scores and notes
+
+              **Tools**:
+              - draft_proposal(executive_summary, solution_overview, pricing, timeline, terms)
+
+          - id: "instructions"
+            heading: "[INSTRUCTIONS]"
+            content: |
+              1. Review deal context and qualification notes
+              2. Draft sections: executive summary, solution overview, pricing, timeline
+              3. Call draft_proposal with the content
+              4. Handoff to ReviewAgent
+
+          - id: "output_format"
+            heading: "[OUTPUT FORMAT]"
+            content: |
+              Markdown proposal with:
+              - Executive Summary
+              - Solution Overview
+              - Pricing Table
+              - Timeline
+              - Terms & Next Steps
+
+        max_consecutive_auto_reply: 10
+        auto_tool_mode: true
+        structured_outputs_required: false
+
+      - name: "ReviewAgent"
+        display_name: "Proposal Reviewer"
+        prompt_sections:
+          - id: "role"
+            heading: "[ROLE]"
+            content: "You review proposal quality and decide if revision is needed."
+
+          - id: "objective"
+            heading: "[OBJECTIVE]"
+            content: |
+              - Evaluate proposal for completeness, accuracy, and persuasiveness
+              - Provide specific feedback if revision needed
+              - Approve when ready
+
+          - id: "context"
+            heading: "[CONTEXT]"
+            content: |
+              **Inputs**:
+              - Current proposal draft
+              - `iteration_count` tracking review cycles
+
+              **Tools**:
+              - submit_review(feedback, approved: bool)
+
+          - id: "instructions"
+            heading: "[INSTRUCTIONS]"
+            content: |
+              1. Review proposal against deal requirements
+              2. Check: value prop clarity, pricing accuracy, timeline feasibility
+              3. If issues found → call submit_review(feedback, approved=false) → handoff to RevisionAgent
+              4. If ready → call submit_review("Approved", approved=true) → handoff to CloseAgent
+              5. If iteration_count > 3 → consider approving with notes
+
+          - id: "output_format"
+            heading: "[OUTPUT FORMAT]"
+            content: |
+              Review Summary:
+              - Status: Approved | Needs Revision
+              - Feedback: (if revision needed)
+                - Issue 1
+                - Issue 2
+              - Iteration: X of max 3
+
+        max_consecutive_auto_reply: 10
+        auto_tool_mode: true
+        structured_outputs_required: false
+
+      - name: "RevisionAgent"
+        display_name: "Proposal Reviser"
+        prompt_sections:
+          - id: "role"
+            heading: "[ROLE]"
+            content: "You revise proposals based on review feedback."
+
+          - id: "objective"
+            heading: "[OBJECTIVE]"
+            content: |
+              - Address all feedback points from ReviewAgent
+              - Improve proposal quality while preserving intent
+              - Return for re-review
+
+          - id: "context"
+            heading: "[CONTEXT]"
+            content: |
+              **Inputs**:
+              - Current proposal
+              - Review feedback
+
+              **Tools**:
+              - apply_revision(revised_proposal)
+
+          - id: "instructions"
+            heading: "[INSTRUCTIONS]"
+            content: |
+              1. Parse feedback into actionable items
+              2. Revise each section as needed
+              3. Call apply_revision with updated proposal
+              4. Handoff back to ReviewAgent
+
+          - id: "output_format"
+            heading: "[OUTPUT FORMAT]"
+            content: |
+              Changes Made:
+              - [Feedback item] → [How addressed]
+              
+              (Full revised proposal follows)
+
+        max_consecutive_auto_reply: 10
+        auto_tool_mode: true
+        structured_outputs_required: false
+
+      - name: "CloseAgent"
+        display_name: "Deal Closer"
+        prompt_sections:
+          - id: "role"
+            heading: "[ROLE]"
+            content: "You finalize deal outcomes and archive records."
+
+          - id: "objective"
+            heading: "[OBJECTIVE]"
+            content: |
+              - Confirm final deal status with sales rep
+              - Record outcome (won/lost/disqualified)
+              - Archive deal for analytics
+
+          - id: "context"
+            heading: "[CONTEXT]"
+            content: |
+              **Inputs**:
+              - `current_deal`
+              - Proposal (if approved)
+              - Qualification outcome (if disqualified early)
+
+              **Tools**:
+              - close_deal(outcome, close_reason, final_value)
+
+          - id: "instructions"
+            heading: "[INSTRUCTIONS]"
+            content: |
+              1. Confirm outcome with rep: Won, Lost, or Disqualified
+              2. Capture reason and final value (if won)
+              3. Call close_deal to record
+              4. Summarize for rep and complete workflow
+
+          - id: "output_format"
+            heading: "[OUTPUT FORMAT]"
+            content: |
+              Deal Closed:
+              - Company: X
+              - Outcome: Won | Lost | Disqualified
+              - Reason: ...
+              - Final Value: $X (if won)
+
+        max_consecutive_auto_reply: 10
+        auto_tool_mode: false
+        structured_outputs_required: false
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 9: OrchestratorAgent Output (BUILD PHASE - SalesPipelineWorkflow)
+# ═══════════════════════════════════════════════════════════════════════════════
+# In multi-workflow packs, each workflow has its own orchestrator config.
+# Showing SalesPipelineWorkflow as the primary example.
+workflow_name: "SalesPipelineWorkflow"
+max_turns: 60
+human_in_the_loop: true
+startup_mode: "UserDriven"
+orchestration_pattern: "Feedback Loop"
+initial_message_to_user: null
+initial_message: "Tell me about the new deal you're working on."
+initial_agent: "DealIntakeAgent"
+visual_agents: []
+# NOTE: SupportTicketingWorkflow and AnalyticsDashboardWorkflow would have
+# their own orchestrator configs following the same flat structure.
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 10: HandoffsAgent Output (BUILD PHASE - SalesPipelineWorkflow)
+# ═══════════════════════════════════════════════════════════════════════════════
+# In multi-workflow packs, each workflow has its own handoff_rules.
+# Showing SalesPipelineWorkflow handoffs as primary example.
+handoff_rules:
+  - source_agent: "DealIntakeAgent"
+    target_agent: "QualificationAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "QualificationAgent"
+    target_agent: "ProposalDraftAgent"
+    handoff_type: "condition"
+    condition: "Proceed to proposal"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "QualificationAgent"
+    target_agent: "CloseAgent"
+    handoff_type: "condition"
+    condition: "Disqualify deal"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "ProposalDraftAgent"
+    target_agent: "ReviewAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "ReviewAgent"
+    target_agent: "RevisionAgent"
+    handoff_type: "condition"
+    condition: "Revision needed"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "ReviewAgent"
+    target_agent: "CloseAgent"
+    handoff_type: "condition"
+    condition: "Proposal approved"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "RevisionAgent"
+    target_agent: "ReviewAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "CloseAgent"
+    target_agent: "User"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "RevertToUserTarget"
+# NOTE: SupportTicketingWorkflow and AnalyticsDashboardWorkflow would have
+# their own handoff_rules following the same flat structure.
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 11: StructuredOutputsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+# In multi-workflow packs, registry lists all agents across all workflows.
+models: []
+
+registry:
+  # SalesPipelineWorkflow agents
+  - agent: "DealIntakeAgent"
+    agent_definition: null
+  - agent: "QualificationAgent"
+    agent_definition: null
+  - agent: "ProposalDraftAgent"
+    agent_definition: null
+  - agent: "ReviewAgent"
+    agent_definition: null
+  - agent: "RevisionAgent"
+    agent_definition: null
+  - agent: "CloseAgent"
+    agent_definition: null
+  # SupportTicketingWorkflow agents
+  - agent: "TicketTriageAgent"
+    agent_definition: null
+  - agent: "Tier1SupportAgent"
+    agent_definition: null
+  - agent: "Tier2SupportAgent"
+    agent_definition: null
+  - agent: "ExpertSupportAgent"
+    agent_definition: null
+  # AnalyticsDashboardWorkflow agents
+  - agent: "DataIngestionAgent"
+    agent_definition: null
+  - agent: "DataTransformAgent"
+    agent_definition: null
+  - agent: "VisualizationAgent"
+    agent_definition: null
+  - agent: "DashboardAssemblyAgent"
+    agent_definition: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 12: PackMetadataAgent Output (MACRO-ORCHESTRATOR)
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# This is the PACK-LEVEL configuration that defines how workflows relate.
+# At deployment, this becomes:
+#   workflows/_pack/workflow_graph.json
+# (manifest.json/shared_context.json are not part of the runtime contract)
+#
+PackMetadata:
+  manifest:
+    pack_name: "CRM Suite Pack"
+    pack_description: "Multi-workflow CRM system with sales pipeline, support ticketing, and analytics dashboards"
+    version: "1.0.0"
+    entry_point: "SalesPipelineWorkflow"  # Default starting workflow
+    workflows:
+      - name: "SalesPipelineWorkflow"
+        description: "Iterative sales deal management"
+        role: "primary"
+        startup_mode: "UserDriven"
+      - name: "SupportTicketingWorkflow"
+        description: "Tiered customer support"
+        role: "dependent"
+        startup_mode: "UserDriven"
+      - name: "AnalyticsDashboardWorkflow"
+        description: "CRM analytics and dashboards"
+        role: "dependent"
+        startup_mode: "UserDriven"
+    ui_config:
+      show_workflow_transitions: true
+      transition_style: "explicit"  # User sees which workflow is active
+
+  # MACRO DEPENDENCY GRAPH
+  # Defines how workflows relate and when they can be activated
+  workflow_graph:
+    nodes:
+      - id: "SalesPipelineWorkflow"
+        type: "primary"
+      - id: "SupportTicketingWorkflow"
+        type: "independent"  # Can run anytime
+      - id: "AnalyticsDashboardWorkflow"
+        type: "dependent"    # Needs data from others
+
+    edges:
+      # Analytics depends on having some customer context
+      - from: "SalesPipelineWorkflow"
+        to: "AnalyticsDashboardWorkflow"
+        kind: "data"  # Data dependency (shared context)
+        gating: "optional"  # Can run without, but better with
+
+      - from: "SupportTicketingWorkflow"
+        to: "AnalyticsDashboardWorkflow"
+        kind: "data"
+        gating: "optional"
+
+    # Gating rules for workflow activation
+    gating_rules:
+      SalesPipelineWorkflow:
+        condition: "always"  # Always available
+      SupportTicketingWorkflow:
+        condition: "always"  # Always available
+      AnalyticsDashboardWorkflow:
+        condition: "always"  # Available, but benefits from prior context
+
+  # SHARED CONTEXT ACROSS WORKFLOWS
+  # Variables that flow between workflows
+  shared_context:
+    variables:
+      - name: "active_customer_id"
+        type: "string"
+        description: "Customer being worked with across workflows"
+        producers: ["SalesPipelineWorkflow", "SupportTicketingWorkflow"]
+        consumers: ["AnalyticsDashboardWorkflow"]
+
+      - name: "crm_connection_status"
+        type: "string"
+        description: "CRM data source connection status"
+        producers: ["AnalyticsDashboardWorkflow"]
+        consumers: ["SalesPipelineWorkflow", "SupportTicketingWorkflow"]
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 13: DownloadAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+agent_message: |
+  Your **CRM Suite Pack** is ready for download! 📦
+
+  ## Pack Structure
+
+  ```
+  workflows/
+  ├── _pack/                          # Macro-Orchestrator
+  │   ├── manifest.json               # Pack identity & workflow list
+  │   ├── workflow_graph.json         # Dependency graph between workflows
+  │   └── shared_context.json         # Cross-workflow context variables
+  │
+  ├── SalesPipelineWorkflow/          # Micro-Orchestrator 1
+  │   ├── _pack/
+  │   │   └── manifest.json           # Workflow identity
+  │   ├── agents.json
+  │   ├── orchestrator.json
+  │   ├── handoffs.json
+  │   ├── tools.json
+  │   ├── context_variables.json
+  │   ├── structured_outputs.json
+  │   └── tools/
+  │       ├── create_deal.py
+  │       ├── score_deal.py
+  │       └── ...
+  │
+  ├── SupportTicketingWorkflow/       # Micro-Orchestrator 2
+  │   ├── _pack/
+  │   │   └── manifest.json
+  │   ├── agents.json
+  │   ├── orchestrator.json
+  │   ├── handoffs.json
+  │   └── ...
+  │
+  └── AnalyticsDashboardWorkflow/     # Micro-Orchestrator 3
+      ├── _pack/
+      │   └── manifest.json
+      ├── agents.json
+      ├── orchestrator.json
+      ├── handoffs.json
+      └── ...
+  ```
+
+  ## Patterns Used
+
+  | Workflow | Pattern | Why |
+  |----------|---------|-----|
+  | SalesPipelineWorkflow | Feedback Loop | Deals iterate through review/revision cycles |
+  | SupportTicketingWorkflow | Escalation | Tickets escalate through support tiers |
+  | AnalyticsDashboardWorkflow | Pipeline | Data flows sequentially through processing |
+
+  ## Next Steps
+
+  1. Extract to your `workflows/` directory
+  2. Implement tool stubs in each workflow's `tools/` folder
+  3. Configure any UI components in `ChatUI/src/workflows/`
+  4. Start the runtime: `./start-app.ps1`
+
+  Would you like me to generate the actual JSON/Python files?

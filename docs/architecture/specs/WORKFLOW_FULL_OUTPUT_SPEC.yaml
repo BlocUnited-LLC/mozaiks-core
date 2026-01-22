@@ -1,0 +1,327 @@
+# MozaiksAI — Full Workflow Output Spec (Action Plan + Build)
+#
+# This file combines the schemas from:
+# - docs/source_of_truth/ACTION_PLAN_AGENTS.yaml (Layers 0–4)
+# - docs/source_of_truth/BUILD_AGENTS.yaml (Layers 5–13)
+#
+# Goal: represent the entire end-to-end workflow generation output structure in
+# ONE place, with inline comments showing which agent emits which output.
+#
+# Note:
+# - Each layer below describes ONE agent's structured output contract.
+# - "output_structure" describes the *shape* (not real values).
+
+workflow_output_layers:
+  # ════════════════════════════════════════════════════════════════════════════
+  # ACTION PLAN PHASE (Layers 0–4)
+  # ════════════════════════════════════════════════════════════════════════════
+
+  # LAYER 0 — Pattern Selection
+  - layer: 0
+    phase: action_plan
+    name: PatternAgent
+    objective: Analyze workflow requirements and select the optimal orchestration pattern
+    output_structure:
+      PatternSelection:  # Model: PatternSelection (wrapped by PatternSelectionOutput)
+        is_multi_workflow: bool
+        decomposition_reason: str | null
+        pack_name: str
+        workflows:  # list[WorkflowInPack]
+          - name: str
+            role: enum(primary, supporting)
+            description: str
+            pattern_id: int
+            pattern_name: str
+
+  # LAYER 1 — Strategic Intent
+  - layer: 1
+    phase: action_plan
+    name: WorkflowStrategyAgent
+    objective: Define the workflow's purpose, startup behavior, and modular structure
+    output_structure:
+      WorkflowStrategy:  # Model: WorkflowStrategy (wrapped by WorkflowStrategyOutput)
+        workflow_name: str
+        workflow_description: str
+        startup_mode: enum(UserDriven, AgentDriven, BackendOnly)
+        human_in_loop: bool
+        pattern: list[str]
+        modules:  # list[WorkflowStrategyModule]
+          - module_name: str
+            module_index: int
+            module_description: str
+            pattern_id: int
+            pattern_name: str
+            agents_needed: list[str]
+
+  # LAYER 2a — State & Data Architecture
+  - layer: 2
+    phase: action_plan
+    name: StateArchitectAgent
+    objective: Define the data model, context variables, and lifecycle triggers
+    output_structure:
+      StateArchitecture:  # Model: StateArchitecture (wrapped by StateArchitectureOutput)
+        global_context_variables: list[RequiredContextVariable]
+        assets: list[WorkflowAsset]  # optional
+        lifecycle_requirements:  # LifecycleRequirements | null
+          before_chat: str | null
+          after_chat: str | null
+
+  # LAYER 2b - User Experience Architecture
+  - layer: 2
+    phase: action_plan
+    name: UXArchitectAgent
+    objective: Define the user interface contracts, artifacts, and interaction patterns
+    output_structure:
+      UXArchitecture:  # Model: UXArchitecture (wrapped by UXArchitectureOutput)
+        ui_requirements:  # list[WorkflowUIComponent]
+          - module_name: str
+            agent: str
+            tool: str
+            label: str
+            component: str
+            display: enum(inline, artifact)
+            summary: str
+
+  # LAYER 3a — Agent Roster
+  - layer: 3
+    phase: action_plan
+    name: AgentRosterAgent
+    objective: Define the agent identities, types, and interaction behaviors
+    output_structure:
+      AgentRoster:  # Model: AgentRoster (wrapped by AgentRosterOutput)
+        agents:  # list[WorkflowAgent]
+          - agent_name: str
+            objective: str
+            agent_tools:  # list[AgentTool]
+              - name: str
+                integration: str | null
+                purpose: str
+                interaction_mode: enum(inline, artifact, none)
+            lifecycle_tools:  # list[LifecycleTool]
+              - name: str
+                integration: str | null
+                purpose: str
+                trigger: enum(before_agent, after_agent)
+            system_hooks:  # list[SystemHook]
+              - name: str
+                agent: str | null
+                trigger: enum(process_message_before_send, update_agent_state, process_last_received_message, process_all_messages_before_reply)
+                purpose: str
+            human_interaction: enum(none, context, approval, feedback, single)
+            generation_mode: str | null
+
+  # LAYER 3b — Tool and Hook Planning
+  - layer: 3
+    phase: action_plan
+    name: ToolPlanningAgent
+    objective: Define all backend/logic tools, lifecycle tools, and system hooks (excludes UI tools)
+    output_structure:
+      ToolPlanning:  # Model: ToolPlanning (wrapped by ToolPlanningOutput)
+        agent_tools:  # list[PlannedAgentTool]
+          - name: str
+            agent: str
+            integration: str | null
+            purpose: str
+            interaction_mode: enum(inline, artifact, none)
+        lifecycle_tools:  # list[LifecycleTool]
+          - name: str
+            integration: str | null
+            purpose: str
+            trigger: enum(before_agent, after_agent)
+        system_hooks:  # list[SystemHook]
+          - name: str
+            agent: str | null
+            trigger: enum(process_message_before_send, update_agent_state, process_last_received_message, process_all_messages_before_reply)
+            purpose: str
+
+  # LAYER 4 — Visualization and Validation
+  - layer: 4
+    phase: action_plan
+    name: ProjectOverviewAgent
+    objective: Visualize the workflow and request user approval
+    output_structure:
+      MermaidSequenceDiagram:  # Model: MermaidSequenceDiagram (wrapped by MermaidSequenceDiagramOutput)
+        workflow_name: str
+        mermaid_diagram: str
+        legend: list[str]
+      agent_message: str
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # BUILD PHASE (Layers 5–13)
+  # ════════════════════════════════════════════════════════════════════════════
+
+  # LAYER 5 — Context Planning
+  - layer: 5
+    phase: build
+    name: ContextVariablesAgent
+    objective: Define canonical context variables and per-agent exposure
+    output_structure:
+      ContextVariablesPlan:  # Model: ContextVariablesPlan (wrapped by ContextVariablesPlanOutput)
+        definitions:  # list[ContextVariableDefinitionEntry]
+          - name: str
+            type: str | null
+            description: str | null
+            source: ContextVariableSource
+        agents:  # list[ContextVariableAgentExposure]
+          - agent: str
+            variables: list[str]
+
+  # LAYER 6 — Runtime Tool Manifest
+  - layer: 6
+    phase: build
+    name: ToolsManagerAgent
+    objective: Produce tools manifest entries for runtime loading (tools.json parity)
+    output_structure:  # Model: ToolsManifestOutput
+      tools:  # list[ToolSpec]
+        - agent: str
+          file: str
+          function: str
+          description: str
+          tool_type: enum(UI_Tool, Agent_Tool)
+          auto_invoke: bool | null
+          integration: str | null
+          ui: UIConfig | null  # null for Agent_Tool
+      lifecycle_tools:  # list[LifecycleToolSpec] (optional; use [] when none)
+        - trigger: enum(before_chat, after_chat, before_agent, after_agent)
+          agent: str | null
+          file: str
+          function: str
+          description: str
+          tool_type: enum(UI_Tool, Agent_Tool)
+          auto_invoke: bool | null
+          ui: UIConfig | null
+
+  # LAYER 7a — UI Tool Files
+  - layer: 7
+    phase: build
+    name: UIFileGenerator
+    objective: Generate UI tool implementation files (Python + React)
+    output_structure:  # Model: UIToolsFilesOutput
+      tools:  # list[CodeFile]
+        - filename: str
+          content: str
+          installRequirements: list[str]
+
+  # LAYER 7b — Agent Tool Files
+  - layer: 7
+    phase: build
+    name: AgentToolsFileGenerator
+    objective: Generate backend agent tool implementation files (Python)
+    output_structure:  # Model: AgentToolsFilesOutput
+      tools:  # list[CodeFile]
+        - filename: str
+          content: str
+          installRequirements: list[str]
+
+  # LAYER 7c — Hook Files
+  - layer: 7
+    phase: build
+    name: HookAgent
+    objective: Generate lifecycle/system hook Python files
+    output_structure:  # Model: HookFilesOutput
+      hook_files:  # list[HookFile]
+        - filename: str
+          hook_type: enum(before_chat, after_chat, update_agent_state, process_message_before_send, process_last_received_message, process_all_messages_before_reply)
+          py_content: str
+
+  # LAYER 8 — Runtime Agents
+  - layer: 8
+    phase: build
+    name: AgentsAgent
+    objective: Produce runtime agent definitions (prompts + settings)
+    output_structure:  # Model: RuntimeAgentsOutput
+      agents:  # list[AgentDefinition]
+        - name: str
+          display_name: str
+          prompt_sections:  # list[PromptSection]
+            - id: str
+              heading: str
+              content: str
+          max_consecutive_auto_reply: int
+          auto_tool_mode: bool
+          structured_outputs_required: bool
+
+  # LAYER 9 — Orchestration Config
+  - layer: 9
+    phase: build
+    name: OrchestratorAgent
+    objective: Produce runtime orchestration config for the workflow
+    output_structure:  # Model: OrchestrationConfigOutput
+      workflow_name: str
+      max_turns: int
+      human_in_the_loop: bool
+      startup_mode: enum(AgentDriven, UserDriven, BackendOnly)
+      orchestration_pattern: str
+      initial_message_to_user: str | null
+      initial_message: str | null
+      initial_agent: str
+      visual_agents: list[str]
+
+  # LAYER 10 — Handoff Rules
+  - layer: 10
+    phase: build
+    name: HandoffsAgent
+    objective: Define agent-to-agent/user/terminate handoff rules
+    output_structure:  # Model: HandoffRulesOutput
+      handoff_rules:  # list[HandoffRule]
+        - source_agent: str
+          target_agent: str
+          handoff_type: enum(condition, after_work)
+          condition: str | null
+          condition_type: str | null
+          condition_scope: str | null
+          transition_target: enum(AgentTarget, RevertToUserTarget, TerminateTarget)
+
+  # LAYER 11 — Structured Output Registry
+  - layer: 11
+    phase: build
+    name: StructuredOutputsAgent
+    objective: Publish the structured model registry for runtime enforcement
+    output_structure:  # Model: StructuredModelsOutput
+      models:  # list[StructuredModelDefinition]
+        - model_name: str
+          fields:  # list[StructuredModelField]
+            - name: str
+              type: str
+              description: str
+      registry:  # list[AgentRegistryEntry]
+        - agent: str
+          agent_definition: str | null
+
+  # LAYER 12 - Pack Metadata
+  - layer: 12
+    phase: build
+    name: PackMetadataAgent
+    objective: Produce pack-level metadata files for multi-workflow packs
+    output_structure:
+      PackMetadata:  # Model: PackMetadata (wrapped by PackMetadataOutput)
+        workflow_graph:  # WorkflowGraph (v2: workflows + journeys + gates)
+          pack_name: str
+          version: int  # must be 2
+          description: str | null
+          workflows:  # list[PackGraphWorkflow]
+            - id: str
+              type: str | null
+              description: str | null
+          journeys:  # list[PackGraphJourney]
+            - id: str
+              label: str | null
+              scope: enum(user, app)
+              enforce_step_gating: bool
+              auto_attach_on_start: bool
+              auto_advance: bool
+              steps: list[str]
+          gates:  # list[PackGraphGate]
+            - from: str
+              to: str
+              gating: enum(required, optional)
+              scope: enum(user, app)
+              reason: str | null
+
+  # LAYER 13 - Download Prompt
+  - layer: 13
+    phase: build
+    name: DownloadAgent
+    objective: Provide final user-facing download prompt text
+    output_structure:  # Model: DownloadRequestOutput
+      agent_message: str

@@ -670,6 +670,6 @@ Add to appropriate tier:
 
 ## 🔗 Related
 
-- 📖 [Plugin Contract](../../plugins/PLUGIN_CONTRACT.md)
+- 📖 [Plugin System](../core/plugins.md)
 - 📖 [Core Events](../core/events.md)
 - 📖 [Database Patterns](../core/database.md)

@@ -1,0 +1,733 @@
+# Pattern 9: Triage with Tasks (Template)
+# Use Case: Triage decomposes work into research + writing tasks; TaskManager enforces sequence
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 0: PatternAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+PatternSelection:
+  is_multi_workflow: false
+  decomposition_reason: null
+  pack_name: "Pattern 9 - Triage with Tasks Pack"
+  workflows:
+    - name: "Pattern9_TriageWithTasksWorkflow"
+      role: "primary"
+      description: "Triage decomposes tasks; task manager routes research then writing then summary"
+      pattern_id: 9
+      pattern_name: "Triage with Tasks"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 1: WorkflowStrategyAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+WorkflowStrategy:
+  workflow_name: "Pattern9_TriageWithTasksWorkflow"
+  workflow_description: "Triage produces research tasks and writing tasks. Task manager executes all research first, then writing, then final summary."
+  startup_mode: "UserDriven"
+  human_in_loop: true
+  pattern:
+    - "Triage with Tasks"
+  modules:
+    - module_name: "Triage and Decomposition"
+      module_index: 0
+      module_description: "Analyze request and decompose into discrete research and writing tasks."
+      pattern_id: 9
+      pattern_name: "Triage with Tasks"
+      agents_needed:
+        - "TriageAgent"
+
+    - module_name: "Task Management"
+      module_index: 1
+      module_description: "Coordinate task execution order: all research tasks first, then all writing tasks."
+      pattern_id: 9
+      pattern_name: "Triage with Tasks"
+      agents_needed:
+        - "TaskManagerAgent"
+
+    - module_name: "Research Execution"
+      module_index: 2
+      module_description: "Execute research tasks sequentially, gathering information for writing tasks."
+      pattern_id: 9
+      pattern_name: "Triage with Tasks"
+      agents_needed:
+        - "ResearchAgent"
+
+    - module_name: "Writing Execution"
+      module_index: 3
+      module_description: "Execute writing tasks sequentially, using research outputs as input."
+      pattern_id: 9
+      pattern_name: "Triage with Tasks"
+      agents_needed:
+        - "WritingAgent"
+
+    - module_name: "Summary and Consolidation"
+      module_index: 4
+      module_description: "Consolidate all task outputs into final deliverable."
+      pattern_id: 9
+      pattern_name: "Triage with Tasks"
+      agents_needed:
+        - "SummaryAgent"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2a: StateArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+StateArchitecture:
+  global_context_variables:
+    - name: "ResearchTasks"
+      type: "collection"
+      purpose: "List of research tasks"
+      trigger_hint: "Set by TriageAgent"
+
+    - name: "WritingTasks"
+      type: "collection"
+      purpose: "List of writing tasks"
+      trigger_hint: "Set by TriageAgent"
+
+    - name: "CurrentResearchTaskIndex"
+      type: "index"
+      purpose: "Current research task index"
+      trigger_hint: "Managed by TaskManagerAgent"
+
+    - name: "CurrentWritingTaskIndex"
+      type: "index"
+      purpose: "Current writing task index"
+      trigger_hint: "Managed by TaskManagerAgent"
+
+    - name: "ResearchTasksDone"
+      type: "state"
+      purpose: "Whether research tasks are complete"
+      trigger_hint: "Managed by TaskManagerAgent"
+
+    - name: "WritingTasksDone"
+      type: "state"
+      purpose: "Whether writing tasks are complete"
+      trigger_hint: "Managed by TaskManagerAgent"
+
+    - name: "final_summary"
+      type: "content"
+      purpose: "Final consolidated result"
+      trigger_hint: "Set by SummaryAgent"
+
+    - name: "context_aware"
+      type: "config"
+      purpose: "Platform context awareness flag"
+      trigger_hint: "init"
+
+    - name: "monetization_enabled"
+      type: "config"
+      purpose: "Platform monetization flag"
+      trigger_hint: "init"
+
+  lifecycle_requirements:
+    before_chat: null
+    after_chat: null
+
+  workflow_dependencies: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2b: UXArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+UXArchitecture:
+  ui_requirements: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3a: AgentRosterAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+AgentRoster:
+  agents:
+    - agent_name: "TriageAgent"
+      objective: "Analyze the request and produce structured research + writing task lists."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "TaskManagerAgent"
+      objective: "Execute all research tasks, then writing tasks, then hand off to SummaryAgent."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "ResearchAgent"
+      objective: "Complete the current research task and report findings."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "WritingAgent"
+      objective: "Complete the current writing task using research results."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "SummaryAgent"
+      objective: "Consolidate all task outputs and produce a final summary."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3b: ToolPlanningAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+ToolPlanning:
+  agent_tools:
+    - name: "decompose_tasks"
+      agent: "TriageAgent"
+      integration: null
+      purpose: "Create ResearchTasks and WritingTasks"
+      interaction_mode: "none"
+
+    - name: "initiate_tasks"
+      agent: "TaskManagerAgent"
+      integration: null
+      purpose: "Initialize indexes and done flags"
+      interaction_mode: "none"
+
+    - name: "complete_research_task"
+      agent: "ResearchAgent"
+      integration: null
+      purpose: "Submit findings for current research task"
+      interaction_mode: "none"
+
+    - name: "complete_writing_task"
+      agent: "WritingAgent"
+      integration: null
+      purpose: "Submit output for current writing task"
+      interaction_mode: "none"
+
+    - name: "compile_summary"
+      agent: "SummaryAgent"
+      integration: null
+      purpose: "Generate final_summary"
+      interaction_mode: "none"
+
+  lifecycle_tools: []
+  system_hooks: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 4: ProjectOverviewAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+MermaidSequenceDiagram:
+  workflow_name: "Triage with Tasks"
+  mermaid_diagram: |
+    sequenceDiagram
+        participant User
+        participant TriageAgent
+        participant TaskManagerAgent
+        participant ResearchAgent
+        participant WritingAgent
+        participant SummaryAgent
+
+        User->>TriageAgent: Request
+        TriageAgent->>TriageAgent: decompose_tasks()
+        TriageAgent->>TaskManagerAgent: Start tasks
+        TaskManagerAgent->>TaskManagerAgent: initiate_tasks()
+
+        loop research tasks
+            TaskManagerAgent->>ResearchAgent: Assign current research task
+            ResearchAgent->>ResearchAgent: complete_research_task()
+            ResearchAgent->>TaskManagerAgent: Return findings
+        end
+
+        loop writing tasks
+            TaskManagerAgent->>WritingAgent: Assign current writing task
+            WritingAgent->>WritingAgent: complete_writing_task()
+            WritingAgent->>TaskManagerAgent: Return output
+        end
+
+        TaskManagerAgent->>SummaryAgent: Compile
+        SummaryAgent->>SummaryAgent: compile_summary()
+        SummaryAgent->>User: Final summary
+  legend:
+    - "Triage with Tasks: structured decomposition + sequential execution"
+
+agent_message: "Review the triage-with-tasks template and approve generation."
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 5: ContextVariablesAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+ContextVariablesPlan:
+  definitions:
+    - name: "context_aware"
+      type: "config"
+      description: "Platform context awareness flag"
+      source: { type: "config", trigger: "init" }
+
+    - name: "monetization_enabled"
+      type: "config"
+      description: "Platform monetization flag"
+      source: { type: "config", trigger: "init" }
+
+    - name: "ResearchTasks"
+      type: "collection"
+      description: "Research tasks"
+      source: { type: "collection", trigger: "agent_text" }
+
+    - name: "WritingTasks"
+      type: "collection"
+      description: "Writing tasks"
+      source: { type: "collection", trigger: "agent_text" }
+
+    - name: "CurrentResearchTaskIndex"
+      type: "index"
+      description: "Current research index"
+      source: { type: "index", trigger: "agent_text" }
+
+    - name: "CurrentWritingTaskIndex"
+      type: "index"
+      description: "Current writing index"
+      source: { type: "index", trigger: "agent_text" }
+
+    - name: "ResearchTasksDone"
+      type: "state"
+      description: "All research done"
+      source: { type: "state", trigger: "agent_text" }
+
+    - name: "WritingTasksDone"
+      type: "state"
+      description: "All writing done"
+      source: { type: "state", trigger: "agent_text" }
+
+    - name: "final_summary"
+      type: "content"
+      description: "Final result"
+      source: { type: "content", trigger: "agent_text" }
+
+  agents:
+    - agent: "TriageAgent"
+      variables: ["ResearchTasks", "WritingTasks"]
+    - agent: "TaskManagerAgent"
+      variables: ["CurrentResearchTaskIndex", "CurrentWritingTaskIndex", "ResearchTasksDone", "WritingTasksDone"]
+    - agent: "ResearchAgent"
+      variables: ["ResearchTasks", "CurrentResearchTaskIndex"]
+    - agent: "WritingAgent"
+      variables: ["WritingTasks", "CurrentWritingTaskIndex"]
+    - agent: "SummaryAgent"
+      variables: ["final_summary"]
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 6: ToolsManagerAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - agent: "TriageAgent"
+    file: "tools/decompose_tasks.py"
+    function: "decompose_tasks"
+    description: "Create ResearchTasks and WritingTasks"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "TaskManagerAgent"
+    file: "tools/initiate_tasks.py"
+    function: "initiate_tasks"
+    description: "Initialize processing state"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "ResearchAgent"
+    file: "tools/complete_research_task.py"
+    function: "complete_research_task"
+    description: "Submit research task findings"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "WritingAgent"
+    file: "tools/complete_writing_task.py"
+    function: "complete_writing_task"
+    description: "Submit writing task output"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "SummaryAgent"
+    file: "tools/compile_summary.py"
+    function: "compile_summary"
+    description: "Compile final_summary"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+lifecycle_tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7a: UIFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7b: AgentToolsFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - filename: "tools/decompose_tasks.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict, List
+
+
+      async def decompose_tasks(request: str) -> Dict[str, Any]:
+          research = [{"topic": "Research A", "status": "pending"}]
+          writing = [{"topic": "Write A", "status": "pending"}]
+          return {"ok": True, "ResearchTasks": research, "WritingTasks": writing}
+
+  - filename: "tools/initiate_tasks.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def initiate_tasks() -> Dict[str, Any]:
+          return {"ok": True, "CurrentResearchTaskIndex": 0, "CurrentWritingTaskIndex": 0, "ResearchTasksDone": False, "WritingTasksDone": False}
+
+  - filename: "tools/complete_research_task.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def complete_research_task(index: int, findings: str) -> Dict[str, Any]:
+          return {"ok": True, "index": index, "findings": findings}
+
+  - filename: "tools/complete_writing_task.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def complete_writing_task(index: int, output: str) -> Dict[str, Any]:
+          return {"ok": True, "index": index, "output": output}
+
+  - filename: "tools/compile_summary.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def compile_summary(text: str) -> Dict[str, Any]:
+          return {"ok": True, "final_summary": text}
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7c: HookAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+hook_files: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 8: AgentsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agents:
+  - name: "TriageAgent"
+    display_name: "Triage"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You decompose the user's request into a sequenced task list."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Understand the user's goal and constraints
+          - Create a small set of actionable tasks
+          - Initialize the workflow for TaskManagerAgent
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Tools**:
+          - create_task_list(request: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Ask clarifying questions if needed.
+          2. Call create_task_list to generate tasks.
+          3. Confirm tasks with the user briefly.
+          4. Handoff to TaskManagerAgent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Numbered task list + one-sentence confirmation."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "TaskManagerAgent"
+    display_name: "Task Manager"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You execute the planned tasks in sequence and coordinate specialist agents."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Track which task is current
+          - Dispatch tasks to the appropriate specialist agent
+          - Determine when all tasks are complete
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Tools**:
+          - set_current_task(index: int)
+          - mark_task_done(index: int, result: str)
+          - all_tasks_complete()
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Select the next unfinished task.
+          2. Call set_current_task.
+          3. Handoff to ResearchAgent or WritingAgent based on task type.
+          4. When results return, call mark_task_done.
+          5. When complete, handoff to SummaryAgent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Short progress updates. Avoid long prose; specialists do the work."
+    max_consecutive_auto_reply: 20
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "ResearchAgent"
+    display_name: "Research"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You complete the current research task assigned by TaskManagerAgent."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Produce the research result for the current task
+          - Return it to TaskManagerAgent
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: "Task details will be provided in the conversation context."
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Focus only on the current task.
+          2. Provide concise findings and any assumptions.
+          3. Return results to TaskManagerAgent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Bullets: Findings, Assumptions, Sources/Notes (if any)."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "WritingAgent"
+    display_name: "Writing"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You complete the current writing task assigned by TaskManagerAgent."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Produce the requested written artifact section
+          - Return it to TaskManagerAgent
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: "Task details and any research inputs will be provided in the conversation context."
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Write only what the current task requests.
+          2. Keep style consistent with the user's constraints.
+          3. Return the output to TaskManagerAgent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Markdown section or short artifact text, as requested."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "SummaryAgent"
+    display_name: "Summary"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You consolidate completed task outputs into a single final_summary for the user."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Compile results from completed tasks
+          - Produce a coherent final response
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Tool**: compile_summary(text: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Gather the outputs from all completed tasks.
+          2. Write a concise summary that satisfies the original request.
+          3. Call compile_summary.
+          4. Return the final_summary to the user.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Markdown summary with headings if multiple topics were covered."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: false
+    structured_outputs_required: false
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 9: OrchestratorAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+workflow_name: "Pattern9_TriageWithTasksWorkflow"
+max_turns: 80
+human_in_the_loop: true
+startup_mode: "UserDriven"
+orchestration_pattern: "Triage with Tasks"
+initial_message_to_user: null
+initial_message: "Tell me what you need; I will break it into tasks and execute them."
+initial_agent: "TriageAgent"
+visual_agents: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 10: HandoffsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+handoff_rules:
+  - source_agent: "TriageAgent"
+    target_agent: "TaskManagerAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "TaskManagerAgent"
+    target_agent: "ResearchAgent"
+    handoff_type: "condition"
+    condition: "CurrentResearchTaskIndex >= 0"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "TaskManagerAgent"
+    target_agent: "WritingAgent"
+    handoff_type: "condition"
+    condition: "ResearchTasksDone is true and CurrentWritingTaskIndex >= 0"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "TaskManagerAgent"
+    target_agent: "SummaryAgent"
+    handoff_type: "condition"
+    condition: "WritingTasksDone is true"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "SummaryAgent"
+    target_agent: "User"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "RevertToUserTarget"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 11: StructuredOutputsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+models: []
+
+registry:
+  - agent: "TriageAgent"
+    agent_definition: null
+  - agent: "TaskManagerAgent"
+    agent_definition: null
+  - agent: "ResearchAgent"
+    agent_definition: null
+  - agent: "WritingAgent"
+    agent_definition: null
+  - agent: "SummaryAgent"
+    agent_definition: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 12: PackMetadataAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+PackMetadata:
+  manifest:
+    pack_name: "Pattern 9 - Triage with Tasks Pack"
+    pack_description: "Template pack for Pattern 9 Triage with Tasks"
+    version: "1.0.0"
+    entry_point: "Pattern9_TriageWithTasksWorkflow"
+    workflows:
+      - name: "Pattern9_TriageWithTasksWorkflow"
+        description: "Task decomposition + sequential execution"
+        role: "primary"
+        startup_mode: "UserDriven"
+    ui_config:
+      show_workflow_transitions: false
+      transition_style: "hidden"
+
+  workflow_graph:
+    nodes:
+      - id: "Pattern9_TriageWithTasksWorkflow"
+        type: "primary"
+    edges: []
+
+  shared_context:
+    variables: []
+    refresh_strategy: "explicit"
+    db_collection: "shared_context"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 13: DownloadAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agent_message: "Your triage-with-tasks workflow template is ready to download. Generate the bundle now?"

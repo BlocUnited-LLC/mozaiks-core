@@ -87,6 +87,7 @@ nav:
     - Quickstart: getting-started/quickstart.md
   - Concepts:
     - Overview: concepts/overview.md
+    - Interactive Artifacts: concepts/interactive-artifacts/01-CONCEPTS.md
   - Guides:
     - Configuration: guides/configuration.md
     - Creating Plugins: guides/creating-plugins.md
@@ -94,6 +95,11 @@ nav:
     - Deployment: guides/deployment.md
     - Operations Runbook: guides/operations-runbook.md
     - Troubleshooting: guides/troubleshooting.md
+    - Advanced Workflows:
+        - Authoring: guides/workflows/workflow_authoring.md
+        - Semantic Model: guides/workflows/WORKFLOW_SEMANTIC_MODEL.md
+        - Tool Pipeline: guides/workflows/ui_tool_pipeline.md
+    - Patterns: guides/patterns/README.md
   - Core:
     - Architecture: core/architecture.md
     - Authentication: core/authentication.md
@@ -104,6 +110,21 @@ nav:
     - WebSockets: core/websockets.md
   - AI Runtime:
     - Architecture: ai-runtime/architecture.md
+    - Overview: ai-runtime/runtime_overview.md
+    - Event Pipeline: ai-runtime/event_pipeline.md
+    - Transport & Streaming: ai-runtime/transport_and_streaming.md
+    - Persistence: ai-runtime/persistence_and_resume.md
+    - Observability: ai-runtime/observability.md
+    - MCP Integration: ai-runtime/MCP_INTEGRATION.md
+  - Frontend:
+    - Architecture: frontend/chatui_architecture.md
+    - Components: frontend/ui_components.md
+    - Workflow Integration: frontend/workflow_integration.md
+    - Interactive Artifacts Plan: frontend/INTERACTIVE_ARTIFACTS_IMPLEMENTATION_PLAN.md
+  - Architecture:
+    - System Overview: architecture/specs/00_SYSTEM_OVERVIEW.md
+    - Runtime Boundary: architecture/specs/05_RUNTIME_BOUNDARY_CONTRACT.md
+    - Repo Architecture: architecture/specs/repository_architecture_explained.md
   - Platform Integration:
     - Overview: platform-integration/overview.md
     - Connector Contract: platform-integration/connector-contract.md

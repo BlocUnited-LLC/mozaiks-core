@@ -461,4 +461,4 @@ async def test_mock_list_items_empty():
 - 📖 [Platform Integration Overview](./overview.md)
 - 📖 [Identity API Spec](./identity-api.md)
 - 📖 [Billing API Spec](./billing-api.md)
-- 🔌 [Plugin Contract](../../plugins/PLUGIN_CONTRACT.md)
+- 🔌 [Plugin System](../core/plugins.md)

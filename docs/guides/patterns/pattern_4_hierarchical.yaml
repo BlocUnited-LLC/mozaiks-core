@@ -1,0 +1,935 @@
+# Pattern 4: Hierarchical (Template)
+# Use Case: Executive → Managers → Specialists delegation with aggregation
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 0: PatternAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+PatternSelection:
+  is_multi_workflow: false
+  decomposition_reason: null
+  pack_name: "Pattern 4 - Hierarchical Pack"
+  workflows:
+    - name: "Pattern4_HierarchicalWorkflow"
+      role: "primary"
+      description: "Executive decomposes work, managers coordinate specialists, executive compiles final output"
+      pattern_id: 4
+      pattern_name: "Hierarchical"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 1: WorkflowStrategyAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+WorkflowStrategy:
+  workflow_name: "Pattern4_HierarchicalWorkflow"
+  workflow_description: "Executive plans and delegates to managers, who delegate to specialists and aggregate results. Executive synthesizes final report."
+  startup_mode: "UserDriven"
+  human_in_loop: true
+  pattern:
+    - "Hierarchical"
+  modules:
+    # Module 0: Executive planning and domain decomposition
+    - module_index: 0
+      module_name: "Executive Planning"
+      module_description: "ExecutiveAgent analyzes the request, identifies domains, and delegates to appropriate managers."
+      pattern_id: 4
+      pattern_name: "Hierarchical"
+      agents_needed:
+        - "ExecutiveAgent"
+
+    # Module 1: Domain A management layer
+    - module_index: 1
+      module_name: "Domain A Management"
+      module_description: "ManagerAAgent coordinates specialists A1 and A2, aggregates their research into domain_a_research."
+      pattern_id: 4
+      pattern_name: "Hierarchical"
+      agents_needed:
+        - "ManagerAAgent"
+
+    # Module 2: Domain A specialist work
+    - module_index: 2
+      module_name: "Domain A Specialists"
+      module_description: "SpecialistA1Agent and SpecialistA2Agent perform detailed research on their assigned subtopics."
+      pattern_id: 4
+      pattern_name: "Hierarchical"
+      agents_needed:
+        - "SpecialistA1Agent"
+        - "SpecialistA2Agent"
+
+    # Module 3: Domain B management layer
+    - module_index: 3
+      module_name: "Domain B Management"
+      module_description: "ManagerBAgent coordinates specialists B1 and B2, aggregates their research into domain_b_research."
+      pattern_id: 4
+      pattern_name: "Hierarchical"
+      agents_needed:
+        - "ManagerBAgent"
+
+    # Module 4: Domain B specialist work
+    - module_index: 4
+      module_name: "Domain B Specialists"
+      module_description: "SpecialistB1Agent and SpecialistB2Agent perform detailed research on their assigned subtopics."
+      pattern_id: 4
+      pattern_name: "Hierarchical"
+      agents_needed:
+        - "SpecialistB1Agent"
+        - "SpecialistB2Agent"
+
+    # Module 5: Executive synthesis
+    - module_index: 5
+      module_name: "Executive Synthesis"
+      module_description: "ExecutiveAgent compiles domain research into the final_report and delivers to user."
+      pattern_id: 4
+      pattern_name: "Hierarchical"
+      agents_needed:
+        - "ExecutiveAgent"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2a: StateArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+StateArchitecture:
+  global_context_variables:
+    - name: "task_started"
+      type: "state"
+      purpose: "Whether the hierarchy execution has started"
+      trigger_hint: "Set by ExecutiveAgent"
+
+    - name: "domain_a_research"
+      type: "content"
+      purpose: "Collected research for domain A"
+      trigger_hint: "Aggregated by ManagerAAgent"
+
+    - name: "domain_b_research"
+      type: "content"
+      purpose: "Collected research for domain B"
+      trigger_hint: "Aggregated by ManagerBAgent"
+
+    - name: "final_report"
+      type: "content"
+      purpose: "Executive synthesized report"
+      trigger_hint: "Set by ExecutiveAgent"
+
+    - name: "context_aware"
+      type: "config"
+      purpose: "Platform context awareness flag"
+      trigger_hint: "init"
+
+    - name: "monetization_enabled"
+      type: "config"
+      purpose: "Platform monetization flag"
+      trigger_hint: "init"
+
+  lifecycle_requirements:
+    before_chat: null
+    after_chat: null
+
+  workflow_dependencies: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2b: UXArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+UXArchitecture:
+  ui_requirements: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3a: AgentRosterAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+AgentRoster:
+  agents:
+    - agent_name: "ExecutiveAgent"
+      objective: "Decompose the user request into domains, delegate to managers, and synthesize final_report."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "ManagerAAgent"
+      objective: "Coordinate domain A specialists and aggregate into domain_a_research."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "ManagerBAgent"
+      objective: "Coordinate domain B specialists and aggregate into domain_b_research."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "SpecialistA1Agent"
+      objective: "Research subtopic A1 and report back to ManagerAAgent."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "SpecialistA2Agent"
+      objective: "Research subtopic A2 and report back to ManagerAAgent."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "SpecialistB1Agent"
+      objective: "Research subtopic B1 and report back to ManagerBAgent."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "SpecialistB2Agent"
+      objective: "Research subtopic B2 and report back to ManagerBAgent."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3b: ToolPlanningAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+ToolPlanning:
+  agent_tools:
+    - name: "delegate_domains"
+      agent: "ExecutiveAgent"
+      integration: null
+      purpose: "Determine domains and tasks for managers"
+      interaction_mode: "none"
+
+    - name: "submit_specialist_research"
+      agent: "SpecialistA1Agent"
+      integration: null
+      purpose: "Submit research payload to ManagerAAgent"
+      interaction_mode: "none"
+
+    - name: "submit_specialist_research"
+      agent: "SpecialistA2Agent"
+      integration: null
+      purpose: "Submit research payload to ManagerAAgent"
+      interaction_mode: "none"
+
+    - name: "submit_specialist_research"
+      agent: "SpecialistB1Agent"
+      integration: null
+      purpose: "Submit research payload to ManagerBAgent"
+      interaction_mode: "none"
+
+    - name: "submit_specialist_research"
+      agent: "SpecialistB2Agent"
+      integration: null
+      purpose: "Submit research payload to ManagerBAgent"
+      interaction_mode: "none"
+
+    - name: "compile_section"
+      agent: "ManagerAAgent"
+      integration: null
+      purpose: "Aggregate specialists into domain_a_research"
+      interaction_mode: "none"
+
+    - name: "compile_section"
+      agent: "ManagerBAgent"
+      integration: null
+      purpose: "Aggregate specialists into domain_b_research"
+      interaction_mode: "none"
+
+    - name: "compile_final_report"
+      agent: "ExecutiveAgent"
+      integration: null
+      purpose: "Synthesize final report"
+      interaction_mode: "none"
+
+  lifecycle_tools: []
+  system_hooks: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 4: ProjectOverviewAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+MermaidSequenceDiagram:
+  workflow_name: "Pattern 4 - Hierarchical"
+  mermaid_diagram: |
+    sequenceDiagram
+        participant User
+        participant ExecutiveAgent
+        participant ManagerAAgent
+        participant ManagerBAgent
+        participant SpecialistA1Agent
+        participant SpecialistA2Agent
+        participant SpecialistB1Agent
+        participant SpecialistB2Agent
+
+        User->>ExecutiveAgent: Request
+        ExecutiveAgent->>ExecutiveAgent: delegate_domains()
+        ExecutiveAgent->>ManagerAAgent: Delegate domain A
+        ExecutiveAgent->>ManagerBAgent: Delegate domain B
+
+        ManagerAAgent->>SpecialistA1Agent: Delegate A1
+        ManagerAAgent->>SpecialistA2Agent: Delegate A2
+        SpecialistA1Agent->>SpecialistA1Agent: submit_specialist_research()
+        SpecialistA2Agent->>SpecialistA2Agent: submit_specialist_research()
+        ManagerAAgent->>ManagerAAgent: compile_section()
+
+        ManagerBAgent->>SpecialistB1Agent: Delegate B1
+        ManagerBAgent->>SpecialistB2Agent: Delegate B2
+        SpecialistB1Agent->>SpecialistB1Agent: submit_specialist_research()
+        SpecialistB2Agent->>SpecialistB2Agent: submit_specialist_research()
+        ManagerBAgent->>ManagerBAgent: compile_section()
+
+        ManagerAAgent->>ExecutiveAgent: Aggregate A
+        ManagerBAgent->>ExecutiveAgent: Aggregate B
+        ExecutiveAgent->>ExecutiveAgent: compile_final_report()
+        ExecutiveAgent->>User: Final report
+  legend:
+    - "Hierarchical: supervisors delegate and aggregate"
+
+agent_message: "Review the hierarchical flow diagram and approve generation."
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 5: ContextVariablesAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+ContextVariablesPlan:
+  definitions:
+    - name: "context_aware"
+      type: "config"
+      description: "Platform context awareness flag"
+      source: { type: "config", trigger: "init" }
+
+    - name: "monetization_enabled"
+      type: "config"
+      description: "Platform monetization flag"
+      source: { type: "config", trigger: "init" }
+
+    - name: "task_started"
+      type: "state"
+      description: "Workflow started"
+      source: { type: "state", trigger: "agent_text" }
+
+    - name: "domain_a_research"
+      type: "content"
+      description: "Domain A aggregate"
+      source: { type: "content", trigger: "agent_text" }
+
+    - name: "domain_b_research"
+      type: "content"
+      description: "Domain B aggregate"
+      source: { type: "content", trigger: "agent_text" }
+
+    - name: "final_report"
+      type: "content"
+      description: "Synthesis"
+      source: { type: "content", trigger: "agent_text" }
+
+  agents:
+    - agent: "ExecutiveAgent"
+      variables: ["task_started", "domain_a_research", "domain_b_research", "final_report"]
+    - agent: "ManagerAAgent"
+      variables: ["domain_a_research"]
+    - agent: "ManagerBAgent"
+      variables: ["domain_b_research"]
+    - agent: "SpecialistA1Agent"
+      variables: ["domain_a_research"]
+    - agent: "SpecialistA2Agent"
+      variables: ["domain_a_research"]
+    - agent: "SpecialistB1Agent"
+      variables: ["domain_b_research"]
+    - agent: "SpecialistB2Agent"
+      variables: ["domain_b_research"]
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 6: ToolsManagerAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - agent: "ExecutiveAgent"
+    file: "tools/delegate_domains.py"
+    function: "delegate_domains"
+    description: "Decompose tasks into domain delegations"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "SpecialistA1Agent"
+    file: "tools/submit_specialist_research_a1.py"
+    function: "submit_specialist_research"
+    description: "Submit A1 research"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "SpecialistA2Agent"
+    file: "tools/submit_specialist_research_a2.py"
+    function: "submit_specialist_research"
+    description: "Submit A2 research"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "SpecialistB1Agent"
+    file: "tools/submit_specialist_research_b1.py"
+    function: "submit_specialist_research"
+    description: "Submit B1 research"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "SpecialistB2Agent"
+    file: "tools/submit_specialist_research_b2.py"
+    function: "submit_specialist_research"
+    description: "Submit B2 research"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "ManagerAAgent"
+    file: "tools/compile_section_a.py"
+    function: "compile_section"
+    description: "Aggregate A"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "ManagerBAgent"
+    file: "tools/compile_section_b.py"
+    function: "compile_section"
+    description: "Aggregate B"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "ExecutiveAgent"
+    file: "tools/compile_final_report.py"
+    function: "compile_final_report"
+    description: "Synthesize final_report"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+lifecycle_tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7a: UIFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7b: AgentToolsFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - filename: "tools/delegate_domains.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict, List
+
+
+      async def delegate_domains(request: str) -> Dict[str, Any]:
+          domains: List[str] = ["domain_a", "domain_b"]
+          return {"ok": True, "domains": domains}
+
+  - filename: "tools/submit_specialist_research_a1.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def submit_specialist_research(content: str) -> Dict[str, Any]:
+          return {"ok": True, "content": content}
+
+  - filename: "tools/submit_specialist_research_a2.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def submit_specialist_research(content: str) -> Dict[str, Any]:
+          return {"ok": True, "content": content}
+
+  - filename: "tools/submit_specialist_research_b1.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def submit_specialist_research(content: str) -> Dict[str, Any]:
+          return {"ok": True, "content": content}
+
+  - filename: "tools/submit_specialist_research_b2.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def submit_specialist_research(content: str) -> Dict[str, Any]:
+          return {"ok": True, "content": content}
+
+  - filename: "tools/compile_section_a.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict, List
+
+
+      async def compile_section(items: List[str]) -> Dict[str, Any]:
+          return {"ok": True, "section": "\n".join(items)}
+
+  - filename: "tools/compile_section_b.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict, List
+
+
+      async def compile_section(items: List[str]) -> Dict[str, Any]:
+          return {"ok": True, "section": "\n".join(items)}
+
+  - filename: "tools/compile_final_report.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def compile_final_report(a: str, b: str) -> Dict[str, Any]:
+          return {"ok": True, "final_report": f"{a}\n\n{b}"}
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7c: HookAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+hook_files: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 8: AgentsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agents:
+  - name: "ExecutiveAgent"
+    display_name: "Executive"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are the executive coordinator at the top of a hierarchical workflow."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Decompose the user request into domain areas
+          - Delegate domains to manager agents
+          - Synthesize a final report from manager sections
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Tools**:
+          - delegate_domains(request: str)
+          - compile_final_report(a: str, b: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Call delegate_domains to determine what ManagerAAgent and ManagerBAgent should cover.
+          2. Handoff to managers to execute their domain work.
+          3. After manager sections are available, call compile_final_report.
+          4. Deliver the final report to the user.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          Markdown report with:
+          - Executive Summary
+          - Domain A Section
+          - Domain B Section
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "ManagerAAgent"
+    display_name: "Manager A"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You coordinate domain A specialists and aggregate their findings."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Delegate domain A subtasks to SpecialistA1Agent and SpecialistA2Agent
+          - Aggregate findings into a coherent domain A section
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Tools**:
+          - compile_section(items: list[str])
+          **Inputs**:
+          - Specialist research submitted via submit_specialist_research
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Assign subtopics to specialists via handoffs.
+          2. Wait for both specialist submissions.
+          3. Call compile_section with the specialist outputs.
+          4. Return the compiled domain A section to ExecutiveAgent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Markdown section with headings and bullet points where appropriate."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "ManagerBAgent"
+    display_name: "Manager B"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You coordinate domain B specialists and aggregate their findings."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Delegate domain B subtasks to SpecialistB1Agent and SpecialistB2Agent
+          - Aggregate findings into a coherent domain B section
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Tools**:
+          - compile_section(items: list[str])
+          **Inputs**:
+          - Specialist research submitted via submit_specialist_research
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Assign subtopics to specialists via handoffs.
+          2. Wait for both specialist submissions.
+          3. Call compile_section with the specialist outputs.
+          4. Return the compiled domain B section to ExecutiveAgent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Markdown section with headings and bullet points where appropriate."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "SpecialistA1Agent"
+    display_name: "Specialist A1"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are a specialist researcher focused on subtopic A1."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Research the assigned A1 subtopic
+          - Return concise, actionable findings to ManagerAAgent
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Tool**:
+          - submit_specialist_research(payload: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Interpret the assigned subtopic from the manager.
+          2. Produce key points, risks, and recommendations.
+          3. Call submit_specialist_research with your findings.
+          4. Handoff back to ManagerAAgent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          Bullet list with:
+          - Findings
+          - Implications
+          - Recommendations
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: false
+    structured_outputs_required: false
+
+  - name: "SpecialistA2Agent"
+    display_name: "Specialist A2"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are a specialist researcher focused on subtopic A2."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Research the assigned A2 subtopic
+          - Return concise, actionable findings to ManagerAAgent
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Tool**:
+          - submit_specialist_research(payload: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Interpret the assigned subtopic from the manager.
+          2. Produce key points, risks, and recommendations.
+          3. Call submit_specialist_research with your findings.
+          4. Handoff back to ManagerAAgent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          Bullet list with:
+          - Findings
+          - Implications
+          - Recommendations
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: false
+    structured_outputs_required: false
+
+  - name: "SpecialistB1Agent"
+    display_name: "Specialist B1"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are a specialist researcher focused on subtopic B1."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Research the assigned B1 subtopic
+          - Return concise, actionable findings to ManagerBAgent
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Tool**:
+          - submit_specialist_research(payload: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Interpret the assigned subtopic from the manager.
+          2. Produce key points, risks, and recommendations.
+          3. Call submit_specialist_research with your findings.
+          4. Handoff back to ManagerBAgent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          Bullet list with:
+          - Findings
+          - Implications
+          - Recommendations
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: false
+    structured_outputs_required: false
+
+  - name: "SpecialistB2Agent"
+    display_name: "Specialist B2"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are a specialist researcher focused on subtopic B2."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Research the assigned B2 subtopic
+          - Return concise, actionable findings to ManagerBAgent
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Tool**:
+          - submit_specialist_research(payload: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Interpret the assigned subtopic from the manager.
+          2. Produce key points, risks, and recommendations.
+          3. Call submit_specialist_research with your findings.
+          4. Handoff back to ManagerBAgent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          Bullet list with:
+          - Findings
+          - Implications
+          - Recommendations
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: false
+    structured_outputs_required: false
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 9: OrchestratorAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+workflow_name: "Pattern4_HierarchicalWorkflow"
+max_turns: 80
+human_in_the_loop: true
+startup_mode: "UserDriven"
+orchestration_pattern: "Hierarchical"
+initial_message_to_user: null
+initial_message: "Describe the project; I will delegate to a hierarchy." 
+initial_agent: "ExecutiveAgent"
+visual_agents: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 10: HandoffsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+handoff_rules:
+  - source_agent: "ExecutiveAgent"
+    target_agent: "ManagerAAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "ExecutiveAgent"
+    target_agent: "ManagerBAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "ManagerAAgent"
+    target_agent: "SpecialistA1Agent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "ManagerAAgent"
+    target_agent: "SpecialistA2Agent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "ManagerBAgent"
+    target_agent: "SpecialistB1Agent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "ManagerBAgent"
+    target_agent: "SpecialistB2Agent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "ExecutiveAgent"
+    target_agent: "User"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "RevertToUserTarget"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 11: StructuredOutputsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+models: []
+
+registry:
+  - agent: "ExecutiveAgent"
+    agent_definition: null
+  - agent: "ManagerAAgent"
+    agent_definition: null
+  - agent: "ManagerBAgent"
+    agent_definition: null
+  - agent: "SpecialistA1Agent"
+    agent_definition: null
+  - agent: "SpecialistA2Agent"
+    agent_definition: null
+  - agent: "SpecialistB1Agent"
+    agent_definition: null
+  - agent: "SpecialistB2Agent"
+    agent_definition: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 12: PackMetadataAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+PackMetadata:
+  manifest:
+    pack_name: "Pattern 4 - Hierarchical Pack"
+    pack_description: "Template pack for Pattern 4 Hierarchical"
+    version: "1.0.0"
+    entry_point: "Pattern4_HierarchicalWorkflow"
+    workflows:
+      - name: "Pattern4_HierarchicalWorkflow"
+        description: "Executive→Managers→Specialists hierarchical coordination"
+        role: "primary"
+        startup_mode: "UserDriven"
+    ui_config:
+      show_workflow_transitions: false
+      transition_style: "hidden"
+
+  workflow_graph:
+    nodes:
+      - id: "Pattern4_HierarchicalWorkflow"
+        type: "primary"
+    edges: []
+
+  shared_context:
+    variables: []
+    refresh_strategy: "explicit"
+    db_collection: "shared_context"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 13: DownloadAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agent_message: "Your hierarchical workflow template is ready to download. Generate the bundle now?"

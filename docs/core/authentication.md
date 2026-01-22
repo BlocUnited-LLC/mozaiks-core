@@ -376,5 +376,5 @@ MOZAIKS_AUDIENCE=<workos-client-id-or-audience>
 ## 🔗 Related
 
 - 🏗️ [Architecture](./architecture.md) — System overview
-- 📡 [Core API](../api/core-api.md) — All endpoints
-- 🌍 [Environment Variables](../reference/environment-variables.md)
+- �️ [Database](./database.md) — MongoDB collections
+- 📡 [WebSockets](./websockets.md) — Real-time communication

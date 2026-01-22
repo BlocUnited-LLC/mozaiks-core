@@ -395,4 +395,4 @@ websocket_manager = WebSocketManager()
 
 - 🔔 [Notifications](./notifications.md) — Notification delivery
 - 📡 [Events](./events.md) — Server-side events
-- 🤖 [AI Transport](../ai-runtime/transport.md) — AI streaming
+- 🤖 [AI Runtime Architecture](../ai-runtime/architecture.md) — AI streaming

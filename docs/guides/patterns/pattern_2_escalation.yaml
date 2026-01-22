@@ -1,0 +1,681 @@
+# Pattern 2: Escalation (Template)
+# Use Case: Tiered support escalation when confidence is low
+#
+# This file shows a FULL end-to-end (Layers 0–13) template output.
+# Use it as a starting point and swap domain-specific names/tools.
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 0: PatternAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+PatternSelection:
+  is_multi_workflow: false
+  decomposition_reason: null
+  pack_name: "Pattern 2 - Escalation Pack"
+  workflows:
+    - name: "Pattern2_EscalationWorkflow"
+      role: "primary"
+      description: "Tiered support workflow that escalates when confidence is low"
+      pattern_id: 2
+      pattern_name: "Escalation"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 1: WorkflowStrategyAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+WorkflowStrategy:
+  workflow_name: "Pattern2_EscalationWorkflow"
+  workflow_description: "Route user issues through tier-1, tier-2, and expert agents. Escalate when confidence is below threshold; otherwise resolve and return to user."
+  startup_mode: "UserDriven"
+  human_in_loop: true
+  pattern:
+    - "Escalation"
+  modules:
+    # Module 0: Initial intake and categorization
+    - module_index: 0
+      module_name: "Issue Intake"
+      module_description: "Triage agent collects issue details, categorizes severity, and prepares the issue_summary for downstream tiers."
+      pattern_id: 2
+      pattern_name: "Escalation"
+      agents_needed:
+        - "TriageAgent"
+
+    # Module 1: First-line resolution attempt
+    - module_index: 1
+      module_name: "Tier 1 Resolution"
+      module_description: "Tier-1 agent attempts resolution using standard procedures and knowledge base. Escalates if confidence is below threshold."
+      pattern_id: 2
+      pattern_name: "Escalation"
+      agents_needed:
+        - "Tier1Agent"
+
+    # Module 2: Advanced troubleshooting
+    - module_index: 2
+      module_name: "Tier 2 Resolution"
+      module_description: "Tier-2 agent handles escalated issues requiring deeper investigation. Escalates to expert if still uncertain."
+      pattern_id: 2
+      pattern_name: "Escalation"
+      agents_needed:
+        - "Tier2Agent"
+
+    # Module 3: Expert-level resolution
+    - module_index: 3
+      module_name: "Expert Resolution"
+      module_description: "Expert agent provides the highest level of support. May ask clarifying questions before final resolution."
+      pattern_id: 2
+      pattern_name: "Escalation"
+      agents_needed:
+        - "ExpertAgent"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2a: StateArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+StateArchitecture:
+  global_context_variables:
+    - name: "issue_summary"
+      type: "content"
+      purpose: "Short summary of the user issue and key constraints"
+      trigger_hint: "Set by TriageAgent"
+
+    - name: "tier1_confidence"
+      type: "state"
+      purpose: "Tier-1 confidence score (1-10)"
+      trigger_hint: "Set by Tier1Agent"
+
+    - name: "tier2_confidence"
+      type: "state"
+      purpose: "Tier-2 confidence score (1-10)"
+      trigger_hint: "Set by Tier2Agent"
+
+    - name: "expert_confidence"
+      type: "state"
+      purpose: "Expert confidence score (1-10)"
+      trigger_hint: "Set by ExpertAgent"
+
+    - name: "escalation_threshold"
+      type: "config"
+      purpose: "Minimum confidence required to avoid escalation"
+      trigger_hint: "init"
+
+    - name: "context_aware"
+      type: "config"
+      purpose: "Platform context awareness flag"
+      trigger_hint: "init"
+
+    - name: "monetization_enabled"
+      type: "config"
+      purpose: "Platform monetization flag"
+      trigger_hint: "init"
+
+  lifecycle_requirements:
+    before_chat: null
+    after_chat: null
+
+  workflow_dependencies: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2b: UXArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+UXArchitecture:
+  ui_requirements: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3a: AgentRosterAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+AgentRoster:
+  agents:
+    - agent_name: "TriageAgent"
+      objective: "Collect required details, summarize the issue, and route to Tier1Agent."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "Tier1Agent"
+      objective: "Attempt a solution. Provide confidence score; escalate to Tier2Agent if low."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "Tier2Agent"
+      objective: "Handle harder issues. Provide confidence score; escalate to ExpertAgent if low."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "ExpertAgent"
+      objective: "Provide the best possible resolution. If still uncertain, ask user clarifying questions."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3b: ToolPlanningAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+ToolPlanning:
+  agent_tools:
+    - name: "summarize_issue"
+      agent: "TriageAgent"
+      integration: null
+      purpose: "Normalize and summarize the user issue into issue_summary"
+      interaction_mode: "none"
+
+    - name: "answer_with_confidence"
+      agent: "Tier1Agent"
+      integration: null
+      purpose: "Return an answer and a tier1_confidence score"
+      interaction_mode: "none"
+
+    - name: "answer_with_confidence"
+      agent: "Tier2Agent"
+      integration: null
+      purpose: "Return an answer and a tier2_confidence score"
+      interaction_mode: "none"
+
+    - name: "answer_with_confidence"
+      agent: "ExpertAgent"
+      integration: null
+      purpose: "Return an answer and an expert_confidence score"
+      interaction_mode: "none"
+
+  lifecycle_tools: []
+  system_hooks: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 4: ProjectOverviewAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+MermaidSequenceDiagram:
+  workflow_name: "Pattern 2 - Escalation"
+  mermaid_diagram: |
+    sequenceDiagram
+        participant User
+        participant TriageAgent
+        participant Tier1Agent
+        participant Tier2Agent
+        participant ExpertAgent
+
+        User->>TriageAgent: Describe issue
+        TriageAgent->>TriageAgent: summarize_issue()
+        TriageAgent->>Tier1Agent: Route
+        Tier1Agent->>Tier1Agent: answer_with_confidence()
+
+        alt confidence below threshold
+            Tier1Agent->>Tier2Agent: Escalate
+            Tier2Agent->>Tier2Agent: answer_with_confidence()
+            alt still below threshold
+                Tier2Agent->>ExpertAgent: Escalate
+                ExpertAgent->>ExpertAgent: answer_with_confidence()
+                ExpertAgent->>User: Resolution + next steps
+            else resolved
+                Tier2Agent->>User: Resolution
+            end
+        else resolved
+            Tier1Agent->>User: Resolution
+        end
+  legend:
+    - "Escalation: move to higher tier when confidence is low"
+
+agent_message: "Review the escalation flow diagram and approve generation."
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 5: ContextVariablesAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+ContextVariablesPlan:
+  definitions:
+    - name: "context_aware"
+      type: "config"
+      description: "Platform context awareness flag"
+      source: { type: "config", trigger: "init" }
+
+    - name: "monetization_enabled"
+      type: "config"
+      description: "Platform monetization flag"
+      source: { type: "config", trigger: "init" }
+
+    - name: "escalation_threshold"
+      type: "config"
+      description: "Minimum confidence required to avoid escalation"
+      source: { type: "config", trigger: "init" }
+
+    - name: "issue_summary"
+      type: "content"
+      description: "Short summary of the user issue"
+      source: { type: "content", trigger: "agent_text" }
+
+    - name: "tier1_confidence"
+      type: "state"
+      description: "Tier-1 confidence score"
+      source: { type: "state", trigger: "agent_text" }
+
+    - name: "tier2_confidence"
+      type: "state"
+      description: "Tier-2 confidence score"
+      source: { type: "state", trigger: "agent_text" }
+
+    - name: "expert_confidence"
+      type: "state"
+      description: "Expert confidence score"
+      source: { type: "state", trigger: "agent_text" }
+
+  agents:
+    - agent: "TriageAgent"
+      variables: ["issue_summary", "escalation_threshold"]
+
+    - agent: "Tier1Agent"
+      variables: ["issue_summary", "tier1_confidence", "escalation_threshold"]
+
+    - agent: "Tier2Agent"
+      variables: ["issue_summary", "tier2_confidence", "escalation_threshold"]
+
+    - agent: "ExpertAgent"
+      variables: ["issue_summary", "expert_confidence", "escalation_threshold"]
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 6: ToolsManagerAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - agent: "TriageAgent"
+    file: "tools/summarize_issue.py"
+    function: "summarize_issue"
+    description: "Summarize and normalize the user issue"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "Tier1Agent"
+    file: "tools/answer_with_confidence_tier1.py"
+    function: "answer_with_confidence"
+    description: "Return an answer and confidence score"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "Tier2Agent"
+    file: "tools/answer_with_confidence_tier2.py"
+    function: "answer_with_confidence"
+    description: "Return an answer and confidence score"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "ExpertAgent"
+    file: "tools/answer_with_confidence_expert.py"
+    function: "answer_with_confidence"
+    description: "Return an answer and confidence score"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+lifecycle_tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7a: UIFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7b: AgentToolsFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - filename: "tools/summarize_issue.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def summarize_issue(user_text: str) -> Dict[str, Any]:
+          if not user_text:
+              return {"ok": False, "issue_summary": ""}
+          return {"ok": True, "issue_summary": user_text.strip()[:500]}
+
+  - filename: "tools/answer_with_confidence_tier1.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def answer_with_confidence(issue_summary: str) -> Dict[str, Any]:
+          return {"ok": True, "confidence": 7, "answer": "Tier-1 suggestion (template)."}
+
+  - filename: "tools/answer_with_confidence_tier2.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def answer_with_confidence(issue_summary: str) -> Dict[str, Any]:
+          return {"ok": True, "confidence": 8, "answer": "Tier-2 suggestion (template)."}
+
+  - filename: "tools/answer_with_confidence_expert.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def answer_with_confidence(issue_summary: str) -> Dict[str, Any]:
+          return {"ok": True, "confidence": 9, "answer": "Expert suggestion (template)."}
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7c: HookAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+hook_files: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 8: AgentsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agents:
+  - name: "TriageAgent"
+    display_name: "Triage"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are the entrypoint triage agent for a tiered escalation support workflow."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Gather key facts and constraints from the user
+          - Produce a concise issue_summary
+          - Route the case to Tier1Agent
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Context Variables**:
+          - `issue_summary`: set by summarize_issue
+          - `escalation_threshold`: minimum confidence to avoid escalation
+
+          **Tools**:
+          - summarize_issue(issue: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Ask 1–3 clarifying questions if needed (symptoms, environment, error text, constraints).
+          2. Call summarize_issue using the user-provided details.
+          3. Confirm the summary with the user in one sentence.
+          4. Handoff to Tier1Agent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          Conversational.
+          - Provide a brief acknowledgement + the issue summary.
+          - Do not include internal tool JSON unless asked.
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "Tier1Agent"
+    display_name: "Tier 1"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are the tier-1 support agent in an escalation workflow."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Propose a likely resolution
+          - Return a tier1_confidence score (1–10)
+          - Escalate if confidence is below escalation_threshold
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Inputs**:
+          - `issue_summary` describes the user problem
+          - `escalation_threshold` is the minimum confidence to avoid escalation
+
+          **Tools**:
+          - answer_with_confidence(issue_summary: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Read issue_summary.
+          2. Call answer_with_confidence(issue_summary).
+          3. If returned confidence < escalation_threshold → clearly state uncertainty and trigger escalation to Tier2Agent.
+          4. Otherwise, provide the recommended steps to the user.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          Conversational.
+          - Include a short numbered action plan.
+          - Include a single line: "Confidence: X/10".
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "Tier2Agent"
+    display_name: "Tier 2"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are the tier-2 support agent in an escalation workflow."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Provide deeper troubleshooting than Tier1
+          - Return a tier2_confidence score (1–10)
+          - Escalate if confidence is below escalation_threshold
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Inputs**:
+          - `issue_summary` describes the user problem
+          - `escalation_threshold` is the minimum confidence to avoid escalation
+
+          **Tools**:
+          - answer_with_confidence(issue_summary: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Read issue_summary.
+          2. Call answer_with_confidence(issue_summary).
+          3. If returned confidence < escalation_threshold → escalate to ExpertAgent.
+          4. Otherwise, provide the best resolution and confirm next steps.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          Conversational.
+          - Provide troubleshooting steps and decision points.
+          - Include a single line: "Confidence: X/10".
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "ExpertAgent"
+    display_name: "Expert"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are the expert escalation agent in an escalation workflow."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Provide the highest-quality guidance available
+          - Return an expert_confidence score (1–10)
+          - If still uncertain, ask targeted clarifying questions before guessing
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Inputs**:
+          - `issue_summary` describes the user problem
+
+          **Tools**:
+          - answer_with_confidence(issue_summary: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Read issue_summary.
+          2. Call answer_with_confidence(issue_summary).
+          3. If confidence is low, ask up to 3 clarifying questions that would materially change the recommendation.
+          4. Provide best-effort guidance and safety notes relevant to the domain.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          Conversational.
+          - Provide a clear resolution path and fallback options.
+          - Include a single line: "Confidence: X/10".
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 9: OrchestratorAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+workflow_name: "Pattern2_EscalationWorkflow"
+max_turns: 40
+human_in_the_loop: true
+startup_mode: "UserDriven"
+orchestration_pattern: "Escalation"
+initial_message_to_user: null
+initial_message: "Describe your issue and I will route you to the right tier."
+initial_agent: "TriageAgent"
+visual_agents: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 10: HandoffsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+handoff_rules:
+  - source_agent: "TriageAgent"
+    target_agent: "Tier1Agent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "Tier1Agent"
+    target_agent: "Tier2Agent"
+    handoff_type: "condition"
+    condition: "Escalate to tier 2"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "Tier2Agent"
+    target_agent: "ExpertAgent"
+    handoff_type: "condition"
+    condition: "Escalate to expert"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "Tier1Agent"
+    target_agent: "User"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "RevertToUserTarget"
+
+  - source_agent: "Tier2Agent"
+    target_agent: "User"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "RevertToUserTarget"
+
+  - source_agent: "ExpertAgent"
+    target_agent: "User"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "RevertToUserTarget"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 11: StructuredOutputsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+models: []
+
+registry:
+  - agent: "TriageAgent"
+    agent_definition: null
+  - agent: "Tier1Agent"
+    agent_definition: null
+  - agent: "Tier2Agent"
+    agent_definition: null
+  - agent: "ExpertAgent"
+    agent_definition: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 12: PackMetadataAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+PackMetadata:
+  manifest:
+    pack_name: "Pattern 2 - Escalation Pack"
+    pack_description: "Template pack for Pattern 2 Escalation"
+    version: "1.0.0"
+    entry_point: "Pattern2_EscalationWorkflow"
+    workflows:
+      - name: "Pattern2_EscalationWorkflow"
+        description: "Tiered support with confidence-based escalation"
+        role: "primary"
+        startup_mode: "UserDriven"
+    ui_config:
+      show_workflow_transitions: false
+      transition_style: "hidden"
+
+  workflow_graph:
+    nodes:
+      - id: "Pattern2_EscalationWorkflow"
+        type: "primary"
+    edges: []
+
+  shared_context:
+    variables: []
+    refresh_strategy: "explicit"
+    db_collection: "shared_context"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 13: DownloadAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agent_message: "Your escalation workflow template is ready to download. Generate the bundle now?"

@@ -1,0 +1,822 @@
+# Pattern 3: Feedback Loop (Template)
+# Use Case: Iterative draft → review → revise cycles with quality gates
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 0: PatternAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+PatternSelection:
+  is_multi_workflow: false
+  decomposition_reason: null
+  pack_name: "Pattern 3 - Feedback Loop Pack"
+  workflows:
+    - name: "Pattern3_FeedbackLoopWorkflow"
+      role: "primary"
+      description: "Iterative content generation with review and revision until quality gates pass"
+      pattern_id: 3
+      pattern_name: "Feedback Loop"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 1: WorkflowStrategyAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+WorkflowStrategy:
+  workflow_name: "Pattern3_FeedbackLoopWorkflow"
+  workflow_description: "Create an outline, draft content, review for quality, revise, and finalize when iteration_needed=false or max_iterations reached."
+  startup_mode: "UserDriven"
+  human_in_loop: true
+  pattern:
+    - "Feedback Loop"
+  modules:
+    # Module 0: Goal clarification
+    - module_index: 0
+      module_name: "Requirements Intake"
+      module_description: "EntryAgent clarifies what the user wants to create, captures constraints, and confirms before planning."
+      pattern_id: 3
+      pattern_name: "Feedback Loop"
+      agents_needed:
+        - "EntryAgent"
+
+    # Module 1: Structural planning
+    - module_index: 1
+      module_name: "Planning"
+      module_description: "PlanningAgent creates a structured outline/plan for the document based on requirements."
+      pattern_id: 3
+      pattern_name: "Feedback Loop"
+      agents_needed:
+        - "PlanningAgent"
+
+    # Module 2: Initial content generation
+    - module_index: 2
+      module_name: "Drafting"
+      module_description: "DraftingAgent produces the first draft based on the approved plan."
+      pattern_id: 3
+      pattern_name: "Feedback Loop"
+      agents_needed:
+        - "DraftingAgent"
+
+    # Module 3: Quality review (iterative)
+    - module_index: 3
+      module_name: "Review"
+      module_description: "ReviewAgent evaluates draft quality, provides feedback, and decides if iteration_needed."
+      pattern_id: 3
+      pattern_name: "Feedback Loop"
+      agents_needed:
+        - "ReviewAgent"
+
+    # Module 4: Feedback incorporation (iterative)
+    - module_index: 4
+      module_name: "Revision"
+      module_description: "RevisionAgent incorporates review feedback into an improved draft."
+      pattern_id: 3
+      pattern_name: "Feedback Loop"
+      agents_needed:
+        - "RevisionAgent"
+
+    # Module 5: Final polish and delivery
+    - module_index: 5
+      module_name: "Finalization"
+      module_description: "FinalizationAgent polishes and delivers the final output when iteration stops."
+      pattern_id: 3
+      pattern_name: "Feedback Loop"
+      agents_needed:
+        - "FinalizationAgent"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2a: StateArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+StateArchitecture:
+  global_context_variables:
+    - name: "current_stage"
+      type: "state"
+      purpose: "One of: planning, drafting, review, revision, finalization"
+      trigger_hint: "Updated by agents"
+
+    - name: "current_iteration"
+      type: "index"
+      purpose: "Review/revision iteration count"
+      trigger_hint: "Incremented after each review"
+
+    - name: "max_iterations"
+      type: "config"
+      purpose: "Max number of review cycles"
+      trigger_hint: "init"
+
+    - name: "iteration_needed"
+      type: "state"
+      purpose: "Whether another revision cycle is required"
+      trigger_hint: "Set by ReviewAgent"
+
+    - name: "document_plan"
+      type: "content"
+      purpose: "Outline/plan for the document"
+      trigger_hint: "Set by PlanningAgent"
+
+    - name: "document_draft"
+      type: "content"
+      purpose: "Current draft"
+      trigger_hint: "Set by DraftingAgent / RevisionAgent"
+
+    - name: "feedback_collection"
+      type: "collection"
+      purpose: "Accumulated feedback notes"
+      trigger_hint: "Appended by ReviewAgent"
+
+    - name: "context_aware"
+      type: "config"
+      purpose: "Platform context awareness flag"
+      trigger_hint: "init"
+
+    - name: "monetization_enabled"
+      type: "config"
+      purpose: "Platform monetization flag"
+      trigger_hint: "init"
+
+  lifecycle_requirements:
+    before_chat: null
+    after_chat: null
+
+  workflow_dependencies: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2b: UXArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+UXArchitecture:
+  ui_requirements: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3a: AgentRosterAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+AgentRoster:
+  agents:
+    - agent_name: "EntryAgent"
+      objective: "Receive request, confirm goals, and hand off to PlanningAgent."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "PlanningAgent"
+      objective: "Create a clear outline/plan for the document."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "DraftingAgent"
+      objective: "Write an initial draft based on document_plan."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "ReviewAgent"
+      objective: "Review the draft, provide feedback, and decide if iteration_needed."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "feedback"
+      generation_mode: null
+
+    - agent_name: "RevisionAgent"
+      objective: "Revise the draft to address feedback."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "FinalizationAgent"
+      objective: "Polish and deliver the final output when iteration stops."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3b: ToolPlanningAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+ToolPlanning:
+  agent_tools:
+    - name: "submit_document_plan"
+      agent: "PlanningAgent"
+      integration: null
+      purpose: "Store document_plan"
+      interaction_mode: "none"
+
+    - name: "submit_document_draft"
+      agent: "DraftingAgent"
+      integration: null
+      purpose: "Store document_draft"
+      interaction_mode: "none"
+
+    - name: "submit_feedback"
+      agent: "ReviewAgent"
+      integration: null
+      purpose: "Append to feedback_collection and set iteration_needed"
+      interaction_mode: "none"
+
+    - name: "submit_revised_document"
+      agent: "RevisionAgent"
+      integration: null
+      purpose: "Overwrite document_draft with a revision"
+      interaction_mode: "none"
+
+    - name: "finalize_document"
+      agent: "FinalizationAgent"
+      integration: null
+      purpose: "Mark completion and return final output"
+      interaction_mode: "none"
+
+  lifecycle_tools: []
+  system_hooks: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 4: ProjectOverviewAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+MermaidSequenceDiagram:
+  workflow_name: "Feedback Loop"
+  mermaid_diagram: |
+    sequenceDiagram
+        participant User
+        participant EntryAgent
+        participant PlanningAgent
+        participant DraftingAgent
+        participant ReviewAgent
+        participant RevisionAgent
+        participant FinalizationAgent
+
+        User->>EntryAgent: Request
+        EntryAgent->>PlanningAgent: Start planning
+        PlanningAgent->>PlanningAgent: submit_document_plan()
+        PlanningAgent->>DraftingAgent: Start drafting
+        DraftingAgent->>DraftingAgent: submit_document_draft()
+        DraftingAgent->>ReviewAgent: Review draft
+        ReviewAgent->>ReviewAgent: submit_feedback()
+
+        alt iteration_needed
+            ReviewAgent->>RevisionAgent: Revise
+            RevisionAgent->>RevisionAgent: submit_revised_document()
+            RevisionAgent->>ReviewAgent: Review again
+        else final
+            ReviewAgent->>FinalizationAgent: Finalize
+            FinalizationAgent->>FinalizationAgent: finalize_document()
+            FinalizationAgent->>User: Final output
+        end
+  legend:
+    - "Feedback Loop: repeat review/revise until accepted"
+
+agent_message: "Review the feedback-loop diagram and approve generation."
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 5: ContextVariablesAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+ContextVariablesPlan:
+  definitions:
+    - name: "context_aware"
+      type: "config"
+      description: "Platform context awareness flag"
+      source: { type: "config", trigger: "init" }
+
+    - name: "monetization_enabled"
+      type: "config"
+      description: "Platform monetization flag"
+      source: { type: "config", trigger: "init" }
+
+    - name: "current_stage"
+      type: "state"
+      description: "Current stage"
+      source: { type: "state", trigger: "agent_text" }
+
+    - name: "current_iteration"
+      type: "index"
+      description: "Iteration counter"
+      source: { type: "index", trigger: "agent_text" }
+
+    - name: "max_iterations"
+      type: "config"
+      description: "Max iterations"
+      source: { type: "config", trigger: "init" }
+
+    - name: "iteration_needed"
+      type: "state"
+      description: "Whether another revision is needed"
+      source: { type: "state", trigger: "agent_text" }
+
+    - name: "document_plan"
+      type: "content"
+      description: "Outline"
+      source: { type: "content", trigger: "agent_text" }
+
+    - name: "document_draft"
+      type: "content"
+      description: "Draft"
+      source: { type: "content", trigger: "agent_text" }
+
+    - name: "feedback_collection"
+      type: "collection"
+      description: "Feedback notes"
+      source: { type: "collection", trigger: "agent_text" }
+
+  agents:
+    - agent: "EntryAgent"
+      variables: ["current_stage"]
+    - agent: "PlanningAgent"
+      variables: ["document_plan", "current_stage"]
+    - agent: "DraftingAgent"
+      variables: ["document_plan", "document_draft", "current_stage"]
+    - agent: "ReviewAgent"
+      variables: ["document_draft", "feedback_collection", "iteration_needed", "current_iteration"]
+    - agent: "RevisionAgent"
+      variables: ["document_draft", "feedback_collection", "current_iteration"]
+    - agent: "FinalizationAgent"
+      variables: ["document_draft"]
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 6: ToolsManagerAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - agent: "PlanningAgent"
+    file: "tools/submit_document_plan.py"
+    function: "submit_document_plan"
+    description: "Store document_plan"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "DraftingAgent"
+    file: "tools/submit_document_draft.py"
+    function: "submit_document_draft"
+    description: "Store document_draft"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "ReviewAgent"
+    file: "tools/submit_feedback.py"
+    function: "submit_feedback"
+    description: "Store feedback and decision"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "RevisionAgent"
+    file: "tools/submit_revised_document.py"
+    function: "submit_revised_document"
+    description: "Overwrite document_draft with revision"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "FinalizationAgent"
+    file: "tools/finalize_document.py"
+    function: "finalize_document"
+    description: "Finalize output"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+lifecycle_tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7a: UIFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7b: AgentToolsFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - filename: "tools/submit_document_plan.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def submit_document_plan(plan: str) -> Dict[str, Any]:
+          return {"ok": True, "document_plan": plan}
+
+  - filename: "tools/submit_document_draft.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def submit_document_draft(draft: str) -> Dict[str, Any]:
+          return {"ok": True, "document_draft": draft}
+
+  - filename: "tools/submit_feedback.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict, List
+
+
+      async def submit_feedback(notes: str, iteration_needed: bool) -> Dict[str, Any]:
+          feedback: List[str] = [notes] if notes else []
+          return {"ok": True, "feedback_collection": feedback, "iteration_needed": iteration_needed}
+
+  - filename: "tools/submit_revised_document.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def submit_revised_document(revision: str) -> Dict[str, Any]:
+          return {"ok": True, "document_draft": revision}
+
+  - filename: "tools/finalize_document.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def finalize_document(final_text: str) -> Dict[str, Any]:
+          return {"ok": True, "final": final_text}
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7c: HookAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+hook_files: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 8: AgentsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agents:
+  - name: "EntryAgent"
+    display_name: "Entry"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are the workflow entry agent that clarifies the user's goal and kicks off planning."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Confirm what the user wants to create
+          - Capture constraints (audience, tone, length, format)
+          - Handoff to PlanningAgent
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Workflow**: planning → drafting → review → revision (repeat) → finalization
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Ask 1–3 targeted questions to lock requirements.
+          2. Restate the goal in one sentence.
+          3. Handoff to PlanningAgent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Conversational. Provide a short requirements recap before handoff."
+    max_consecutive_auto_reply: 5
+    auto_tool_mode: false
+    structured_outputs_required: false
+
+  - name: "PlanningAgent"
+    display_name: "Planner"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You create a structured outline for the requested document."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Produce a clear, numbered outline
+          - Store it in `document_plan`
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Context Variables**:
+          - `document_plan`: outline to be created
+
+          **Tools**:
+          - submit_document_plan(plan: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Draft a concise outline with sections and bullets.
+          2. Call submit_document_plan with the outline.
+          3. Handoff to DraftingAgent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Return the outline as markdown with numbered headings."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "DraftingAgent"
+    display_name: "Drafter"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You draft the document based on the approved plan."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Write a complete first draft from `document_plan`
+          - Store it in `document_draft`
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Inputs**:
+          - `document_plan`
+
+          **Tools**:
+          - submit_document_draft(draft: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Expand each outline section into coherent prose.
+          2. Keep structure aligned with the plan.
+          3. Call submit_document_draft with the full draft.
+          4. Handoff to ReviewAgent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Provide the draft in markdown matching the plan's headings."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "ReviewAgent"
+    display_name: "Reviewer"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You review the draft for quality, correctness, and fit to requirements."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Identify issues and improvement opportunities
+          - Decide whether `iteration_needed` should be true or false
+          - Append feedback notes to `feedback_collection`
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Inputs**:
+          - `document_draft`
+          - Prior `feedback_collection` (if any)
+
+          **Tools**:
+          - submit_feedback(feedback: str, iteration_needed: bool)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Review for structure, clarity, tone, completeness, and factual risk.
+          2. Produce 3–8 actionable bullets.
+          3. Set iteration_needed=true if material changes are required; else false.
+          4. Call submit_feedback.
+          5. If iteration_needed=true → handoff to RevisionAgent; else → handoff to FinalizationAgent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          Use this structure:
+          - Summary: <1–2 sentences>
+          - Feedback:
+            - <bullets>
+          - Decision: iteration_needed = <true|false>
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "RevisionAgent"
+    display_name: "Reviser"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You revise the draft to address the review feedback."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Update `document_draft` to incorporate feedback
+          - Preserve intent while improving quality
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Inputs**:
+          - `document_draft`
+          - `feedback_collection`
+
+          **Tools**:
+          - submit_revised_document(revised_draft: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Apply feedback systematically.
+          2. Keep the original structure unless feedback demands restructuring.
+          3. Call submit_revised_document.
+          4. Handoff back to ReviewAgent.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Return the revised draft in markdown."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "FinalizationAgent"
+    display_name: "Finalizer"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You polish the final draft and deliver the finished output."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Produce a clean final version
+          - Call finalize_document to mark completion
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Input**:
+          - `document_draft`
+
+          **Tools**:
+          - finalize_document(final_text: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Proofread for clarity and consistency.
+          2. Ensure formatting is clean.
+          3. Call finalize_document with the final text.
+          4. Return the final result to the user.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Provide the final output in markdown."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: false
+    structured_outputs_required: false
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 9: OrchestratorAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+workflow_name: "Pattern3_FeedbackLoopWorkflow"
+max_turns: 60
+human_in_the_loop: true
+startup_mode: "UserDriven"
+orchestration_pattern: "Feedback Loop"
+initial_message_to_user: null
+initial_message: "What would you like to create and refine?"
+initial_agent: "EntryAgent"
+visual_agents: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 10: HandoffsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+handoff_rules:
+  - source_agent: "EntryAgent"
+    target_agent: "PlanningAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "PlanningAgent"
+    target_agent: "DraftingAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "DraftingAgent"
+    target_agent: "ReviewAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "ReviewAgent"
+    target_agent: "RevisionAgent"
+    handoff_type: "condition"
+    condition: "iteration_needed is true"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "ReviewAgent"
+    target_agent: "FinalizationAgent"
+    handoff_type: "condition"
+    condition: "iteration_needed is false"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "FinalizationAgent"
+    target_agent: "User"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "RevertToUserTarget"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 11: StructuredOutputsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+models: []
+
+registry:
+  - agent: "EntryAgent"
+    agent_definition: null
+  - agent: "PlanningAgent"
+    agent_definition: null
+  - agent: "DraftingAgent"
+    agent_definition: null
+  - agent: "ReviewAgent"
+    agent_definition: null
+  - agent: "RevisionAgent"
+    agent_definition: null
+  - agent: "FinalizationAgent"
+    agent_definition: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 12: PackMetadataAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+PackMetadata:
+  manifest:
+    pack_name: "Pattern 3 - Feedback Loop Pack"
+    pack_description: "Template pack for Pattern 3 Feedback Loop"
+    version: "1.0.0"
+    entry_point: "Pattern3_FeedbackLoopWorkflow"
+    workflows:
+      - name: "Pattern3_FeedbackLoopWorkflow"
+        description: "Iterative draft/review/revise until accepted"
+        role: "primary"
+        startup_mode: "UserDriven"
+    ui_config:
+      show_workflow_transitions: false
+      transition_style: "hidden"
+
+  workflow_graph:
+    nodes:
+      - id: "Pattern3_FeedbackLoopWorkflow"
+        type: "primary"
+    edges: []
+
+  shared_context:
+    variables: []
+    refresh_strategy: "explicit"
+    db_collection: "shared_context"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 13: DownloadAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agent_message: "Your feedback-loop workflow template is ready to download. Generate the bundle now?"

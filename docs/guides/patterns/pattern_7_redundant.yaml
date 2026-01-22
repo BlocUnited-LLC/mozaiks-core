@@ -1,0 +1,697 @@
+# Pattern 7: Redundant (Template)
+# Use Case: Multiple workers produce independent answers, evaluator selects/synthesizes
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 0: PatternAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+PatternSelection:
+  is_multi_workflow: false
+  decomposition_reason: null
+  pack_name: "Pattern 7 - Redundant Pack"
+  workflows:
+    - name: "Pattern7_RedundantWorkflow"
+      role: "primary"
+      description: "Run multiple independent workers and select/synthesize the best result"
+      pattern_id: 7
+      pattern_name: "Redundant"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 1: WorkflowStrategyAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+WorkflowStrategy:
+  workflow_name: "Pattern7_RedundantWorkflow"
+  workflow_description: "Taskmaster sends the same task to multiple workers; evaluator scores and selects/synthesizes."
+  startup_mode: "UserDriven"
+  human_in_loop: true
+  pattern:
+    - "Redundant"
+  modules:
+    # Module 0: Task clarification and distribution
+    - module_index: 0
+      module_name: "Task Distribution"
+      module_description: "TaskmasterAgent clarifies the task and distributes it identically to all workers."
+      pattern_id: 7
+      pattern_name: "Redundant"
+      agents_needed:
+        - "TaskmasterAgent"
+
+    # Module 1: Independent parallel execution (conceptually parallel)
+    - module_index: 1
+      module_name: "Parallel Execution"
+      module_description: "WorkerAAgent, WorkerBAgent, and WorkerCAgent independently solve the task using different approaches."
+      pattern_id: 7
+      pattern_name: "Redundant"
+      agents_needed:
+        - "WorkerAAgent"
+        - "WorkerBAgent"
+        - "WorkerCAgent"
+
+    # Module 2: Evaluation and selection
+    - module_index: 2
+      module_name: "Evaluation"
+      module_description: "EvaluatorAgent scores worker outputs for correctness, completeness, and clarity; selects or synthesizes the final result."
+      pattern_id: 7
+      pattern_name: "Redundant"
+      agents_needed:
+        - "EvaluatorAgent"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2a: StateArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+StateArchitecture:
+  global_context_variables:
+    - name: "current_task"
+      type: "content"
+      purpose: "Task to distribute"
+      trigger_hint: "Set by TaskmasterAgent"
+
+    - name: "agent_a_result"
+      type: "content"
+      purpose: "Worker A output"
+      trigger_hint: "Set by WorkerAAgent"
+
+    - name: "agent_b_result"
+      type: "content"
+      purpose: "Worker B output"
+      trigger_hint: "Set by WorkerBAgent"
+
+    - name: "agent_c_result"
+      type: "content"
+      purpose: "Worker C output"
+      trigger_hint: "Set by WorkerCAgent"
+
+    - name: "evaluation_scores"
+      type: "collection"
+      purpose: "Scores for each worker"
+      trigger_hint: "Set by EvaluatorAgent"
+
+    - name: "final_result"
+      type: "content"
+      purpose: "Selected/synthesized result"
+      trigger_hint: "Set by EvaluatorAgent"
+
+    - name: "context_aware"
+      type: "config"
+      purpose: "Platform context awareness flag"
+      trigger_hint: "init"
+
+    - name: "monetization_enabled"
+      type: "config"
+      purpose: "Platform monetization flag"
+      trigger_hint: "init"
+
+  lifecycle_requirements:
+    before_chat: null
+    after_chat: null
+
+  workflow_dependencies: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2b: UXArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+UXArchitecture:
+  ui_requirements: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3a: AgentRosterAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+AgentRoster:
+  agents:
+    - agent_name: "TaskmasterAgent"
+      objective: "Distribute the task to multiple workers and collect results."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "WorkerAAgent"
+      objective: "Solve using an analytical approach."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "WorkerBAgent"
+      objective: "Solve using a creative approach."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "WorkerCAgent"
+      objective: "Solve using a comprehensive approach."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "EvaluatorAgent"
+      objective: "Score worker results and select/synthesize a final result."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3b: ToolPlanningAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+ToolPlanning:
+  agent_tools:
+    - name: "set_current_task"
+      agent: "TaskmasterAgent"
+      integration: null
+      purpose: "Store current_task"
+      interaction_mode: "none"
+
+    - name: "submit_worker_result"
+      agent: "WorkerAAgent"
+      integration: null
+      purpose: "Store agent_a_result"
+      interaction_mode: "none"
+
+    - name: "submit_worker_result"
+      agent: "WorkerBAgent"
+      integration: null
+      purpose: "Store agent_b_result"
+      interaction_mode: "none"
+
+    - name: "submit_worker_result"
+      agent: "WorkerCAgent"
+      integration: null
+      purpose: "Store agent_c_result"
+      interaction_mode: "none"
+
+    - name: "evaluate_and_select"
+      agent: "EvaluatorAgent"
+      integration: null
+      purpose: "Score results and set final_result"
+      interaction_mode: "none"
+
+  lifecycle_tools: []
+  system_hooks: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 4: ProjectOverviewAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+MermaidSequenceDiagram:
+  workflow_name: "Pattern 7 - Redundant"
+  mermaid_diagram: |
+    sequenceDiagram
+        participant User
+        participant TaskmasterAgent
+        participant WorkerAAgent
+        participant WorkerBAgent
+        participant WorkerCAgent
+        participant EvaluatorAgent
+
+        User->>TaskmasterAgent: Task
+        TaskmasterAgent->>TaskmasterAgent: set_current_task()
+        TaskmasterAgent->>WorkerAAgent: Assign
+        TaskmasterAgent->>WorkerBAgent: Assign
+        TaskmasterAgent->>WorkerCAgent: Assign
+        WorkerAAgent->>WorkerAAgent: submit_worker_result()
+        WorkerBAgent->>WorkerBAgent: submit_worker_result()
+        WorkerCAgent->>WorkerCAgent: submit_worker_result()
+        TaskmasterAgent->>EvaluatorAgent: Evaluate
+        EvaluatorAgent->>EvaluatorAgent: evaluate_and_select()
+        EvaluatorAgent->>User: Final result
+  legend:
+    - "Redundant: independent workers, evaluator selects"
+
+agent_message: "Review the redundant pattern template and approve generation."
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 5: ContextVariablesAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+ContextVariablesPlan:
+  definitions:
+    - name: "context_aware"
+      type: "config"
+      description: "Platform context awareness flag"
+      source: { type: "config", trigger: "init" }
+
+    - name: "monetization_enabled"
+      type: "config"
+      description: "Platform monetization flag"
+      source: { type: "config", trigger: "init" }
+
+    - name: "current_task"
+      type: "content"
+      description: "Task text"
+      source: { type: "content", trigger: "agent_text" }
+
+    - name: "agent_a_result"
+      type: "content"
+      description: "Worker A result"
+      source: { type: "content", trigger: "agent_text" }
+
+    - name: "agent_b_result"
+      type: "content"
+      description: "Worker B result"
+      source: { type: "content", trigger: "agent_text" }
+
+    - name: "agent_c_result"
+      type: "content"
+      description: "Worker C result"
+      source: { type: "content", trigger: "agent_text" }
+
+    - name: "evaluation_scores"
+      type: "collection"
+      description: "Scores"
+      source: { type: "collection", trigger: "agent_text" }
+
+    - name: "final_result"
+      type: "content"
+      description: "Final selected output"
+      source: { type: "content", trigger: "agent_text" }
+
+  agents:
+    - agent: "TaskmasterAgent"
+      variables: ["current_task", "agent_a_result", "agent_b_result", "agent_c_result"]
+    - agent: "WorkerAAgent"
+      variables: ["current_task", "agent_a_result"]
+    - agent: "WorkerBAgent"
+      variables: ["current_task", "agent_b_result"]
+    - agent: "WorkerCAgent"
+      variables: ["current_task", "agent_c_result"]
+    - agent: "EvaluatorAgent"
+      variables: ["agent_a_result", "agent_b_result", "agent_c_result", "evaluation_scores", "final_result"]
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 6: ToolsManagerAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - agent: "TaskmasterAgent"
+    file: "tools/set_current_task.py"
+    function: "set_current_task"
+    description: "Store current_task"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "WorkerAAgent"
+    file: "tools/submit_worker_result_a.py"
+    function: "submit_worker_result"
+    description: "Store agent_a_result"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "WorkerBAgent"
+    file: "tools/submit_worker_result_b.py"
+    function: "submit_worker_result"
+    description: "Store agent_b_result"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "WorkerCAgent"
+    file: "tools/submit_worker_result_c.py"
+    function: "submit_worker_result"
+    description: "Store agent_c_result"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "EvaluatorAgent"
+    file: "tools/evaluate_and_select.py"
+    function: "evaluate_and_select"
+    description: "Score and select"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+lifecycle_tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7a: UIFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7b: AgentToolsFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - filename: "tools/set_current_task.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def set_current_task(task: str) -> Dict[str, Any]:
+          return {"ok": True, "current_task": task}
+
+  - filename: "tools/submit_worker_result_a.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def submit_worker_result(result: str) -> Dict[str, Any]:
+          return {"ok": True, "result": result}
+
+  - filename: "tools/submit_worker_result_b.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def submit_worker_result(result: str) -> Dict[str, Any]:
+          return {"ok": True, "result": result}
+
+  - filename: "tools/submit_worker_result_c.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def submit_worker_result(result: str) -> Dict[str, Any]:
+          return {"ok": True, "result": result}
+
+  - filename: "tools/evaluate_and_select.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def evaluate_and_select(a: str, b: str, c: str) -> Dict[str, Any]:
+          scores = {"a": 8, "b": 7, "c": 6}
+          return {"ok": True, "scores": scores, "final_result": a}
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7c: HookAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+hook_files: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 8: AgentsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agents:
+  - name: "TaskmasterAgent"
+    display_name: "Taskmaster"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You distribute tasks to redundant workers and coordinate evaluation."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Restate the task clearly
+          - Dispatch the task to WorkerAAgent, WorkerBAgent, WorkerCAgent
+          - Coordinate evaluation and return final answer
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Pattern**: Redundant independent solutions → evaluator selection.
+          **Tools**:
+          - assign_task(task: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Clarify requirements in one sentence.
+          2. Call assign_task and handoff to each worker for independent solutions.
+          3. Handoff to EvaluatorAgent to score/select.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Conversational. Provide a brief plan and then the final selected solution."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "WorkerAAgent"
+    display_name: "Worker A"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You solve the task analytically as an independent worker."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Produce an independent solution
+          - Emphasize correctness and clarity
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: "You will be evaluated against other worker responses."
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Solve step-by-step.
+          2. State assumptions explicitly.
+          3. Provide a concise final answer.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Solution with short rationale + final answer." 
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: false
+    structured_outputs_required: false
+
+  - name: "WorkerBAgent"
+    display_name: "Worker B"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You solve the task creatively as an independent worker."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Produce an independent solution
+          - Offer alternative approaches when helpful
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: "You will be evaluated against other worker responses."
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Propose a clear solution.
+          2. Include at least one alternative or optimization.
+          3. Provide a concise final answer.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Solution with options + recommended final answer."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: false
+    structured_outputs_required: false
+
+  - name: "WorkerCAgent"
+    display_name: "Worker C"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You solve the task comprehensively as an independent worker."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Produce an independent solution
+          - Cover edge cases and limitations
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: "You will be evaluated against other worker responses."
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Provide a thorough solution.
+          2. Call out edge cases.
+          3. Provide a concise final answer.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Structured response: Approach, Details, Edge Cases, Final Answer."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: false
+    structured_outputs_required: false
+
+  - name: "EvaluatorAgent"
+    display_name: "Evaluator"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You score and select the best worker response, then return it as the final result."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Evaluate WorkerAAgent/WorkerBAgent/WorkerCAgent responses
+          - Select the best one (or merge if needed)
+          - Call evaluate_and_select to record selection
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Tool**: evaluate_and_select(a: str, b: str, c: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Score responses for correctness, completeness, clarity.
+          2. Call evaluate_and_select with the three responses.
+          3. Return the chosen final_result to the user.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          - Winner: <A|B|C>
+          - Final Answer: <text>
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 9: OrchestratorAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+workflow_name: "Pattern7_RedundantWorkflow"
+max_turns: 60
+human_in_the_loop: true
+startup_mode: "UserDriven"
+orchestration_pattern: "Redundant"
+initial_message_to_user: null
+initial_message: "Describe your problem; I will gather multiple independent solutions."
+initial_agent: "TaskmasterAgent"
+visual_agents: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 10: HandoffsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+handoff_rules:
+  - source_agent: "TaskmasterAgent"
+    target_agent: "WorkerAAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "TaskmasterAgent"
+    target_agent: "WorkerBAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "TaskmasterAgent"
+    target_agent: "WorkerCAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "TaskmasterAgent"
+    target_agent: "EvaluatorAgent"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "EvaluatorAgent"
+    target_agent: "User"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "RevertToUserTarget"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 11: StructuredOutputsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+models: []
+
+registry:
+  - agent: "TaskmasterAgent"
+    agent_definition: null
+  - agent: "WorkerAAgent"
+    agent_definition: null
+  - agent: "WorkerBAgent"
+    agent_definition: null
+  - agent: "WorkerCAgent"
+    agent_definition: null
+  - agent: "EvaluatorAgent"
+    agent_definition: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 12: PackMetadataAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+PackMetadata:
+  manifest:
+    pack_name: "Pattern 7 - Redundant Pack"
+    pack_description: "Template pack for Pattern 7 Redundant"
+    version: "1.0.0"
+    entry_point: "Pattern7_RedundantWorkflow"
+    workflows:
+      - name: "Pattern7_RedundantWorkflow"
+        description: "Multiple workers + evaluator"
+        role: "primary"
+        startup_mode: "UserDriven"
+    ui_config:
+      show_workflow_transitions: false
+      transition_style: "hidden"
+
+  workflow_graph:
+    nodes:
+      - id: "Pattern7_RedundantWorkflow"
+        type: "primary"
+    edges: []
+
+  shared_context:
+    variables: []
+    refresh_strategy: "explicit"
+    db_collection: "shared_context"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 13: DownloadAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agent_message: "Your redundant workflow template is ready to download. Generate the bundle now?"

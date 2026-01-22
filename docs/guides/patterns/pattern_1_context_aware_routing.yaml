@@ -1,0 +1,909 @@
+# Pattern 1: Context-Aware Routing
+# Use Case: E-Commerce Customer Service with Order Management
+# Source: AG2 Official Example (github.com/ag2ai/ag2/tree/main/samples)
+# 
+# This file shows the EXPECTED OUTPUT from each AgentGenerator agent
+# when processing the user prompt:
+#   "I want a support bot that handles order tracking and returns.
+#    Users can track orders without logging in, but returns require authentication."
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 0: PatternAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+PatternSelection:
+  is_multi_workflow: false
+  decomposition_reason: null
+  pack_name: "Pattern 1 - Context-Aware Routing Pack"
+  workflows:
+    - name: "Pattern1_ContextAwareRoutingWorkflow"
+      role: "primary"
+      description: "Routes customer requests to tracking, login, order management, or returns specialists"
+      pattern_id: 1
+      pattern_name: "Context-Aware Routing"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 1: WorkflowStrategyAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+WorkflowStrategy:
+  workflow_name: "Pattern1_ContextAwareRoutingWorkflow"
+  workflow_description: "When a customer contacts support, the workflow routes their request to the appropriate specialist (tracking, login, order management, or returns), resulting in resolved customer inquiries."
+  startup_mode: "UserDriven"
+  human_in_loop: true
+  pattern:
+    - "Context-Aware Routing"
+  modules:
+    - module_name: "CustomerRouting"
+      module_index: 0
+      module_description: "Single module containing triage router and domain specialists for order tracking, authentication, order management, and returns processing."
+      pattern_id: 1
+      pattern_name: "Context-Aware Routing"
+      agents_needed:
+        - "OrderTriageAgent"
+        - "TrackingAgent"
+        - "LoginAgent"
+        - "OrderManagementAgent"
+        - "ReturnAgent"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2a: StateArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+StateArchitecture:
+  global_context_variables:
+    # User session state
+    - name: "user_info"
+      type: "data_entity"
+      purpose: "Stores authenticated user data (name, preferences, orders) after login"
+      trigger_hint: "Set by login_account tool on successful authentication"
+    
+    # Order tracking state
+    - name: "order_number"
+      type: "data_reference"
+      purpose: "Current order number being tracked or processed"
+      trigger_hint: "Set by verify_order_number tool"
+    
+    - name: "order_info"
+      type: "data_entity"
+      purpose: "Retrieved order details for the current order_number"
+      trigger_hint: "Set by verify_order_number tool from database lookup"
+    
+    # Routing state
+    - name: "current_domain"
+      type: "state"
+      purpose: "Current routing domain (tracking, login, orders, returns)"
+      trigger_hint: "Set implicitly by agent handoffs"
+    
+    # Platform variables (injected by runtime)
+    - name: "context_aware"
+      type: "config"
+      purpose: "Platform context awareness flag"
+      trigger_hint: "init"
+    
+    - name: "monetization_enabled"
+      type: "config"
+      purpose: "Platform monetization flag"
+      trigger_hint: "init"
+
+  lifecycle_requirements:
+    before_chat: null  # No initialization needed
+    after_chat: null   # No cleanup needed
+
+  workflow_dependencies: []  # Single workflow, no dependencies
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2b: UXArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+UXArchitecture:
+  ui_requirements: []
+  # Note: This workflow is purely conversational - no custom UI components needed.
+  # All interactions happen through the chat interface.
+  # If we wanted to add UI, examples would be:
+  #   - Order status card (inline)
+  #   - Order history table (artifact)
+  #   - Return form (artifact)
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3a: AgentRosterAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+AgentRoster:
+  agents:
+    - agent_name: "OrderTriageAgent"
+      objective: "Analyze customer intent and route to the appropriate specialist - tracking for order status inquiries (no login), login for account access, order management for authenticated order actions, returns for return requests."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "TrackingAgent"
+      objective: "Help customers track orders without requiring login. Verify order number validity, then verify identity via email or phone last 4 digits before revealing order details."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "LoginAgent"
+      objective: "Handle user authentication. Call login_account tool to initiate login process. On success, transfer to OrderManagementAgent with user context."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "OrderManagementAgent"
+      objective: "Serve authenticated users with order history and status checks. Can transfer to ReturnAgent when user requests a return."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "ReturnAgent"
+      objective: "Process return requests for authenticated users. Check return eligibility, confirm with user, then initiate return process. Can transfer back to OrderManagementAgent."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "approval"  # Requires user confirmation before initiating return
+      generation_mode: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3b: ToolPlanningAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+ToolPlanning:
+  agent_tools:
+    # TrackingAgent tools
+    - name: "verify_order_number"
+      agent: "TrackingAgent"
+      integration: null
+      purpose: "Verify order number against database, set order_info in context if valid"
+      interaction_mode: "none"
+    
+    - name: "verify_user_information"
+      agent: "TrackingAgent"
+      integration: null
+      purpose: "Verify user identity via email or phone last 4 digits, return order details if match"
+      interaction_mode: "none"
+    
+    # LoginAgent tools
+    - name: "login_account"
+      agent: "LoginAgent"
+      integration: null
+      purpose: "Authenticate user, set user_info in context, trigger handoff to OrderManagementAgent"
+      interaction_mode: "none"
+    
+    # OrderManagementAgent tools
+    - name: "get_order_history"
+      agent: "OrderManagementAgent"
+      integration: null
+      purpose: "Retrieve all orders for authenticated user from user_info context"
+      interaction_mode: "none"
+    
+    - name: "check_order_status"
+      agent: "OrderManagementAgent"
+      integration: null
+      purpose: "Check status of a specific order from user's order list"
+      interaction_mode: "none"
+    
+    # ReturnAgent tools
+    - name: "check_return_eligibility"
+      agent: "ReturnAgent"
+      integration: null
+      purpose: "Verify if order is eligible for return (delivered, not already in return process)"
+      interaction_mode: "none"
+    
+    - name: "initiate_return_process"
+      agent: "ReturnAgent"
+      integration: null
+      purpose: "Start return process for eligible order, generate return label link"
+      interaction_mode: "none"
+
+  lifecycle_tools: []  # No lifecycle tools needed
+
+  system_hooks: []  # No system hooks needed
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 4: ProjectOverviewAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+MermaidSequenceDiagram:
+  workflow_name: "Pattern 1 - Context-Aware Routing"
+  mermaid_diagram: |
+    sequenceDiagram
+        participant User
+        participant OrderTriageAgent
+        participant TrackingAgent
+        participant LoginAgent
+        participant OrderManagementAgent
+        participant ReturnAgent
+        
+        User->>OrderTriageAgent: Customer inquiry
+        
+        alt Track Order (no login)
+            OrderTriageAgent->>TrackingAgent: Route to tracking
+            TrackingAgent->>User: Request order number
+            User->>TrackingAgent: Provide order number
+            TrackingAgent->>TrackingAgent: verify_order_number()
+            TrackingAgent->>User: Request email or phone last 4
+            User->>TrackingAgent: Provide verification
+            TrackingAgent->>TrackingAgent: verify_user_information()
+            TrackingAgent->>User: Order status details
+        else Manage Orders (login required)
+            OrderTriageAgent->>LoginAgent: Route to login
+            LoginAgent->>LoginAgent: login_account()
+            LoginAgent->>OrderManagementAgent: Transfer with user_info
+            OrderManagementAgent->>User: How can I help?
+            
+            alt View Orders
+                User->>OrderManagementAgent: Show my orders
+                OrderManagementAgent->>OrderManagementAgent: get_order_history()
+                OrderManagementAgent->>User: Order list
+            else Return Request
+                User->>OrderManagementAgent: I want to return
+                OrderManagementAgent->>ReturnAgent: Transfer to returns
+                ReturnAgent->>ReturnAgent: check_return_eligibility()
+                ReturnAgent->>User: Confirm return?
+                User->>ReturnAgent: Yes
+                ReturnAgent->>ReturnAgent: initiate_return_process()
+                ReturnAgent->>User: Return label link
+            end
+        end
+  legend:
+    - "OrderTriageAgent: Routes based on intent (tracking vs account access)"
+    - "TrackingAgent: Handles order tracking without authentication"
+    - "LoginAgent: Manages user authentication"
+    - "OrderManagementAgent: Serves authenticated users"
+    - "ReturnAgent: Processes return requests"
+
+agent_message: "Here's the Pattern 1 Context-Aware Routing workflow. The triage agent routes users to the right specialist based on intent and context. Ready to proceed?"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 5: ContextVariablesAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+ContextVariablesPlan:
+  definitions:
+    # Platform config (runtime-injected)
+    - name: "context_aware"
+      type: "config"
+      description: "Platform context awareness flag"
+      source:
+        type: "config"
+        trigger: "init"
+    
+    - name: "monetization_enabled"
+      type: "config"
+      description: "Platform monetization flag"
+      source:
+        type: "config"
+        trigger: "init"
+    
+    # User session
+    - name: "user_info"
+      type: "data_entity"
+      description: "Authenticated user data including name, preferences, and orders dict"
+      source:
+        type: "data_entity"
+        trigger: "agent_text"  # Set by login_account tool
+    
+    # Order tracking
+    - name: "order_number"
+      type: "data_reference"
+      description: "Current order number being tracked"
+      source:
+        type: "data_reference"
+        trigger: "agent_text"  # Set by verify_order_number tool
+    
+    - name: "order_info"
+      type: "data_entity"
+      description: "Order details for current order_number (product, status, dates, location)"
+      source:
+        type: "data_entity"
+        trigger: "agent_text"  # Set by verify_order_number tool
+
+  agents:
+    - agent: "OrderTriageAgent"
+      variables:
+        - "context_aware"
+        - "monetization_enabled"
+    
+    - agent: "TrackingAgent"
+      variables:
+        - "order_number"
+        - "order_info"
+    
+    - agent: "LoginAgent"
+      variables:
+        - "user_info"
+    
+    - agent: "OrderManagementAgent"
+      variables:
+        - "user_info"
+    
+    - agent: "ReturnAgent"
+      variables:
+        - "user_info"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 6: ToolsManagerAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - agent: "TrackingAgent"
+    file: "tools/verify_order_number.py"
+    function: "verify_order_number"
+    description: "Verify order number against database, set order_info in context if valid"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "TrackingAgent"
+    file: "tools/verify_user_information.py"
+    function: "verify_user_information"
+    description: "Verify user identity via email or phone last 4 digits"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "LoginAgent"
+    file: "tools/login_account.py"
+    function: "login_account"
+    description: "Authenticate user and set user_info context"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "OrderManagementAgent"
+    file: "tools/get_order_history.py"
+    function: "get_order_history"
+    description: "Retrieve all orders for authenticated user"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "OrderManagementAgent"
+    file: "tools/check_order_status.py"
+    function: "check_order_status"
+    description: "Check status of a specific order"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "ReturnAgent"
+    file: "tools/check_return_eligibility.py"
+    function: "check_return_eligibility"
+    description: "Verify if order is eligible for return"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "ReturnAgent"
+    file: "tools/initiate_return_process.py"
+    function: "initiate_return_process"
+    description: "Start return process for eligible order"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+lifecycle_tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7a: UIFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools: []  # No UI tools for this conversational workflow
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7b: AgentToolsFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - filename: "tools/verify_order_number.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def verify_order_number(order_number: str) -> Dict[str, Any]:
+          """Validate an order number and return order details if found."""
+          if not order_number or len(order_number.strip()) < 6:
+              return {"ok": False, "reason": "invalid_order_number"}
+
+          normalized = order_number.strip().upper()
+          if not normalized.startswith("ORD-"):
+              return {"ok": False, "reason": "unknown_order_format"}
+
+          # Example payload; a real implementation would query an order store.
+          return {
+              "ok": True,
+              "order_number": normalized,
+              "order_info": {
+                  "status": "In Transit",
+                  "estimated_delivery": "2025-01-10",
+                  "carrier": "ExampleCarrier",
+                  "last_update": "2025-01-06",
+              },
+          }
+
+  - filename: "tools/verify_user_information.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict, Optional
+
+
+      async def verify_user_information(
+          order_number: str,
+          email: Optional[str] = None,
+          phone_last4: Optional[str] = None,
+      ) -> Dict[str, Any]:
+          """Verify the requester before revealing order details."""
+          if not order_number:
+              return {"ok": False, "reason": "missing_order_number"}
+
+          if not email and not phone_last4:
+              return {"ok": False, "reason": "missing_verification"}
+
+          if phone_last4 and (len(phone_last4) != 4 or not phone_last4.isdigit()):
+              return {"ok": False, "reason": "invalid_phone_last4"}
+
+          return {"ok": True, "verified": True}
+
+  - filename: "tools/login_account.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def login_account(username: str, password: str) -> Dict[str, Any]:
+          """Authenticate a user and return a user_info payload."""
+          if not username or not password:
+              return {"ok": False, "reason": "missing_credentials"}
+
+          # Example success. A real implementation would validate credentials.
+          return {
+              "ok": True,
+              "user_info": {
+                  "username": username,
+                  "display_name": "Example User",
+                  "orders": ["ORD-123456"],
+              },
+          }
+
+  - filename: "tools/get_order_history.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict, List
+
+
+      async def get_order_history(user_info: Dict[str, Any]) -> Dict[str, Any]:
+          """Return a user's order history."""
+          orders: List[str] = list(user_info.get("orders") or [])
+          return {"ok": True, "orders": orders}
+
+  - filename: "tools/check_order_status.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def check_order_status(order_number: str) -> Dict[str, Any]:
+          """Return a simplified status for an order number."""
+          if not order_number:
+              return {"ok": False, "reason": "missing_order_number"}
+          return {"ok": True, "order_number": order_number, "status": "In Transit"}
+
+  - filename: "tools/check_return_eligibility.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def check_return_eligibility(order_number: str) -> Dict[str, Any]:
+          """Check if an order is eligible for return."""
+          if not order_number:
+              return {"ok": False, "eligible": False, "reason": "missing_order_number"}
+          return {"ok": True, "eligible": True}
+
+  - filename: "tools/initiate_return_process.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def initiate_return_process(order_number: str) -> Dict[str, Any]:
+          """Initiate a return and return a label URL."""
+          if not order_number:
+              return {"ok": False, "reason": "missing_order_number"}
+          return {
+              "ok": True,
+              "order_number": order_number,
+              "return_label_url": "https://example.com/returns/label/" + order_number,
+          }
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7c: HookAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+hook_files: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 8: AgentsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agents:
+  - name: "OrderTriageAgent"
+    display_name: "Order Triage"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are an intelligent E-commerce customer support triage agent."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Route customer inquiries to the appropriate specialist agent
+          - Determine if request is for tracking (no login) or account management (login required)
+          - Ask clarifying questions if intent is unclear
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Routing Rules**:
+          - Order tracking requests → TrackingAgent (no login needed)
+          - Account access, order history, returns → LoginAgent (authentication required)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Greet the customer and understand their intent
+          2. IF user wants to track an order → Transfer to TrackingAgent
+          3. IF user wants to manage orders, check history, or return → Transfer to LoginAgent
+          4. IF intent is unclear → Ask: "Would you like to track an order or manage your account?"
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Conversational response. Transfer decisions are handled via handoffs."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: false
+    structured_outputs_required: false
+
+  - name: "TrackingAgent"
+    display_name: "Order Tracking"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are an intelligent E-commerce customer support agent specialized in order tracking."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Help customers track their orders without requiring login
+          - Verify order number validity
+          - Verify customer identity before revealing order details
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Available Context Variables**:
+          - `order_number`: Set after verify_order_number succeeds
+          - `order_info`: Order details populated from database
+
+          **Tools**: verify_order_number, verify_user_information
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Ask user for order number
+          1.1 If user doesn't have order number → Offer to transfer to LoginAgent to find orders
+          1.2 If user provides order number → Call verify_order_number
+          2. If order valid → Ask for email OR last 4 digits of phone number
+          3. Call verify_user_information with provided details
+          3.1 If valid → Show order details
+          3.2 If invalid → Ask for correct information
+
+          At any time, if user needs account access → Ask "Would you like to log in?" → Transfer to LoginAgent
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Conversational response with order tracking updates."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "LoginAgent"
+    display_name: "Login Management"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are an intelligent E-commerce customer support agent handling user authentication."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Authenticate users via login_account tool
+          - Transfer to OrderManagementAgent on successful login
+          - Guide users through retry or account recovery on failure
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Tools**: login_account
+          **Output**: Sets user_info context variable with user data and orders
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Call login_account to initiate authentication
+          2. On success → User is automatically transferred to OrderManagementAgent
+          3. On failure → Ask if user wants to retry or needs help with account recovery
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Conversational response about login status."
+    max_consecutive_auto_reply: 5
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "OrderManagementAgent"
+    display_name: "Order Management"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are an intelligent E-commerce customer support agent for authenticated users."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Serve authenticated users with order history and status
+          - Help users find and check past orders
+          - Transfer to ReturnAgent for return requests
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Prerequisites**: User must be logged in (user_info populated)
+          **Available Context Variables**:
+          - `user_info`: Contains name, preferences, and orders dict
+
+          **Tools**: get_order_history, check_order_status
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. First verify user is logged in (user_info exists)
+          2. Respond to user requests:
+             - "Show orders" → Call get_order_history
+             - "Check status of X" → Call check_order_status with order number
+             - "Return an order" → Transfer to ReturnAgent
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Conversational response with order information."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "ReturnAgent"
+    display_name: "Returns Processing"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are an intelligent E-commerce customer support agent specializing in returns."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Process return requests for authenticated users
+          - Verify return eligibility before processing
+          - Obtain user confirmation before initiating returns
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Prerequisites**: User must be logged in
+          **Available Context Variables**:
+          - `user_info`: Contains orders dict with return_status
+
+          **Tools**: check_return_eligibility, initiate_return_process
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Ask for order number (or confirm from conversation context)
+          2. Call check_return_eligibility
+          2.1 If not eligible → Explain why, ask what else they need
+          3. If eligible → Confirm with user: "Do you want to return order X?"
+          3.1 If confirmed → Call initiate_return_process → Provide return label link
+
+          User can transfer back to OrderManagementAgent for other needs.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Conversational response with return status and instructions."
+    max_consecutive_auto_reply: 10
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 9: OrchestratorAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+workflow_name: "Pattern1_ContextAwareRoutingWorkflow"
+max_turns: 40
+human_in_the_loop: true
+startup_mode: "UserDriven"
+orchestration_pattern: "Context-Aware Routing"
+initial_message_to_user: null
+initial_message: "Hello"
+initial_agent: "OrderTriageAgent"
+visual_agents: []  # No UI components
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 10: HandoffsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+handoff_rules:
+  # Triage routes to specialists
+  - source_agent: "OrderTriageAgent"
+    target_agent: "TrackingAgent"
+    handoff_type: "condition"
+    condition: "Transfer to the tracking agent"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  - source_agent: "OrderTriageAgent"
+    target_agent: "LoginAgent"
+    handoff_type: "condition"
+    condition: "Transfer to the login agent"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  # Tracking can escalate to login
+  - source_agent: "TrackingAgent"
+    target_agent: "LoginAgent"
+    handoff_type: "condition"
+    condition: "Transfer to the login agent"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  # Order management can go to returns
+  - source_agent: "OrderManagementAgent"
+    target_agent: "ReturnAgent"
+    handoff_type: "condition"
+    condition: "Transfer to the return agent"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  # Returns can go back to order management
+  - source_agent: "ReturnAgent"
+    target_agent: "OrderManagementAgent"
+    handoff_type: "condition"
+    condition: "Transfer to the order management agent"
+    condition_type: "StringLLMCondition"
+    condition_scope: null
+    transition_target: "AgentTarget"
+
+  # All agents revert to user after completing their task
+  - source_agent: "OrderTriageAgent"
+    target_agent: "User"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "RevertToUserTarget"
+
+  - source_agent: "TrackingAgent"
+    target_agent: "User"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "RevertToUserTarget"
+
+  - source_agent: "LoginAgent"
+    target_agent: "User"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "RevertToUserTarget"
+
+  - source_agent: "OrderManagementAgent"
+    target_agent: "User"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "RevertToUserTarget"
+
+  - source_agent: "ReturnAgent"
+    target_agent: "User"
+    handoff_type: "after_work"
+    condition: null
+    condition_type: null
+    condition_scope: null
+    transition_target: "RevertToUserTarget"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 11: StructuredOutputsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+models: []  # No structured outputs needed - all conversational
+
+registry:
+  - agent: "OrderTriageAgent"
+    agent_definition: null
+  - agent: "TrackingAgent"
+    agent_definition: null
+  - agent: "LoginAgent"
+    agent_definition: null
+  - agent: "OrderManagementAgent"
+    agent_definition: null
+  - agent: "ReturnAgent"
+    agent_definition: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 12: PackMetadataAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+PackMetadata:
+  manifest:
+    pack_name: "Pattern 1 - Context-Aware Routing Pack"
+    pack_description: "Template pack for Pattern 1 Context-Aware Routing"
+    version: "1.0.0"
+    entry_point: "Pattern1_ContextAwareRoutingWorkflow"
+    workflows:
+      - name: "Pattern1_ContextAwareRoutingWorkflow"
+        description: "Routes customer requests to tracking, login, order management, or returns specialists"
+        role: "primary"
+        startup_mode: "UserDriven"
+    ui_config:
+      show_workflow_transitions: false
+      transition_style: "hidden"
+  
+  workflow_graph:
+    nodes:
+      - id: "Pattern1_ContextAwareRoutingWorkflow"
+        type: "primary"
+    edges: []  # Single workflow, no edges
+  
+  shared_context:
+    variables: []  # Single workflow, no shared context
+    refresh_strategy: "explicit"
+    db_collection: "shared_context"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 13: DownloadAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agent_message: "Your workflow bundle is ready to download. Want me to generate it now?"

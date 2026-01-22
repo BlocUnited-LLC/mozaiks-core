@@ -1,0 +1,552 @@
+# Pattern 5: Organic (Template)
+# Use Case: Emergent collaboration (GroupChatManager decides routing)
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 0: PatternAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+PatternSelection:
+  is_multi_workflow: false
+  decomposition_reason: null
+  pack_name: "Pattern 5 - Organic Pack"
+  workflows:
+    - name: "Pattern5_OrganicWorkflow"
+      role: "primary"
+      description: "Flexible multi-agent collaboration with minimal explicit routing"
+      pattern_id: 5
+      pattern_name: "Organic"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 1: WorkflowStrategyAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+WorkflowStrategy:
+  workflow_name: "Pattern5_OrganicWorkflow"
+  workflow_description: "Agents collaborate without rigid handoffs. A manager routes based on agent descriptions and conversation context."
+  startup_mode: "UserDriven"
+  human_in_loop: true
+  pattern:
+    - "Organic"
+  modules:
+    # Module 0: Goal establishment (minimal structure in organic)
+    - module_index: 0
+      module_name: "Goal Establishment"
+      module_description: "ProjectManagerAgent clarifies objectives and sets the collaboration context."
+      pattern_id: 5
+      pattern_name: "Organic"
+      agents_needed:
+        - "ProjectManagerAgent"
+
+    # Module 1: Emergent collaboration (no fixed handoffs)
+    - module_index: 1
+      module_name: "Collaborative Work"
+      module_description: "DeveloperAgent, QAAgent, and WriterAgent contribute based on LLM-driven routing. Contributions are emergent, not prescribed."
+      pattern_id: 5
+      pattern_name: "Organic"
+      agents_needed:
+        - "DeveloperAgent"
+        - "QAAgent"
+        - "WriterAgent"
+
+    # Module 2: Consolidation (optional)
+    - module_index: 2
+      module_name: "Consolidation"
+      module_description: "ProjectManagerAgent consolidates contributions into a coherent deliverable."
+      pattern_id: 5
+      pattern_name: "Organic"
+      agents_needed:
+        - "ProjectManagerAgent"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2a: StateArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+StateArchitecture:
+  global_context_variables:
+    - name: "goal_statement"
+      type: "content"
+      purpose: "Normalized user goal"
+      trigger_hint: "Set by ProjectManagerAgent"
+
+    - name: "work_notes"
+      type: "collection"
+      purpose: "Notes contributed by agents"
+      trigger_hint: "Appended by agents"
+
+    - name: "context_aware"
+      type: "config"
+      purpose: "Platform context awareness flag"
+      trigger_hint: "init"
+
+    - name: "monetization_enabled"
+      type: "config"
+      purpose: "Platform monetization flag"
+      trigger_hint: "init"
+
+  lifecycle_requirements:
+    before_chat: null
+    after_chat: null
+
+  workflow_dependencies: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 2b: UXArchitectAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+UXArchitecture:
+  ui_requirements: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3a: AgentRosterAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+AgentRoster:
+  agents:
+    - agent_name: "ProjectManagerAgent"
+      objective: "Coordinate organically, keep a clear plan, and ensure progress toward the goal."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "DeveloperAgent"
+      objective: "Contribute implementation ideas and code snippets."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "QAAgent"
+      objective: "Contribute testing ideas and validation steps."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+    - agent_name: "WriterAgent"
+      objective: "Contribute documentation, summaries, and user-facing explanations."
+      agent_tools: []
+      lifecycle_tools: []
+      system_hooks: []
+      human_interaction: "context"
+      generation_mode: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 3b: ToolPlanningAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+ToolPlanning:
+  agent_tools:
+    - name: "set_goal_statement"
+      agent: "ProjectManagerAgent"
+      integration: null
+      purpose: "Store goal_statement"
+      interaction_mode: "none"
+
+    - name: "append_work_note"
+      agent: "DeveloperAgent"
+      integration: null
+      purpose: "Append a note to work_notes"
+      interaction_mode: "none"
+
+    - name: "append_work_note"
+      agent: "QAAgent"
+      integration: null
+      purpose: "Append a note to work_notes"
+      interaction_mode: "none"
+
+    - name: "append_work_note"
+      agent: "WriterAgent"
+      integration: null
+      purpose: "Append a note to work_notes"
+      interaction_mode: "none"
+
+  lifecycle_tools: []
+  system_hooks: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 4: ProjectOverviewAgent Output
+# ═══════════════════════════════════════════════════════════════════════════════
+MermaidSequenceDiagram:
+  workflow_name: "Organic"
+  mermaid_diagram: |
+    sequenceDiagram
+        participant User
+        participant ProjectManagerAgent
+        participant DeveloperAgent
+        participant QAAgent
+        participant WriterAgent
+
+        User->>ProjectManagerAgent: Goal
+        ProjectManagerAgent->>ProjectManagerAgent: set_goal_statement()
+        ProjectManagerAgent->>DeveloperAgent: Ask for implementation ideas
+        ProjectManagerAgent->>QAAgent: Ask for testing ideas
+        ProjectManagerAgent->>WriterAgent: Ask for documentation
+        DeveloperAgent->>DeveloperAgent: append_work_note()
+        QAAgent->>QAAgent: append_work_note()
+        WriterAgent->>WriterAgent: append_work_note()
+        ProjectManagerAgent->>User: Synthesis + next action
+  legend:
+    - "Organic: routing is flexible and manager-driven"
+
+agent_message: "Review the organic collaboration template and approve generation."
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 5: ContextVariablesAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+ContextVariablesPlan:
+  definitions:
+    - name: "context_aware"
+      type: "config"
+      description: "Platform context awareness flag"
+      source: { type: "config", trigger: "init" }
+
+    - name: "monetization_enabled"
+      type: "config"
+      description: "Platform monetization flag"
+      source: { type: "config", trigger: "init" }
+
+    - name: "goal_statement"
+      type: "content"
+      description: "Normalized goal"
+      source: { type: "content", trigger: "agent_text" }
+
+    - name: "work_notes"
+      type: "collection"
+      description: "Notes from agents"
+      source: { type: "collection", trigger: "agent_text" }
+
+  agents:
+    - agent: "ProjectManagerAgent"
+      variables: ["goal_statement", "work_notes"]
+    - agent: "DeveloperAgent"
+      variables: ["goal_statement", "work_notes"]
+    - agent: "QAAgent"
+      variables: ["goal_statement", "work_notes"]
+    - agent: "WriterAgent"
+      variables: ["goal_statement", "work_notes"]
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 6: ToolsManagerAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - agent: "ProjectManagerAgent"
+    file: "tools/set_goal_statement.py"
+    function: "set_goal_statement"
+    description: "Store goal_statement"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "DeveloperAgent"
+    file: "tools/append_work_note_dev.py"
+    function: "append_work_note"
+    description: "Append a work note"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "QAAgent"
+    file: "tools/append_work_note_qa.py"
+    function: "append_work_note"
+    description: "Append a work note"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+  - agent: "WriterAgent"
+    file: "tools/append_work_note_writer.py"
+    function: "append_work_note"
+    description: "Append a work note"
+    tool_type: "Agent_Tool"
+    auto_invoke: false
+    integration: null
+    ui: null
+
+lifecycle_tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7a: UIFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7b: AgentToolsFileGenerator Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+tools:
+  - filename: "tools/set_goal_statement.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def set_goal_statement(text: str) -> Dict[str, Any]:
+          return {"ok": True, "goal_statement": text.strip() if text else ""}
+
+  - filename: "tools/append_work_note_dev.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def append_work_note(note: str) -> Dict[str, Any]:
+          return {"ok": True, "note": note}
+
+  - filename: "tools/append_work_note_qa.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def append_work_note(note: str) -> Dict[str, Any]:
+          return {"ok": True, "note": note}
+
+  - filename: "tools/append_work_note_writer.py"
+    installRequirements: []
+    content: |
+      from __future__ import annotations
+
+      from typing import Any, Dict
+
+
+      async def append_work_note(note: str) -> Dict[str, Any]:
+          return {"ok": True, "note": note}
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 7c: HookAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+hook_files: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 8: AgentsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agents:
+  - name: "ProjectManagerAgent"
+    display_name: "Project Manager"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are the project manager coordinating an organic multi-agent collaboration."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Clarify the user goal and constraints
+          - Orchestrate contributions from DeveloperAgent, QAAgent, and WriterAgent
+          - Keep progress moving and resolve conflicts
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          **Pattern**: Organic collaboration (no forced handoffs).
+          **Tool**: append_work_note(note: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Break the user's request into 2–6 work streams.
+          2. Ask the team for input (implementation, validation, documentation).
+          3. Consolidate into a single coherent plan or deliverable.
+          4. Call append_work_note to record key decisions.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: |
+          Conversational.
+          - Provide an actionable plan and clear next steps.
+    max_consecutive_auto_reply: 20
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "DeveloperAgent"
+    display_name: "Developer"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are a software developer agent contributing implementation ideas and technical tradeoffs."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Propose implementation approaches
+          - Identify risks and dependencies
+          - Provide concrete next steps
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          Coordinate with ProjectManagerAgent.
+          Tool: append_work_note(note: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Offer 1–2 viable implementation options.
+          2. Recommend the simplest approach that meets requirements.
+          3. Note any assumptions.
+          4. Append important decisions via append_work_note.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Bulleted recommendations with a short rationale."
+    max_consecutive_auto_reply: 20
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "QAAgent"
+    display_name: "QA"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are a QA agent defining test strategies and acceptance criteria."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Identify edge cases and failure modes
+          - Propose test cases and validation steps
+          - Help define acceptance criteria
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          Coordinate with ProjectManagerAgent.
+          Tool: append_work_note(note: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Propose tests (unit/integration/smoke) relevant to the task.
+          2. Call out edge cases and expected behaviors.
+          3. Append key acceptance criteria via append_work_note.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Checklist of test cases and expected outcomes."
+    max_consecutive_auto_reply: 20
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+  - name: "WriterAgent"
+    display_name: "Writer"
+    prompt_sections:
+      - id: "role"
+        heading: "[ROLE]"
+        content: "You are a technical writer producing documentation and concise summaries."
+
+      - id: "objective"
+        heading: "[OBJECTIVE]"
+        content: |
+          - Draft clear user-facing or developer-facing docs
+          - Summarize decisions and how-to steps
+
+      - id: "context"
+        heading: "[CONTEXT]"
+        content: |
+          Coordinate with ProjectManagerAgent.
+          Tool: append_work_note(note: str)
+
+      - id: "instructions"
+        heading: "[INSTRUCTIONS]"
+        content: |
+          1. Produce concise documentation aligned with the agreed plan.
+          2. Use consistent terminology.
+          3. Append key doc decisions via append_work_note.
+
+      - id: "output_format"
+        heading: "[OUTPUT FORMAT]"
+        content: "Markdown docs with headings and short examples where helpful."
+    max_consecutive_auto_reply: 20
+    auto_tool_mode: true
+    structured_outputs_required: false
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 9: OrchestratorAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+workflow_name: "Pattern5_OrganicWorkflow"
+max_turns: 60
+human_in_the_loop: true
+startup_mode: "UserDriven"
+orchestration_pattern: "Organic"
+initial_message_to_user: null
+initial_message: "Tell me what you want to build; the team will collaborate."
+initial_agent: "ProjectManagerAgent"
+visual_agents: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 10: HandoffsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+handoff_rules: []
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 11: StructuredOutputsAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+models: []
+
+registry:
+  - agent: "ProjectManagerAgent"
+    agent_definition: null
+  - agent: "DeveloperAgent"
+    agent_definition: null
+  - agent: "QAAgent"
+    agent_definition: null
+  - agent: "WriterAgent"
+    agent_definition: null
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 12: PackMetadataAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+PackMetadata:
+  manifest:
+    pack_name: "Pattern 5 - Organic Pack"
+    pack_description: "Template pack for Pattern 5 Organic"
+    version: "1.0.0"
+    entry_point: "Pattern5_OrganicWorkflow"
+    workflows:
+      - name: "Pattern5_OrganicWorkflow"
+        description: "Emergent collaboration"
+        role: "primary"
+        startup_mode: "UserDriven"
+    ui_config:
+      show_workflow_transitions: false
+      transition_style: "hidden"
+
+  workflow_graph:
+    nodes:
+      - id: "Pattern5_OrganicWorkflow"
+        type: "primary"
+    edges: []
+
+  shared_context:
+    variables: []
+    refresh_strategy: "explicit"
+    db_collection: "shared_context"
+
+---
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER 13: DownloadAgent Output (BUILD PHASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+agent_message: "Your organic workflow template is ready to download. Generate the bundle now?"

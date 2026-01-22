@@ -1,0 +1,116 @@
+action_plan_agents:
+  # LAYER 0: Pattern Selection
+  - name: PatternAgent
+    objective: Analyze workflow requirements and select the optimal orchestration pattern
+    output_structure:
+      PatternSelection:  # Model: PatternSelection (wrapped by PatternSelectionOutput)
+        is_multi_workflow: bool
+        decomposition_reason: str | null
+        pack_name: str
+        workflows:  # list[WorkflowInPack]
+          - name: str
+            role: enum(primary, supporting)
+            description: str
+            pattern_id: int
+            pattern_name: str
+
+  # LAYER 1: Strategic Intent
+  - name: WorkflowStrategyAgent
+    objective: Define the workflow's purpose, startup behavior, and modular structure
+    output_structure:
+      WorkflowStrategy:  # Model: WorkflowStrategy (wrapped by WorkflowStrategyOutput)
+        workflow_name: str
+        workflow_description: str
+        startup_mode: enum(UserDriven, AgentDriven, BackendOnly)
+        human_in_loop: bool
+        pattern: list[str]
+        modules:  # list[WorkflowStrategyModule]
+          - module_name: str
+            module_index: int
+            module_description: str
+            pattern_id: int
+            pattern_name: str
+            agents_needed: list[str]
+
+  # LAYER 2a: State & Data Architecture
+  - name: StateArchitectAgent
+    objective: Define the data model, context variables, and lifecycle triggers
+    output_structure:
+      StateArchitecture:  # Model: StateArchitecture (wrapped by StateArchitectureOutput)
+        global_context_variables: list[RequiredContextVariable]
+        assets: list[WorkflowAsset]  # optional
+        lifecycle_requirements:  # LifecycleRequirements | null
+          before_chat: str | null
+          after_chat: str | null
+
+  # LAYER 2b: User Experience Architecture
+  - name: UXArchitectAgent
+    objective: Define the user interface contracts, artifacts, and interaction patterns
+    output_structure:
+      UXArchitecture:  # Model: UXArchitecture (wrapped by UXArchitectureOutput)
+        ui_requirements:  # list[WorkflowUIComponent]
+          - module_name: str
+            agent: str
+            tool: str
+            label: str
+            component: str
+            display: enum(inline, artifact)
+            summary: str
+
+  # LAYER 3a: Agent Roster
+  - name: AgentRosterAgent
+    objective: Define the agent identities, types, and interaction behaviors
+    output_structure:
+      AgentRoster:  # Model: AgentRoster (wrapped by AgentRosterOutput)
+        agents:  # list[WorkflowAgent]
+          - agent_name: str
+            objective: str
+            agent_tools:  # list[AgentTool]
+              - name: str
+                integration: str | null
+                purpose: str
+                interaction_mode: enum(inline, artifact, none)
+            lifecycle_tools:  # list[LifecycleTool]
+              - name: str
+                integration: str | null
+                purpose: str
+                trigger: enum(before_agent, after_agent)
+            system_hooks:  # list[SystemHook]
+              - name: str
+                agent: str | null
+                trigger: enum(process_message_before_send, update_agent_state, process_last_received_message, process_all_messages_before_reply)
+                purpose: str
+            human_interaction: enum(none, context, approval, feedback, single)
+            generation_mode: str | null
+
+  # LAYER 3b: Tool and Hook Planning
+  - name: ToolPlanningAgent
+    objective: Define all backend/logic tools, lifecycle tools, and system hooks (excludes UI tools)
+    output_structure:
+      ToolPlanning:  # Model: ToolPlanning (wrapped by ToolPlanningOutput)
+        agent_tools:  # list[PlannedAgentTool]
+          - name: str
+            agent: str
+            integration: str | null
+            purpose: str
+            interaction_mode: enum(inline, artifact, none)
+        lifecycle_tools:  # list[LifecycleTool]
+          - name: str
+            integration: str | null
+            purpose: str
+            trigger: enum(before_agent, after_agent)
+        system_hooks:  # list[SystemHook]
+          - name: str
+            agent: str | null
+            trigger: enum(process_message_before_send, update_agent_state, process_last_received_message, process_all_messages_before_reply)
+            purpose: str
+
+  # LAYER 4: Visualization and Validation
+  - name: ProjectOverviewAgent
+    objective: Visualize the workflow and request user approval
+    output_structure:
+      MermaidSequenceDiagram:  # Model: MermaidSequenceDiagram (wrapped by MermaidSequenceDiagramOutput)
+        workflow_name: str
+        mermaid_diagram: str
+        legend: list[str]
+      agent_message: str

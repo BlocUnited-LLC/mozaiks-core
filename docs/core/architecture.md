@@ -333,8 +333,6 @@ All configs live in `MOZAIKS_CONFIGS_PATH` (defaults to `core/config/`):
 | `MONETIZATION` | No | `0` (free) or `1` (paid tiers) |
 | `MOZAIKS_MANAGED` | No | `true` if hosted on Mozaiks platform |
 
-See [Environment Variables Reference](../reference/environment-variables.md) for complete list.
-
 ---
 
 ## 🔒 Security Model
