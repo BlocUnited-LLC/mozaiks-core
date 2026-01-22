@@ -9,13 +9,13 @@
 **OWN THE AGENTIC ERA**  
 *Event-Driven • Declarative • Multi-Tenant • Production-Ready*
 
-[![AG2 Framework](https://img.shields.io/badge/AG2-Autogen-green?style=flat&logo=microsoft)](https://microsoft.github.io/autogen/)
+[![AG2 Framework](https://img.shields.io/badge/AG2-AG2-green?style=flat&logo=microsoft)](https://github.com/ag2ai/ag2)
 [![Python](https://img.shields.io/badge/Python-3.9+-blue?style=flat&logo=python)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Latest-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Persistence-47A248?style=flat&logo=mongodb)](https://www.mongodb.com/)
 [![C#](https://img.shields.io/badge/C%23-.NET%208-512BD4?style=flat&logo=csharp)](https://docs.microsoft.com/en-us/dotnet/csharp/)
 
-**Production-grade runtime for multi-agent AI workflows built on Microsoft's AG2 framework.**
+**Production-grade runtime for multi-agent AI workflows built on AG2 framework.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
