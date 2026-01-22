@@ -4,7 +4,7 @@
 
 <div align="center">
 
-![MozaiksAI Logo](runtime\packages\shell\public\mozaik_logo.svg)
+<img src="https://raw.githubusercontent.com/BlocUnited-LLC/mozaiks-core/main/runtime/packages/shell/public/mozaik_logo.svg" alt="MozaiksAI Logo" width="200"/>
 
 **OWN THE AGENTIC ERA**  
 *Event-Driven • Declarative • Multi-Tenant • Production-Ready*
