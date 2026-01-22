@@ -75,7 +75,7 @@ propcache==0.4.1
 protobuf==5.29.5
 pyasn1==0.6.2
 pyautogen==0.10.0
-pycparser==2.23
+pycparser==3.0
 pydantic==2.12.5
 pydantic_core==2.41.5
 Pygments==2.19.2
