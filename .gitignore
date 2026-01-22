@@ -15,6 +15,7 @@ bin/
 obj/
 dist/
 build/
+site/
 
 # IDE
 .idea/

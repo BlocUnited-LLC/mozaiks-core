@@ -1,0 +1,113 @@
+site_name: MozaiksCore
+site_description: Production foundation and agentic backbone for MozaiksAI
+site_url: https://docs.mozaiks.ai
+repo_url: https://github.com/BlocUnited-LLC/mozaiks-core
+repo_name: BlocUnited-LLC/mozaiks-core
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/BlocUnited-LLC/mozaiks-core
+  generator: false
+  # analytics:
+  #   provider: google
+  #   property: G-XXXXXXXXXX
+
+theme:
+  name: material
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search
+  - autorefs
+  - minify:
+      minify_html: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+      enable_git_follow: false
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Quickstart: getting-started/quickstart.md
+  - Concepts:
+    - Overview: concepts/overview.md
+  - Guides:
+    - Quickstart: guides/quickstart.md
+    - Configuration: guides/configuration.md
+    - Creating Plugins: guides/creating-plugins.md
+    - Creating Workflows: guides/creating-workflows.md
+    - Deployment: guides/deployment.md
+    - Troubleshooting: guides/troubleshooting.md
+  - Core:
+    - Architecture: core/architecture.md
+    - Authentication: core/authentication.md
+    - Database: core/database.md
+    - Events: core/events.md
+    - Notifications: core/notifications.md
+    - Plugins: core/plugins.md
+    - WebSockets: core/websockets.md
+  - AI Runtime:
+    - Architecture: ai-runtime/architecture.md
+  - Platform Integration:
+    - Overview: platform-integration/overview.md
+    - Connector Contract: platform-integration/connector-contract.md
+    - Billing API: platform-integration/billing-api.md
+    - Identity API: platform-integration/identity-api.md
+  - Reference:
+    - API: reference/api.md
