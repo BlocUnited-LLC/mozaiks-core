@@ -19,7 +19,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[Quick Start](#-quick-start) • [Documentation](#-documentation) • [Architecture](#-architecture) • [Features](#-features)
+[Quick Start](#quick-start) • [Documentation](#documentation) • [Architecture](#architecture) • [Features](#mozaiks-ai)
 
 </div>
 
@@ -134,7 +134,7 @@ Comprehensive documentation organized by use case:
 | **Events & WebSockets** | [Events](docs/core/events.md) |
 | **Database** | [MongoDB & Persistence](docs/core/database.md) |
 | **AI Runtime** | [AI Runtime Architecture](docs/ai-runtime/architecture.md) |
-| **Quickstart** | [Getting Started](docs/guides/quickstart.md) |
+| **Quickstart** | [Getting Started](docs/getting-started/quickstart.md) |
 | **Creating Plugins** | [Plugin Guide](docs/guides/creating-plugins.md) |
 | **Deployment** | [Deployment Guide](docs/guides/deployment.md) |
 | **Platform Integration** | [Connector Specs](docs/platform-integration/overview.md) |

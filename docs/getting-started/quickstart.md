@@ -149,10 +149,10 @@ Navigate to http://localhost:5173 and verify:
 
 | Goal | Guide |
 |------|-------|
-| Create your first plugin | [Creating Plugins](./creating-plugins.md) |
-| Add AI capabilities | [Creating Workflows](./creating-workflows.md) |
-| Deploy to production | [Deployment Guide](./deployment.md) |
-| Troubleshoot issues | [Troubleshooting](./troubleshooting.md) |
+| Create your first plugin | [Creating Plugins](../guides/creating-plugins.md) |
+| Add AI capabilities | [Creating Workflows](../guides/creating-workflows.md) |
+| Deploy to production | [Deployment Guide](../guides/deployment.md) |
+| Troubleshoot issues | [Troubleshooting](../guides/troubleshooting.md) |
 
 ---
 

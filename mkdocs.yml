@@ -88,7 +88,6 @@ nav:
   - Concepts:
     - Overview: concepts/overview.md
   - Guides:
-    - Quickstart: guides/quickstart.md
     - Configuration: guides/configuration.md
     - Creating Plugins: guides/creating-plugins.md
     - Creating Workflows: guides/creating-workflows.md
