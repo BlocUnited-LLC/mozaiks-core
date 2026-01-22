@@ -93,6 +93,7 @@ nav:
     - Creating Plugins: guides/creating-plugins.md
     - Creating Workflows: guides/creating-workflows.md
     - Deployment: guides/deployment.md
+    - Operations Runbook: guides/operations-runbook.md
     - Troubleshooting: guides/troubleshooting.md
   - Core:
     - Architecture: core/architecture.md
