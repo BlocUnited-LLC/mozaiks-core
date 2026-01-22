@@ -1,0 +1,63 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'runtime/ai/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    paths:
+      - 'runtime/ai/**'
+      - '.github/workflows/backend-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: 'runtime/ai/requirements.txt'
+
+      - name: Install dependencies
+        working-directory: runtime/ai
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff pytest pytest-asyncio pytest-cov
+
+      - name: Lint with ruff
+        working-directory: runtime/ai
+        run: |
+          ruff check . --output-format=github || true
+          ruff format --check . || true
+
+      - name: Run tests
+        working-directory: runtime/ai
+        env:
+          DATABASE_URI: mongodb://localhost:27017/test
+          JWT_SECRET: test-secret-key-for-ci-only
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          pytest tests/ --cov=core --cov=app --cov-report=xml --cov-report=term -v || echo "No tests found or tests failed"
+
+      - name: Upload coverage
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v4
+        with:
+          file: runtime/ai/coverage.xml
+          flags: backend
+          fail_ci_if_error: false

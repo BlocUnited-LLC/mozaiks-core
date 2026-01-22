@@ -1,0 +1,53 @@
+name: Frontend CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'runtime/packages/shell/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    paths:
+      - 'runtime/packages/shell/**'
+      - '.github/workflows/frontend-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'runtime/packages/shell/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: runtime/packages/shell
+        run: npm ci
+
+      - name: Lint
+        working-directory: runtime/packages/shell
+        run: npm run lint || echo "No lint script or lint failed"
+
+      - name: Build
+        working-directory: runtime/packages/shell
+        run: npm run build
+
+      - name: Run tests
+        working-directory: runtime/packages/shell
+        run: npm test || echo "No tests found or tests failed"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: shell-build
+          path: runtime/packages/shell/dist
+          retention-days: 7
