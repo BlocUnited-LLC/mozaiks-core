@@ -1,6 +1,5 @@
 # /backend/core/subscription_stub.py
 import logging
-from datetime import datetime
 from core.utils.log_sanitizer import sanitize_for_log
 
 logger = logging.getLogger("mozaiks_core.subscription_stub")

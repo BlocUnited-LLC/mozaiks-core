@@ -10,13 +10,20 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from auth import AuthError, JWKSClient, authenticate_token, get_bearer_token
-from config import Settings, load_settings
+from config import load_settings
 from plugin_loader import PluginLoader
 
 settings = load_settings()
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger("plugin_host")
+
+
+def _sanitize(value: str) -> str:
+    """Remove newlines/control chars to prevent log injection."""
+    if not isinstance(value, str):
+        value = str(value)
+    return value.replace("\n", "").replace("\r", "")
 
 app = FastAPI(title="Mozaiks Plugin Runtime Host")
 
@@ -120,11 +127,11 @@ async def execute_plugin(plugin_name: str, request: Request) -> Any:
         result = record.entrypoint(data)
         if inspect.isawaitable(result):
             result = await result
-    except Exception as exc:
-        logger.exception("Plugin execution failed: %s", plugin_name)
+    except Exception:
+        logger.exception("Plugin execution failed: %s", _sanitize(plugin_name))
         return JSONResponse(
             status_code=500,
-            content={"error": "Plugin execution failed", "details": str(exc)},
+            content={"error": "Plugin execution failed", "details": "Internal error"},
         )
 
     if not isinstance(result, dict):

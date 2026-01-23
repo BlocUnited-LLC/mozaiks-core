@@ -15,6 +15,13 @@ import time
 logger = logging.getLogger("plugin_host.loader")
 
 
+def _sanitize(value: str) -> str:
+    """Remove newlines/control chars to prevent log injection."""
+    if not isinstance(value, str):
+        value = str(value)
+    return value.replace("\n", "").replace("\r", "")
+
+
 @dataclass
 class PluginRecord:
     name: str
@@ -69,7 +76,7 @@ class PluginLoader:
             for name in removed:
                 record = self._plugins.pop(name)
                 self._unload_modules(record)
-                logger.info("Removed plugin from registry: %s", name)
+                logger.info("Removed plugin from registry: %s", _sanitize(name))
 
     def get_plugin(self, plugin_name: str) -> Optional[PluginRecord]:
         with self._lock:
@@ -138,7 +145,7 @@ class PluginLoader:
         spec.loader.exec_module(module)
 
         entrypoint, entrypoint_name = self._resolve_entrypoint(module)
-        logger.info("Loaded plugin %s (%s)", plugin_name, entrypoint_name)
+        logger.info("Loaded plugin %s (%s)", _sanitize(plugin_name), entrypoint_name)
 
         return PluginRecord(
             name=plugin_name,
