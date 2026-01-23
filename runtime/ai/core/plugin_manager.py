@@ -20,6 +20,18 @@ from .config.config_loader import (
 
 logger = logging.getLogger("mozaiks_core.plugin_manager")
 
+
+def sanitize_for_log(value: str) -> str:
+    """
+    Sanitize a string to prevent log injection attacks.
+    Removes newline characters that could be used to forge log entries.
+    """
+    if value is None:
+        return ""
+    text = str(value)
+    return text.replace("\r\n", " ").replace("\n", " ").replace("\r", " ")
+
+
 # ============================================================================
 # PLUGIN PATH CONFIGURATION
 # ============================================================================
@@ -365,6 +377,9 @@ class PluginManager:
         except Exception:
             timeout_seconds = 30.0  # Contract v1.0.0 default
         
+        # Sanitize plugin name for safe logging (prevent log injection)
+        safe_plugin_name = sanitize_for_log(plugin_name)
+        
         if plugin_name in self.plugins:
             try:
                 module = self.plugins[plugin_name]["module"]
@@ -397,18 +412,18 @@ class PluginManager:
                     return {"error": f"Plugin {plugin_name} has no execute() or run() method"}
             
             except asyncio.TimeoutError:
-                logger.error(f"Plugin {plugin_name} execution timed out after {timeout_seconds}s")
+                logger.error(f"Plugin {safe_plugin_name} execution timed out after {timeout_seconds}s")
                 return {"error": f"Plugin execution timed out after {timeout_seconds} seconds"}
                     
             except Exception as e:
-                logger.error(f"Error executing plugin {plugin_name}: {str(e)}")
+                logger.error(f"Error executing plugin {safe_plugin_name}: {str(e)}")
                 # Include stack trace for better debugging
                 import traceback
                 logger.error(traceback.format_exc())
-                return {"error": f"Error executing plugin {plugin_name}: {str(e)}"}
+                return {"error": f"Error executing plugin: {str(e)}"}
         else:
-            logger.error(f"Plugin {plugin_name} not found in loaded plugins. Available plugins: {list(self.plugins.keys())}")
-            return {"error": f"Plugin {plugin_name} not found"}
+            logger.error(f"Plugin {safe_plugin_name} not found in loaded plugins. Available plugins: {list(self.plugins.keys())}")
+            return {"error": f"Plugin not found"}
 
     async def refresh_plugins(self):
         """
