@@ -8,7 +8,7 @@ anyio==4.12.0
 attrs==25.4.0
 autogen-agentchat==0.7.5
 autogen-core==0.7.5
-azure-core==1.37.0
+azure-core==1.38.0
 azure-functions==1.24.0
 azure-identity==1.25.1
 azure-keyvault-secrets==4.10.0
