@@ -6,6 +6,7 @@
 
 **Open-source multi-tenant runtime for AI-powered applications**
 
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python)](https://www.python.org/)
 [![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
@@ -26,6 +27,42 @@ MozaiksCore is a **self-hostable application runtime** that provides:
 - 📦 **Production Ready** — Docker, MongoDB, structured logging
 
 > **Note**: This is the open-source core. BlocUnited offers a managed platform with app generation tools at [mozaiks.ai](https://mozaiks.ai), but you're welcome to self-host and build everything yourself.
+
+---
+
+## v1.0.0 Runtime Contract
+
+MozaiksCore v1.0.0 implements a stable runtime contract:
+
+| Capability | Endpoint/Feature |
+|------------|------------------|
+| Plugin Execution | `POST /api/execute/{plugin_name}` |
+| Plugin Discovery | `GET /api/plugins` |
+| Health Check | `GET /health` (includes `plugins_loaded`) |
+| Runtime Version | `X-Mozaiks-Runtime-Version: 1.0.0` header |
+| Plugin Timeout | `MOZAIKS_PLUGIN_TIMEOUT_SECONDS` (default: 30s) |
+
+### Auth Modes
+
+| Mode | Env Var | Description |
+|------|---------|-------------|
+| **External** | `MOZAIKS_AUTH_MODE=external` | OIDC/JWKS validation (default) |
+| **Local** | `MOZAIKS_AUTH_MODE=local` | HS256 JWT with `JWT_SECRET` |
+| **Platform** | `MOZAIKS_AUTH_MODE=platform` | BlocUnited platform integration |
+
+### Plugin Execution Context
+
+Plugins receive server-injected context that cannot be overridden by clients:
+
+```python
+async def execute(data: dict) -> dict:
+    app_id = data["app_id"]       # Execution namespace
+    user_id = data["user_id"]     # From JWT sub claim
+    user_jwt = data.get("user_jwt")  # Bearer token (for service calls)
+    context = data["_context"]    # Full context object
+```
+
+📚 **Full contract**: [docs/contracts/runtime-platform-contract-v1.md](docs/contracts/runtime-platform-contract-v1.md)
 
 ---
 
@@ -259,10 +296,13 @@ This injects a mock user context so you can test plugins and workflows without s
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `MONGODB_URI` | MongoDB connection string | `mongodb://localhost:27017` |
-| `JWT_SECRET` | Secret for JWT signing | Required |
+| `JWT_SECRET` | Secret for JWT signing (local auth mode) | Required for local |
 | `OPENAI_API_KEY` | OpenAI API key for AI workflows | Required for AI |
+| `MOZAIKS_AUTH_MODE` | Auth mode: `external`, `local`, `platform` | `external` |
+| `MOZAIKS_PLUGIN_TIMEOUT_SECONDS` | Plugin execution timeout | `30` |
 | `SKIP_AUTH` | Bypass auth for development | `false` |
-| `PLATFORM_FEE_BPS` | Stripe Connect fee (basis points) | `0` |
+| `APP_ID` | Application namespace identifier | `default` |
+| `APP_TIER` | Subscription tier: `free`, `pro`, `enterprise` | `free` |
 
 ---
 
