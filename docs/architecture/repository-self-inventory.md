@@ -31,7 +31,7 @@
       "Performance and observability logging",
       "AppGenerator workflow (12-agent full-stack app generation)",
       "AgentGenerator workflow (AI agent/workflow creation)",
-      "SubscriptionAdvisor workflow (billing/plan guidance)",
+      "AppAdvisor workflow (billing/plan guidance)",
       "ValueEngine workflow (value proposition generation)",
       "App code versioning (snapshots/patchsets)"
     ],
@@ -193,7 +193,7 @@ MozaiksAI/
 │   │   │   └── ...                          # APP_SPECIFIC
 │   │   └── ...                              # APP_SPECIFIC
 │   │
-│   ├── SubscriptionAdvisor/                 # APP_SPECIFIC - Billing guidance
+│   ├── AppAdvisor/                 # APP_SPECIFIC - Billing guidance
 │   │   └── ...                              # APP_SPECIFIC
 │   │
 │   ├── ValueEngine/                         # APP_SPECIFIC - Value proposition
@@ -392,7 +392,7 @@ cd ChatUI && npm start
 |--------|---------------------|
 | `workflows/AppGenerator/` | Self-contained workflow with own tools; only needs core runtime API |
 | `workflows/AgentGenerator/` | Self-contained workflow; could be a separate package |
-| `workflows/SubscriptionAdvisor/` | Self-contained; minimal dependencies |
+| `workflows/AppAdvisor/` | Self-contained; minimal dependencies |
 | `workflows/ValueEngine/` | Self-contained workflow |
 | `workflows/_shared/backend_client.py` | HTTP client to external backend; not runtime-dependent |
 | `workflows/_shared/app_code_versions.py` | Code versioning logic; could be external |
@@ -447,7 +447,7 @@ workflows/_shared/backend_client.py
 │  SAFE TO MOVE (No internal dependencies beyond API)                      │
 │  ├── workflows/AppGenerator/                                             │
 │  ├── workflows/AgentGenerator/                                           │
-│  ├── workflows/SubscriptionAdvisor/                                      │
+│  ├── workflows/AppAdvisor/                                      │
 │  ├── workflows/ValueEngine/                                              │
 │  ├── workflows/_shared/backend_client.py                                 │
 │  ├── ChatUI/src/workflows/*                                              │
