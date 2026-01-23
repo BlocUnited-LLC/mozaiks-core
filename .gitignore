@@ -33,3 +33,6 @@ Thumbs.db
 
 # Dev tokens
 dev_token.txt
+# Agent instruction files (local only for now)
+AGENTS.md
+CLAUDE.md
