@@ -33,12 +33,41 @@ services:
       - mongodb
 
   # ============================================
+  # PLUGIN RUNTIME HOST
+  # ============================================
+  plugin-runtime:
+    build:
+      context: ./runtime/plugin-host
+      dockerfile: Dockerfile
+    ports:
+      - "8090:8090"
+    volumes:
+      - ${PLUGINS_MOUNT_PATH:-../mozaiks-platform/plugins}:/plugins:ro
+    environment:
+      - PLUGINS_DIR=/plugins
+      - JWT_ISSUER=https://mozaiks.io
+      - JWT_AUDIENCE=mozaiks-api
+      - JWKS_URL=http://identity-api:8080/.well-known/jwks.json
+      - LOG_LEVEL=INFO
+      - SKIP_AUTH=true  # Dev only - remove in production
+      - MONGODB_URI=mongodb://mongodb:27017
+      - PLUGINS_DB_NAME=MozaiksPlugins
+    depends_on:
+      - identity-api
+      - mongodb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================
   # BACKEND SERVICES (.NET)
   # ============================================
   identity-api:
     build:
-      context: ./backend/src/Identity.API/AuthServer.Api
-      dockerfile: Dockerfile
+      context: ./backend
+      dockerfile: src/Identity.API/AuthServer.Api/Dockerfile
     ports:
       - "8020:8080"
     environment:

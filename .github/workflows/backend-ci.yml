@@ -58,6 +58,6 @@ jobs:
         if: matrix.python-version == '3.11'
         uses: codecov/codecov-action@v5
         with:
-          file: runtime/ai/coverage.xml
+          files: runtime/ai/coverage.xml
           flags: backend
           fail_ci_if_error: false

@@ -12,6 +12,10 @@
         public string? PlanId { get; set; }
         public DateTime? CurrentPeriodEndUtc { get; set; }
         public string? CustomerRef { get; set; }
+
+        // Platform fee auditing (Stripe Connect).
+        public int? AppliedFeeBps { get; set; }
+        public long? AppliedFeeAmount { get; set; }
     }
     public class InvestorShare
     {

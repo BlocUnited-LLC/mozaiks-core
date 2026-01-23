@@ -7,11 +7,11 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["Services/AuthServer/AuthServer.Api/AuthServer.Api.csproj", "Services/AuthServer/AuthServer.Api/"]
+COPY ["src/Identity.API/AuthServer.Api/AuthServer.Api.csproj", "src/Identity.API/AuthServer.Api/"]
 COPY ["AspireAdmin/blocunited-microservice.ServiceDefaults/blocunited-microservice.ServiceDefaults.csproj", "AspireAdmin/blocunited-microservice.ServiceDefaults/"]
-RUN dotnet restore "Services/AuthServer/AuthServer.Api/AuthServer.Api.csproj"
+RUN dotnet restore "src/Identity.API/AuthServer.Api/AuthServer.Api.csproj"
 COPY . .
-WORKDIR "/src/Services/AuthServer/AuthServer.Api"
+WORKDIR "/src/src/Identity.API/AuthServer.Api"
 RUN dotnet build "AuthServer.Api.csproj" -c Release -o /app/build
 
 FROM build AS publish

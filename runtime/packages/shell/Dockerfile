@@ -27,8 +27,8 @@ FROM nginx:alpine AS runtime
 # Copy built assets
 COPY --from=builder /build/dist /usr/share/nginx/html
 
-# Copy nginx config if exists
-COPY nginx.conf /etc/nginx/conf.d/default.conf 2>/dev/null || true
+# Copy nginx config if exists (using wildcard to make it optional)
+COPY nginx.con[f] /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

@@ -1,5 +1,6 @@
 # MozaiksAI Runtime Dependencies
 # Frozen from active environment on 2026-01-22
+ag2[openai]
 
 # Core Web Framework
 fastapi==0.128.0
@@ -21,11 +22,15 @@ bcrypt==4.0.1
 
 # HTTP Client
 httpx==0.28.1
+aiohttp>=3.9.0
 
 # AI/LLM
 openai==2.14.0
 pyautogen==0.10.0
 ag2==0.10.4
+tree_sitter==0.21.3
+tree_sitter_python==0.20.0
+tree_sitter_javascript==0.20.0
 tiktoken==0.12.0
 
 # Async Support

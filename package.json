@@ -1,6 +1,7 @@
 {
   "name": "mozaiks-core",
   "version": "1.0.0",
+  "packageManager": "npm@10.9.3",
   "private": true,
   "license": "MIT",
   "description": "Mozaiks Core - Open source runtime, SDK, and AI engine",

@@ -121,6 +121,10 @@ namespace Payment.API.Services
                 Metadata = metadata
             };
 
+            // Platform fee tracking for auditing.
+            int? appliedFeeBps = null;
+            long? appliedFeeAmount = null;
+
             if (!string.IsNullOrWhiteSpace(request.DestinationAccountId))
             {
                 options.TransferData = new PaymentIntentTransferDataOptions
@@ -130,7 +134,24 @@ namespace Payment.API.Services
 
                 if (request.ApplicationFeeAmount.HasValue)
                 {
+                    // Explicit fee from request takes precedence.
                     options.ApplicationFeeAmount = request.ApplicationFeeAmount;
+                    appliedFeeAmount = request.ApplicationFeeAmount;
+                }
+                else
+                {
+                    // Apply platform fee from environment variable (basis points: 300 = 3%).
+                    var feeBpsStr = Environment.GetEnvironmentVariable("PLATFORM_FEE_BPS") ?? "0";
+                    if (int.TryParse(feeBpsStr, out var feeBps) && feeBps > 0)
+                    {
+                        var feeAmount = (long)Math.Round(request.Amount * (feeBps / 10000m));
+                        if (feeAmount > 0)
+                        {
+                            options.ApplicationFeeAmount = feeAmount;
+                            appliedFeeBps = feeBps;
+                            appliedFeeAmount = feeAmount;
+                        }
+                    }
                 }
             }
 
@@ -189,7 +210,10 @@ namespace Payment.API.Services
                         AppCreatorId = request.DestinationAccountId ?? string.Empty,
                         // Existing workers use SubscriptionId as RoundId context.
                         SubscriptionId = request.SubscriptionId ?? request.RoundId ?? string.Empty,
-                        InvestorShares = new()
+                        InvestorShares = new(),
+                        // Platform fee auditing.
+                        AppliedFeeBps = appliedFeeBps,
+                        AppliedFeeAmount = appliedFeeAmount
                     }
                 };
 
