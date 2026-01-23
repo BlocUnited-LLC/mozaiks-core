@@ -113,7 +113,7 @@ class PluginLoader:
             self._plugins[plugin_name] = record
             return record
         except Exception as exc:
-            logger.exception("Failed to load plugin %s", plugin_name)
+            logger.exception("Failed to load plugin %s", _sanitize(plugin_name))
             record = PluginRecord(
                 name=plugin_name,
                 path=path,
