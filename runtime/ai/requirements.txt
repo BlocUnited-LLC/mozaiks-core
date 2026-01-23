@@ -29,8 +29,8 @@ openai==2.14.0
 pyautogen==0.10.0
 ag2==0.10.4
 tree_sitter==0.21.3
-tree_sitter_python==0.20.0
-tree_sitter_javascript==0.20.0
+tree_sitter_python>=0.21.0  # 0.20.0 doesn't support Python 3.12
+tree_sitter_javascript>=0.21.0  # 0.20.0 doesn't support Python 3.12
 tiktoken==0.12.0
 
 # Async Support
