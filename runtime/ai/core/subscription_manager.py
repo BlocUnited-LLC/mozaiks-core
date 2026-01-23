@@ -31,6 +31,7 @@ from core.config.database import (
     subscription_history_collection,
     billing_history_collection,
 )
+from core.utils.log_sanitizer import sanitize_for_log, sanitize_dict_for_log
 
 logger = logging.getLogger("mozaiks_core.subscription_manager")
 
@@ -130,7 +131,7 @@ class SubscriptionManager:
             }
             
             # Log the trial info for debugging
-            logger.info(f"Created trial info for user {user_id}: {trial_info}")
+            logger.info(f"Created trial info for user {sanitize_for_log(user_id)}: {sanitize_dict_for_log(trial_info)}")
             
             # Update subscription with trial end date if it's not already set
             if not subscription.get("trial_end_date"):
@@ -148,7 +149,7 @@ class SubscriptionManager:
                 "days_remaining": 14,
                 "end_date": (datetime.now(timezone.utc) + timedelta(days=14)).isoformat()
             }
-            logger.warning(f"Defensive fallback: synthesized trial_info for user {user_id} (missing persisted data)")
+            logger.warning(f"Defensive fallback: synthesized trial_info for user {sanitize_for_log(user_id)} (missing persisted data)")
 
         # Return the subscription with is_trial flag and trial_info
         return {

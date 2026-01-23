@@ -2,6 +2,7 @@
 import threading
 import logging
 import time
+from core.utils.log_sanitizer import sanitize_for_log
 
 logger = logging.getLogger("mozaiks_core.state_manager")
 
@@ -17,7 +18,7 @@ class StateManager:
         """
         with self._lock:
             self.state[key] = {"value": value, "expires_at": time.time() + expire_in if expire_in else None}
-            logger.info(f"🔹 State updated: '{key}' set to '{value}' (Expires in: {expire_in} sec)")
+            logger.info(f"🔹 State updated: '{sanitize_for_log(key)}' set (Expires in: {expire_in} sec)")
 
     def get(self, key):
         """
@@ -32,7 +33,7 @@ class StateManager:
             # If expired, remove from state and return None
             if entry["expires_at"] and time.time() > entry["expires_at"]:
                 del self.state[key]
-                logger.info(f"⚠️ Expired state key removed: '{key}'")
+                logger.info(f"⚠️ Expired state key removed: '{sanitize_for_log(key)}'")
                 return None
 
             return entry["value"]
@@ -44,7 +45,7 @@ class StateManager:
         with self._lock:
             if key in self.state:
                 del self.state[key]
-                logger.info(f"🗑️ State key removed: '{key}'")
+                logger.info(f"🗑️ State key removed: '{sanitize_for_log(key)}'")
 
     def clear(self):
         """

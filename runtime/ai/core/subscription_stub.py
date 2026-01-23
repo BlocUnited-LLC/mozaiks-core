@@ -1,6 +1,7 @@
 # /backend/core/subscription_stub.py
 import logging
 from datetime import datetime
+from core.utils.log_sanitizer import sanitize_for_log
 
 logger = logging.getLogger("mozaiks_core.subscription_stub")
 
@@ -14,7 +15,7 @@ class SubscriptionStub:
         """
         Always grant access to plugins when MONETIZATION=0
         """
-        logger.debug(f"SubscriptionStub: Granting access to {plugin_name} for user {user_id}")
+        logger.debug(f"SubscriptionStub: Granting access to {sanitize_for_log(plugin_name)} for user {sanitize_for_log(user_id)}")
         return True
     
     async def get_user_subscription(self, user_id):
@@ -36,14 +37,14 @@ class SubscriptionStub:
         """
         Pretend to update subscription but always return success
         """
-        logger.info(f"SubscriptionStub: Ignoring subscription change request for user {user_id}")
+        logger.info(f"SubscriptionStub: Ignoring subscription change request for user {sanitize_for_log(user_id)}")
         return {"message": "Subscription updated successfully", "new_plan": new_plan}
     
     async def cancel_user_subscription(self, user_id):
         """
         Pretend to cancel subscription but always return success
         """
-        logger.info(f"SubscriptionStub: Ignoring subscription cancel request for user {user_id}")
+        logger.info(f"SubscriptionStub: Ignoring subscription cancel request for user {sanitize_for_log(user_id)}")
         return {"message": "Subscription canceled successfully"}
     
     async def log_billing_event(self, user_id, amount, event_type, status, metadata=None):

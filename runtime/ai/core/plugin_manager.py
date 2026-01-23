@@ -17,19 +17,9 @@ from .config.config_loader import (
     get_config_path,
     reload_configs,
 )
+from core.utils.log_sanitizer import sanitize_for_log
 
 logger = logging.getLogger("mozaiks_core.plugin_manager")
-
-
-def sanitize_for_log(value: str) -> str:
-    """
-    Sanitize a string to prevent log injection attacks.
-    Removes newline characters that could be used to forge log entries.
-    """
-    if value is None:
-        return ""
-    text = str(value)
-    return text.replace("\r\n", " ").replace("\n", " ").replace("\r", " ")
 
 
 # ============================================================================
