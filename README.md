@@ -21,9 +21,9 @@ MozaiksCore is a **self-hostable application runtime** that provides:
 
 - 🔌 **Plugin System** — Add features via isolated Python plugins
 - 🤖 **AI Workflows** — Build AI agents with AG2 (Microsoft Autogen)
-- 🏢 **Multi-Tenancy** — Built-in app isolation via `app_id`
 - 🔐 **Auth & Billing** — JWT auth, Stripe subscriptions out of the box
 - 💬 **Real-time Chat** — WebSocket streaming for AI conversations
+- 📦 **Production Ready** — Docker, MongoDB, structured logging
 
 > **Note**: This is the open-source core. BlocUnited offers a managed platform with app generation tools at [mozaiks.ai](https://mozaiks.ai), but you're welcome to self-host and build everything yourself.
 
@@ -113,12 +113,12 @@ async def execute(data: dict, context: dict) -> dict:
     """
     Main entry point. Receives:
     - data: Request payload with 'action' field
-    - context: Contains user_id, app_id, etc.
+    - context: Contains user_id, etc.
     """
     action = data.get("action")
     user_id = context.get("user_id")
     
-    # Get a MongoDB collection (auto-scoped to your app)
+    # Get a MongoDB collection
     items = get_collection("my_items", context)
     
     if action == "list":
@@ -135,15 +135,13 @@ async def execute(data: dict, context: dict) -> dict:
 
 ### Using the SDK
 
-The plugin SDK provides multi-tenant database access:
+The plugin SDK provides easy MongoDB access:
 
 ```python
 from sdk import get_collection
 
-# Collections are automatically scoped by app_id
 tasks = get_collection("tasks", context)
 
-# All operations include app_id filter automatically
 await tasks.find({"status": "pending"}).to_list(10)
 await tasks.insert_one({"title": "New task"})
 await tasks.update_one({"_id": id}, {"$set": {"done": True}})
