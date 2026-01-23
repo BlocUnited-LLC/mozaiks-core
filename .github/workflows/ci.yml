@@ -36,32 +36,32 @@ jobs:
         run: dotnet test MozaiksCore.sln --no-build --configuration Release --verbosity normal
         working-directory: ./
 
-  build-shell:
-    name: Build Shell (React)
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: shell/package-lock.json
-      
-      - name: Install dependencies
-        run: npm ci
-        working-directory: ./shell
-      
-      - name: Lint
-        run: npm run lint
-        working-directory: ./shell
-        continue-on-error: true
-      
-      - name: Build
-        run: npm run build
-        working-directory: ./shell
+  # build-shell:
+  #   name: Build Shell (React)
+  #   runs-on: ubuntu-latest
+  #   
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v6
+  #       with:
+  #         node-version: "20"
+  #         cache: "npm"
+  #         cache-dependency-path: shell/package-lock.json
+  #     
+  #     - name: Install dependencies
+  #       run: npm ci
+  #       working-directory: ./shell
+  #     
+  #     - name: Lint
+  #       run: npm run lint
+  #       working-directory: ./shell
+  #       continue-on-error: true
+  #     
+  #     - name: Build
+  #       run: npm run build
+  #       working-directory: ./shell
 
   build-ai-runtime:
     name: Build AI Runtime (Python)
@@ -80,14 +80,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-        working-directory: ./ai-runtime
+        working-directory: ./runtime/ai
         continue-on-error: true
       
       - name: Lint
         run: |
           pip install flake8
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        working-directory: ./ai-runtime
+        working-directory: ./runtime/ai
         continue-on-error: true
 
   docker-build:

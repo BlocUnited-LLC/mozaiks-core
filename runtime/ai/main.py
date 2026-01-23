@@ -74,6 +74,8 @@ async def health_check():
     This endpoint should NOT check dependencies (that's what /ready is for).
     
     Azure will restart the container if this fails repeatedly.
+    
+    Contract v1.0.0: Includes plugins_loaded count.
     """
     return JSONResponse(
         status_code=200,
@@ -81,6 +83,7 @@ async def health_check():
             "status": "healthy",
             "app_id": APP_ID,
             "app_tier": APP_TIER,
+            "plugins_loaded": len(plugin_manager.plugins),
         }
     )
 
@@ -147,6 +150,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ============================================================================
+# CONTRACT v1.0.0: Runtime Version Header
+# ============================================================================
+RUNTIME_VERSION = "1.0.0"
+
+@app.middleware("http")
+async def add_runtime_version_header(request, call_next):
+    """
+    Add X-Mozaiks-Runtime-Version header to all HTTP responses.
+    Required by Runtime ↔ Platform Contract v1.0.0.
+    """
+    response = await call_next(request)
+    response.headers["X-Mozaiks-Runtime-Version"] = RUNTIME_VERSION
+    return response
 
 
 async def validate_ws_token(token: str) -> dict:

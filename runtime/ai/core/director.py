@@ -130,11 +130,13 @@ def get_app_id() -> str:
     return APP_ID
 
 
-def inject_request_context(user: dict, data: dict) -> dict:
+def inject_request_context(user: dict, data: dict, user_jwt: Optional[str] = None) -> dict:
     """
-    Inject app_id and user_id into request data.
+    Inject app_id, user_id, and optional user_jwt into request data.
     
     SECURITY: These values are server-derived and cannot be overridden by client.
+    
+    Contract v1.0.0: Includes user_jwt for plugin-to-service calls.
     """
     data["app_id"] = APP_ID
     data["user_id"] = user["user_id"]
@@ -145,6 +147,9 @@ def inject_request_context(user: dict, data: dict) -> dict:
         "roles": user.get("roles", []),
         "is_superadmin": user.get("is_superadmin", False),
     }
+    # Contract v1.0.0: Inject bearer token for plugin-to-service authentication
+    if user_jwt:
+        data["user_jwt"] = user_jwt
     return data
 
 
@@ -494,6 +499,16 @@ async def get_available_plugins(user: dict = Depends(get_current_user)):
         logger.error(f"⚠️ Error loading plugin registry: {e}")
         raise HTTPException(status_code=500, detail="Unexpected error loading plugin registry.")
 
+
+# Contract v1.0.0: Alias endpoint for plugin discovery
+@app.get("/api/plugins")
+async def get_plugins(user: dict = Depends(get_current_user)):
+    """
+    Contract v1.0.0 compliant alias for /api/available-plugins.
+    Returns list of plugins accessible to the authenticated user.
+    """
+    return await get_available_plugins(user)
+
 @app.get("/")
 async def read_root():
     # Auto-detect new plugins on homepage access
@@ -540,9 +555,15 @@ async def execute_plugin(plugin_name: str, request: Request, user: dict = Depend
         logger.error(f"Error parsing request JSON: {e}")
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
-    # SECURITY: Inject server-derived context (app_id + user_id)
+    # Contract v1.0.0: Extract bearer token for plugin context
+    user_jwt = None
+    auth_header = request.headers.get("Authorization") or request.headers.get("authorization")
+    if auth_header and auth_header.lower().startswith("bearer "):
+        user_jwt = auth_header[7:].strip()  # Strip "Bearer " prefix
+
+    # SECURITY: Inject server-derived context (app_id + user_id + user_jwt)
     # Client cannot override these values
-    data = inject_request_context(user, data)
+    data = inject_request_context(user, data, user_jwt=user_jwt)
     
     # Validate user access to the plugin (if monetization is enabled)
     # Skip access check if monetization is disabled

@@ -356,7 +356,12 @@ def load_settings() -> Settings:
         internal_api_key=_env_str("INTERNAL_API_KEY"),
         auto_refresh_plugins=_env_bool("MOZAIKS_AUTO_REFRESH_PLUGINS", default=env != "production"),
         max_request_body_bytes=_env_int("MAX_REQUEST_BODY_BYTES", default=1_000_000),
-        plugin_exec_timeout_s=_env_float("PLUGIN_EXEC_TIMEOUT_S", default=15.0),
+        # Contract v1.0.0: MOZAIKS_PLUGIN_TIMEOUT_SECONDS (default 30s)
+        # Backward-compatible: also checks legacy PLUGIN_EXEC_TIMEOUT_S
+        plugin_exec_timeout_s=_env_float(
+            "MOZAIKS_PLUGIN_TIMEOUT_SECONDS",
+            default=_env_float("PLUGIN_EXEC_TIMEOUT_S", default=30.0),
+        ),
         plugin_exec_max_concurrency=_env_int("PLUGIN_EXEC_MAX_CONCURRENCY", default=8),
         websocket_max_connections_per_user=_env_int("WEBSOCKET_MAX_CONNECTIONS_PER_USER", default=5),
         openapi_enabled=_env_bool("OPENAPI_ENABLED", default=env != "production"),
