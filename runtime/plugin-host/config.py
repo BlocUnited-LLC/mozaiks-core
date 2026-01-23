@@ -48,7 +48,6 @@ class Settings:
     jwks_cache_ttl_seconds: int
     watch_plugins: bool
     plugin_scan_interval_seconds: int
-    app_id: Optional[str]
     log_level: str
     skip_auth: bool
 
@@ -64,7 +63,6 @@ def load_settings() -> Settings:
     jwks_cache_ttl_seconds = _env_int("JWKS_CACHE_TTL_SECONDS", 300)
     watch_plugins = _env_bool("PLUGIN_WATCH", default=env != "production")
     plugin_scan_interval_seconds = _env_int("PLUGIN_SCAN_INTERVAL_SECONDS", 5)
-    app_id = _env_str("MOZAIKS_APP_ID") or _env_str("APP_ID")
     log_level = (_env_str("LOG_LEVEL", "INFO") or "INFO").upper()
 
     # Only require JWT settings if auth is not skipped.
@@ -90,7 +88,6 @@ def load_settings() -> Settings:
         jwks_cache_ttl_seconds=jwks_cache_ttl_seconds,
         watch_plugins=watch_plugins,
         plugin_scan_interval_seconds=plugin_scan_interval_seconds,
-        app_id=app_id,
         log_level=log_level,
         skip_auth=skip_auth,
     )

@@ -109,17 +109,16 @@ runtime/plugins/
 ```python
 from sdk import get_collection
 
-async def execute(data: dict, context: dict) -> dict:
+async def execute(data: dict) -> dict:
     """
     Main entry point. Receives:
-    - data: Request payload with 'action' field
-    - context: Contains user_id, etc.
+    - data: Request payload with 'action' and user context
     """
     action = data.get("action")
-    user_id = context.get("user_id")
+    user_id = data.get("user_id")  # Injected by runtime
     
     # Get a MongoDB collection
-    items = get_collection("my_items", context)
+    items = get_collection("my_items")
     
     if action == "list":
         results = await items.find({"user_id": user_id}).to_list(100)
@@ -140,7 +139,7 @@ The plugin SDK provides easy MongoDB access:
 ```python
 from sdk import get_collection
 
-tasks = get_collection("tasks", context)
+tasks = get_collection("tasks")
 
 await tasks.find({"status": "pending"}).to_list(10)
 await tasks.insert_one({"title": "New task"})

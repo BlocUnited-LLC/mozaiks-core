@@ -96,15 +96,12 @@ async def execute_plugin(plugin_name: str, request: Request) -> Any:
             },
         )
 
-    app_id = _resolve_app_id(user, settings, plugin_name) if user else plugin_name
     data = dict(payload)
 
     # Inject user context (mock for dev mode, real for production).
     if settings.skip_auth:
         data["user_id"] = "dev-user-001"
-        data["app_id"] = plugin_name
         data["_context"] = {
-            "app_id": plugin_name,
             "user_id": "dev-user-001",
             "username": "dev-user",
             "roles": ["user"],
@@ -112,9 +109,7 @@ async def execute_plugin(plugin_name: str, request: Request) -> Any:
         }
     else:
         data["user_id"] = user.user_id
-        data["app_id"] = app_id
         data["_context"] = {
-            "app_id": app_id,
             "user_id": user.user_id,
             "username": user.username,
             "roles": user.roles,
@@ -142,14 +137,3 @@ async def execute_plugin(plugin_name: str, request: Request) -> Any:
         )
 
     return result
-
-
-def _resolve_app_id(user: Any, settings: Settings, plugin_name: str) -> str:
-    token_app_id = user.app_id
-    if settings.app_id and token_app_id and token_app_id != settings.app_id:
-        raise HTTPException(status_code=403, detail="Token app_id mismatch")
-    if settings.app_id:
-        return settings.app_id
-    if token_app_id:
-        return token_app_id
-    return plugin_name
