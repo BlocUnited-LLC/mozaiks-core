@@ -72,7 +72,7 @@ pathspec==1.0.3
 pillow==12.1.0
 platformdirs==4.5.1
 propcache==0.4.1
-protobuf==5.29.5
+protobuf==6.33.4
 pyasn1==0.6.2
 pyautogen==0.10.0
 pycparser==2.23
