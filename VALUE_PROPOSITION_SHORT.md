@@ -70,16 +70,15 @@ These features **don't exist** in any other open-source agentic framework:
 | Workflow Mode | Ask Mode |
 |:---:|:---:|
 | ![Workflow Mode](./docs/assets/ArtifactLayout.png) | ![Ask Mode](./docs/assets/AskMozaiks.png) |
-| *Chat + Artifact split view for complex workflows* | *Full chat with conversation history sidebar* |
+| *Chat + Artifact split view* | *Full chat with history sidebar* |
 
 ---
 
-### 💬 Floating Widget
+### 💬 Embeddable Floating Widget
 
-| Minimized | Expanded |
-|:---:|:---:|
-| ![Widget Minimized](./docs/assets/PlguinCollapsed.png) | ![Widget Expanded](./docs/assets/PlguinExapnded.png) |
-| *Unobtrusive floating button* | *Opens anywhere in your app* |
+![Widget Expanded](./docs/assets/PlguinExapnded.png)
+
+*Drop a floating assistant anywhere in your app — users click the* <img src="./docs/assets/PlguinCollapsed.png" height="28" style="vertical-align: middle;"/> *button to open it*
 
 </div>
 
