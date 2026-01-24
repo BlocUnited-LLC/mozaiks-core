@@ -78,7 +78,15 @@ These features **don't exist** in any other open-source agentic framework:
 
 ![Widget Expanded](./docs/assets/PlguinExapnded.png)
 
-*Drop a floating assistant anywhere in your app — users click the* <img src="./docs/assets/PlguinCollapsed.png" height="28" style="vertical-align: middle;"/> *button to open it*
+*Drop a floating assistant anywhere in your app — users click the button to open it*
+
+<div align="center">
+
+**Button icon (zoomed)**
+
+<img src="./docs/assets/PlguinCollapsed.png" height="64" />
+
+</div>
 
 </div>
 
