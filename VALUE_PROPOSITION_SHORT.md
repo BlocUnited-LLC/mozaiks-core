@@ -78,7 +78,7 @@ These features **don't exist** in any other open-source agentic framework:
 
 <div align="center">
 
-![Widget Demo](./docs/assets/widgetAction.gif)
+https://github.com/BlocUnited-LLC/mozaiks-core/releases/download/assets/widgetAction.mp4
 
 *Drop a floating assistant anywhere in your app — click the button to expand/collapse the chat interface*
 
