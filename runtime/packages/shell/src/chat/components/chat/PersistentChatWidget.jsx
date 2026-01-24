@@ -1,5 +1,5 @@
 import React from 'react';
-import { useChatUI } from '../../context/ChatUIContext';
+import { useChatUI } from '../../../context/ChatUIContext';
 
 /**
  * PersistentChatWidget - Minimized chat window in bottom-left corner (20% of screen height)
@@ -22,8 +22,8 @@ const PersistentChatWidget = ({
     setConversationMode
   } = useChatUI();
   const widgetStyle = {
-    height: '20vh',
-    minHeight: '150px'
+    height: '70vh',
+    minHeight: '420px'
   };
 
   const requestOverlay = (detail) => {
@@ -51,10 +51,10 @@ const PersistentChatWidget = ({
     ...(workflowName ? { workflow_name: workflowName } : null),
   });
 
-  // Minimized chat window (20% screen height) in bottom-left corner
+  // Compact chat panel anchored bottom-right (matches plugin expanded look)
   return (
     <div
-      className="fixed left-0 z-50 w-full sm:w-80 md:w-96 bg-gradient-to-br from-gray-900/95 via-slate-900/95 to-black/95 backdrop-blur-xl border-t border-r border-[rgba(var(--color-primary-light-rgb),0.3)] sm:rounded-tr-2xl shadow-2xl overflow-hidden widget-safe-bottom"
+      className="fixed right-4 z-50 w-[22rem] sm:w-[24rem] md:w-[26rem] bg-gradient-to-br from-gray-900/95 via-slate-900/95 to-black/95 backdrop-blur-xl border border-[rgba(var(--color-primary-light-rgb),0.3)] rounded-2xl shadow-[0_20px_60px_rgba(2,6,23,0.6)] overflow-hidden widget-safe-bottom"
       style={widgetStyle}
     >
       {/* Header */}

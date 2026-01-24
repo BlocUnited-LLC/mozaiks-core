@@ -53,7 +53,7 @@ _LAZY_EXPORTS = {
 
 def __getattr__(name: str):
     if name in _LAZY_EXPORTS:
-        module = import_module("mozaiksai.core.workflow.validation.tools")
+        module = import_module(f"{__name__}.tools")
         value = getattr(module, name)
         globals()[name] = value
         return value

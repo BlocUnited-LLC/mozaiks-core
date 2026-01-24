@@ -1,0 +1,10 @@
+{
+  "entry": [
+    "src/index.js",
+    "src/workflows/**/components/index.js"
+  ],
+  "ignoreUnused": [
+    "react-scripts",
+    "@monaco-editor/react"
+  ]
+}

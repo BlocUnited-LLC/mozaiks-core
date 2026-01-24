@@ -5,31 +5,6 @@ Downstream code should prefer importing from specific submodules for clarity, bu
 these re-exports are provided for convenience and a stable public surface.
 """
 
-import sys
-
-# Compatibility shim for legacy `mozaiksai.core.*` imports.
-_ai_runtime_module = sys.modules.get(__name__)
-sys.modules["mozaiksai"] = sys.modules.get("backend") or sys.modules.get("mozaiksai") or _ai_runtime_module
-sys.modules["mozaiksai.core"] = (
-    sys.modules.get("backend.core.ai_runtime")
-    or sys.modules.get("core.ai_runtime")
-    or _ai_runtime_module
-)
-
-from . import multitenant as _multitenant
-from . import core_config as _core_config
-
-sys.modules["mozaiksai.core.multitenant"] = (
-    sys.modules.get("backend.core.ai_runtime.multitenant")
-    or sys.modules.get("core.ai_runtime.multitenant")
-    or _multitenant
-)
-sys.modules["mozaiksai.core.core_config"] = (
-    sys.modules.get("backend.core.ai_runtime.core_config")
-    or sys.modules.get("core.ai_runtime.core_config")
-    or _core_config
-)
-
 from .workflow import (
 	run_workflow_orchestration,
 	create_ag2_pattern,

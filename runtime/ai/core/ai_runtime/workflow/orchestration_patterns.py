@@ -2094,6 +2094,8 @@ async def run_workflow_orchestration(
                 except Exception as e:
                     logger.warning(f"Failed to record final turn for {turn_agent}: {e}")
 
+            final_usage_summary = None
+
             # Final usage reconciliation using AG2's native gather_usage_summary
             try:
                 from autogen import gather_usage_summary
@@ -2133,6 +2135,7 @@ async def run_workflow_orchestration(
                     # Compare AG2 totals vs persisted ChatSessions counters (avoid double counting).
                     persisted_prompt = 0
                     persisted_completion = 0
+                    persisted_total = 0
                     persisted_cost = 0.0
                     try:
                         coll = await persistence_manager._coll()
@@ -2141,12 +2144,17 @@ async def run_workflow_orchestration(
                             {
                                 "usage_prompt_tokens_final": 1,
                                 "usage_completion_tokens_final": 1,
+                                "usage_total_tokens_final": 1,
                                 "usage_total_cost_final": 1,
                             },
                         )
                         if isinstance(persisted, dict):
                             persisted_prompt = int(persisted.get("usage_prompt_tokens_final") or 0)
                             persisted_completion = int(persisted.get("usage_completion_tokens_final") or 0)
+                            persisted_total = int(
+                                persisted.get("usage_total_tokens_final")
+                                or (persisted_prompt + persisted_completion)
+                            )
                             persisted_cost = float(persisted.get("usage_total_cost_final") or 0.0)
                     except Exception as read_err:
                         wf_logger.debug(f"[FINAL_RECONCILIATION] Failed to read persisted usage: {read_err}")
@@ -2182,6 +2190,26 @@ async def run_workflow_orchestration(
                             f"delta=${final_cost_delta:.4f}"
                         )
 
+                    final_prompt_total = persisted_prompt + final_prompt_delta
+                    final_completion_total = persisted_completion + final_completion_delta
+                    final_total_tokens = max(
+                        0,
+                        int(
+                            persisted_total
+                            + final_prompt_delta
+                            + final_completion_delta
+                        ),
+                    )
+                    # Prefer prompt+completion if total_tokens isn't trustworthy.
+                    if final_total_tokens <= 0:
+                        final_total_tokens = final_prompt_total + final_completion_total
+
+                    final_usage_summary = {
+                        "prompt_tokens": final_prompt_total,
+                        "completion_tokens": final_completion_total,
+                        "total_tokens": final_total_tokens,
+                    }
+
                     # Log per-agent usage summaries for visibility
                     for agent_name, agent in agents.items():
                         try:
@@ -2195,6 +2223,55 @@ async def run_workflow_orchestration(
                 wf_logger.warning(" [FINAL_RECONCILIATION] autogen.gather_usage_summary not available")
             except Exception as reconcile_err:
                 wf_logger.error(f" [FINAL_RECONCILIATION] Failed: {reconcile_err}")
+
+            # Emit a workflow usage summary event (best-effort).
+            try:
+                if final_usage_summary is None:
+                    coll = await persistence_manager._coll()
+                    totals = await coll.find_one(
+                        {"_id": chat_id, "app_id": app_id},
+                        {
+                            "usage_prompt_tokens_final": 1,
+                            "usage_completion_tokens_final": 1,
+                            "usage_total_tokens_final": 1,
+                        },
+                    )
+                    if isinstance(totals, dict):
+                        prompt_total = int(totals.get("usage_prompt_tokens_final") or 0)
+                        completion_total = int(totals.get("usage_completion_tokens_final") or 0)
+                        total_tokens = int(
+                            totals.get("usage_total_tokens_final")
+                            or (prompt_total + completion_total)
+                        )
+                        final_usage_summary = {
+                            "prompt_tokens": prompt_total,
+                            "completion_tokens": completion_total,
+                            "total_tokens": total_tokens,
+                        }
+
+                if final_usage_summary is None:
+                    final_usage_summary = {
+                        "prompt_tokens": 0,
+                        "completion_tokens": 0,
+                        "total_tokens": 0,
+                    }
+
+                if chat_id and app_id and workflow_name:
+                    from core.ai_runtime.tokens.manager import TokenManager
+
+                    await TokenManager.emit_usage_summary(
+                        chat_id=chat_id,
+                        app_id=app_id,
+                        user_id=user_id or "unknown",
+                        workflow_name=workflow_name,
+                        prompt_tokens=int(final_usage_summary["prompt_tokens"]),
+                        completion_tokens=int(final_usage_summary["completion_tokens"]),
+                        total_tokens=int(final_usage_summary["total_tokens"]),
+                    )
+                else:
+                    wf_logger.debug("Usage summary emit skipped due to missing context")
+            except Exception:
+                wf_logger.debug("Failed to emit workflow usage summary", exc_info=True)
 
             max_turns_reached = getattr(response, 'max_turns_reached', False)
 

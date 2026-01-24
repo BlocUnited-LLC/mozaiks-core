@@ -303,18 +303,6 @@ If a session is paused (low balance) backend will not dispatch new tool events. 
 | Mask secrets | Password fields not echoed |
 
 ---
-## 17. Deprecation Map
-| Old File | Status | Integrated Section |
-|----------|--------|--------------------|
-| UI_COMPONENT_DESIGN_GUIDE.md | deprecated | §7 Design System Essentials |
-| app_THEME_MANAGEMENT.md | deprecated | §11 Theming Integration |
-| AUTO_TOOL_COMPLETE_FLOW.md | deprecated | §§8–10 Flow/Events/Discovery |
-| AUTO_TOOL_PAYLOAD_FLATTENING.md | deprecated | §8 Flattening |
-| AUTO_TOOL_WORKFLOW_DISCOVERY_FIX.md | deprecated | §10 Discovery |
-| AI_AGENT_UI_TOOL_CREATION_GUIDE.md | deprecated | §§3–6, 12, 16 |
-| MASTER_UI_TOOL_AGENT_PROMPT.md | deprecated | §§3–6, 12–16 |
-
----
 ## 18. Summary
 One doc. One contract. All prior fragmentation removed. Agents: load only this file for full context when generating UI tool pairs.
 

@@ -19,36 +19,8 @@
  */
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { useChatUI } from '../../context/ChatUIContext';
-import PersistentChatWidget from '../chat/PersistentChatWidget';
-import ChatOverlay from '../chat/ChatOverlay';
-
-/**
- * Floating chat bubble that opens the widget/overlay.
- */
-const ChatBubble = ({ onClick }) => {
-  return (
-    <button
-      onClick={onClick}
-      className="fixed z-50 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] shadow-xl hover:shadow-2xl hover:shadow-[var(--color-primary)]/50 transition-all duration-300 flex items-center justify-center group widget-safe-bottom"
-      style={{ right: '1rem', bottom: 'calc(var(--widget-bottom-offset, 1rem) + env(safe-area-inset-bottom, 0px))' }}
-      aria-label="Open chat"
-    >
-      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center">
-        <img
-          src="/mozaik_logo.svg"
-          alt="MozaiksAI"
-          className="w-full h-full group-hover:scale-110 transition-transform"
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = "/mozaik.png";
-          }}
-        />
-      </div>
-      <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white animate-pulse" />
-    </button>
-  );
-};
+import { useChatUI } from '../../../context/ChatUIContext';
+import PersistentChatWidget from '../../../components/chat/PersistentChatWidget';
 
 /**
  * GlobalChatWidgetWrapper
@@ -63,13 +35,9 @@ const GlobalChatWidgetWrapper = () => {
   const {
     isInWidgetMode,
     isWidgetVisible,
-    isChatOverlayOpen,
-    setIsChatOverlayOpen,
     activeChatId,
     activeWorkflowName,
     conversationMode,
-    chatMinimized,
-    setChatMinimized,
   } = useChatUI();
 
   // Determine if we're on the primary chat routes (don't show widget there)
@@ -89,41 +57,13 @@ const GlobalChatWidgetWrapper = () => {
     return null;
   }
 
-  const handleBubbleClick = () => {
-    if (chatMinimized) {
-      setChatMinimized(false);
-    } else {
-      setIsChatOverlayOpen(true);
-    }
-  };
-
-  const handleCloseOverlay = () => {
-    setIsChatOverlayOpen(false);
-  };
-
   return (
     <>
-      {/* Full-screen overlay (when expanded) */}
-      <ChatOverlay
-        isOpen={isChatOverlayOpen}
-        onClose={handleCloseOverlay}
+      <PersistentChatWidget
         chatId={activeChatId}
         workflowName={activeWorkflowName}
+        conversationMode={conversationMode}
       />
-
-      {/* Minimized widget (shows when overlay is closed) */}
-      {!isChatOverlayOpen && !chatMinimized && (
-        <PersistentChatWidget
-          chatId={activeChatId}
-          workflowName={activeWorkflowName}
-          conversationMode={conversationMode}
-        />
-      )}
-
-      {/* Chat bubble (shows when minimized) */}
-      {!isChatOverlayOpen && chatMinimized && (
-        <ChatBubble onClick={handleBubbleClick} />
-      )}
     </>
   );
 };

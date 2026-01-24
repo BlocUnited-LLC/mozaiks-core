@@ -1,1 +1,7 @@
-export const getLoadedWorkflows = () => []; export const getWorkflow = () => null; export const initializeWorkflows = () => {}; export default { getLoadedWorkflows, getWorkflow, initializeWorkflows };
+export const getLoadedWorkflows = () => [];
+export const getWorkflow = () => null;
+export const initializeWorkflows = () => {};
+
+const workflowRegistry = { getLoadedWorkflows, getWorkflow, initializeWorkflows };
+
+export default workflowRegistry;
