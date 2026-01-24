@@ -30,6 +30,30 @@ MozaiksCore is a **self-hostable application runtime** that provides:
 
 ---
 
+## 🎨 See It In Action
+
+<div align="center">
+
+### 🔀 Dual-Mode Interface
+
+| Workflow Mode | Ask Mode |
+|:---:|:---:|
+| ![Workflow Mode](./docs/assets/workflow-mode.png) | ![Ask Mode](./docs/assets/ask-mode.png) |
+| *Chat + Artifact split view for complex workflows* | *Full chat with conversation history sidebar* |
+
+---
+
+### 💬 Floating Widget
+
+| Minimized | Expanded |
+|:---:|:---:|
+| ![Widget Minimized](./docs/assets/widget-minimized.png) | ![Widget Expanded](./docs/assets/widget-expanded.png) |
+| *Unobtrusive floating button* | *Opens anywhere in your app* |
+
+</div>
+
+---
+
 ## v1.0.0 Runtime Contract
 
 MozaiksCore v1.0.0 implements a stable runtime contract:
