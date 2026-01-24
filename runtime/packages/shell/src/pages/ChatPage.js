@@ -579,13 +579,15 @@ const ChatPage = () => {
 
   // Separate effect to enforce Ask mode artifact panel state
   // This ensures the panel stays closed even if other effects try to open it
+  // IMPORTANT: Check conversationMode (actual mode) not queryMode (URL param)
+  // because user can toggle mode via UI without changing the URL
   useEffect(() => {
-    if (queryMode === 'ask' && isSidePanelOpen) {
+    if (conversationMode === 'ask' && isSidePanelOpen) {
       console.log('🧹 [ASK_MODE_ENFORCER] Closing artifact panel (Ask mode should not have artifacts)');
       setIsSidePanelOpen(false);
       setCurrentArtifactMessages([]);
     }
-  }, [queryMode, isSidePanelOpen]);
+  }, [conversationMode, isSidePanelOpen]);
 
   useEffect(() => {
     if (conversationMode === 'workflow') {
