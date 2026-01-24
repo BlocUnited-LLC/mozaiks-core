@@ -47,10 +47,7 @@ MozaiksCore is a **self-hostable application runtime** that provides:
 
 <div align="center">
 
-<video width="600" controls>
-  <source src="./docs/assets/widgetAction.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Widget Demo](./docs/assets/widgetAction.gif)
 
 *Drop a floating assistant anywhere in your app — click the button to expand/collapse the chat interface*
 
