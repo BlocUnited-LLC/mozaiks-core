@@ -78,7 +78,7 @@ These features **don't exist** in any other open-source agentic framework:
 
 <div align="center">
 
-https://github.com/user-attachments/assets/10157486-e297-4bbd-a092-2bbfc9797871
+https://github.com/user-attachments/assets/32bc7ec8-f550-42f7-b287-3b015c5df235
 
 *Drop a floating assistant anywhere in your app — click the button to expand/collapse the chat interface*
 
