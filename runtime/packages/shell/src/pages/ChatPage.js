@@ -508,10 +508,13 @@ const ChatPage = () => {
     if (queryMode === 'ask') {
       console.log('🧭 [BOOTSTRAP] Explicit ask mode requested via URL param');
       setConversationMode('ask');
-      // Also close artifact panel when entering Ask mode via URL
-      // This ensures clean state separation between workflow and ask modes
-      setIsSidePanelOpen(false);
-      setCurrentArtifactMessages([]);
+      // Close artifact panel in a setTimeout to ensure it happens AFTER all other effects
+      // This is necessary because other effects may try to restore/open the panel
+      setTimeout(() => {
+        console.log('🧹 [BOOTSTRAP] Closing artifact panel for Ask mode');
+        setIsSidePanelOpen(false);
+        setCurrentArtifactMessages([]);
+      }, 50);
       return;
     }
     
@@ -573,6 +576,16 @@ const ChatPage = () => {
       setConversationMode('workflow');
     }
   }, [conversationMode, setConversationMode, queryMode, queryChatId, urlWorkflowName, setLayoutMode]);
+
+  // Separate effect to enforce Ask mode artifact panel state
+  // This ensures the panel stays closed even if other effects try to open it
+  useEffect(() => {
+    if (queryMode === 'ask' && isSidePanelOpen) {
+      console.log('🧹 [ASK_MODE_ENFORCER] Closing artifact panel (Ask mode should not have artifacts)');
+      setIsSidePanelOpen(false);
+      setCurrentArtifactMessages([]);
+    }
+  }, [queryMode, isSidePanelOpen]);
 
   useEffect(() => {
     if (conversationMode === 'workflow') {
