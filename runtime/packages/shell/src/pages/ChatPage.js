@@ -515,11 +515,64 @@ const ChatPage = () => {
       return;
     }
     
+    // Handle explicit workflow mode request (e.g., from widget Mozaiks logo button)
+    if (queryMode === 'workflow') {
+      console.log('🧭 [BOOTSTRAP] Explicit workflow mode requested via URL param');
+      setConversationMode('workflow');
+      
+      // Try to restore artifact state from snapshot or localStorage (works offline)
+      const snapshot = workflowArtifactSnapshotRef.current;
+      if (snapshot?.isOpen && snapshot?.messages?.length > 0) {
+        console.log('🎨 [BOOTSTRAP] Restoring artifact panel from in-memory snapshot');
+        setTimeout(() => {
+          setIsSidePanelOpen(true);
+          setCurrentArtifactMessages(snapshot.messages);
+          if (snapshot.layoutMode && setLayoutMode) {
+            setLayoutMode(snapshot.layoutMode);
+          }
+        }, 100);
+      } else if (queryChatId) {
+        // Try localStorage restore for offline support
+        try {
+          const key = `mozaiks.last_artifact.${queryChatId}`;
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const cached = JSON.parse(raw);
+            if (cached?.ui_tool_id) {
+              console.log('🎨 [BOOTSTRAP] Restoring artifact from localStorage (offline)', cached.ui_tool_id);
+              setTimeout(() => {
+                setIsSidePanelOpen(true);
+                const restoredMsg = {
+                  id: `ui-restored-${Date.now()}`,
+                  sender: 'agent',
+                  agentName: cached.payload?.agentName || 'Agent',
+                  content: cached.payload?.structured_output || cached.payload || {},
+                  isStreaming: false,
+                  uiToolEvent: {
+                    ui_tool_id: cached.ui_tool_id,
+                    payload: cached.payload || {},
+                    eventId: cached.eventId || null,
+                    workflow_name: cached.workflow_name || urlWorkflowName,
+                    display: cached.display || 'artifact',
+                    restored: true,
+                  },
+                };
+                setCurrentArtifactMessages([restoredMsg]);
+              }, 100);
+            }
+          }
+        } catch (e) {
+          console.warn('[BOOTSTRAP] Failed to restore artifact from localStorage:', e);
+        }
+      }
+      return;
+    }
+    
     // Default to workflow mode if not explicitly set
     if (conversationMode !== 'workflow') {
       setConversationMode('workflow');
     }
-  }, [conversationMode, setConversationMode, queryMode]);
+  }, [conversationMode, setConversationMode, queryMode, queryChatId, urlWorkflowName, setLayoutMode]);
 
   useEffect(() => {
     if (conversationMode === 'workflow') {

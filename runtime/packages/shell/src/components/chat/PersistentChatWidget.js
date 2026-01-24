@@ -95,6 +95,7 @@ const PersistentChatWidget = ({
 
     // Navigate with params to restore state
     const params = new URLSearchParams();
+    params.set('mode', 'workflow'); // Explicit mode for bootstrap
     if (resolvedChatId) {
       params.set('chat_id', resolvedChatId);
     }
