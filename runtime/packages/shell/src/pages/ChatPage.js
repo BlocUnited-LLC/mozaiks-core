@@ -508,6 +508,10 @@ const ChatPage = () => {
     if (queryMode === 'ask') {
       console.log('🧭 [BOOTSTRAP] Explicit ask mode requested via URL param');
       setConversationMode('ask');
+      // Also close artifact panel when entering Ask mode via URL
+      // This ensures clean state separation between workflow and ask modes
+      setIsSidePanelOpen(false);
+      setCurrentArtifactMessages([]);
       return;
     }
     
@@ -2557,11 +2561,13 @@ useEffect(() => {
   //   - Server persists ONLY the most recent artifact (overwrite strategy)
   //   - On refresh / second user: websocket chat_meta may include last_artifact; if not, we fetch /api/chats/meta
   //   - We avoid speculative restores for brand new chats (chat_exists === false)
+  //   - We skip restore entirely when in Ask mode (artifacts are workflow-only)
   useEffect(() => {
     if (connectionStatus !== 'connected') return;
     if (!currentChatId) return;
     if (!chatExists) return; // only restore for persisted chats
     if (artifactRestoredOnceRef.current) return;
+    if (conversationMode === 'ask') return; // Don't restore artifacts in Ask mode
 
     try {
       const key = `mozaiks.last_artifact.${currentChatId}`;
@@ -2593,7 +2599,7 @@ useEffect(() => {
     } catch (e) {
       console.warn('[RESTORE] Failed to restore artifact:', e);
     }
-  }, [connectionStatus, currentChatId, chatExists, currentWorkflowName]);
+  }, [connectionStatus, currentChatId, chatExists, currentWorkflowName, conversationMode]);
 
   // Mobile detection and layout adaptation
   useEffect(() => {
