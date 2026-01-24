@@ -45,15 +45,14 @@ MozaiksCore is a **self-hostable application runtime** that provides:
 
 ### 💬 Embeddable Floating Widget
 
-![Widget Expanded](./docs/assets/PlguinExapnded.png)
-
-*Drop a floating assistant anywhere in your app — users click the button to open it*
-
 <div align="center">
 
-**Button icon (zoomed)**
+<video width="600" controls>
+  <source src="./docs/assets/widgetAction.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
-<img src="./docs/assets/PlguinCollapsed.png" height="64" />
+*Drop a floating assistant anywhere in your app — click the button to expand/collapse the chat interface*
 
 </div>
 
