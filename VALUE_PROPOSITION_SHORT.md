@@ -69,7 +69,7 @@ These features **don't exist** in any other open-source agentic framework:
 
 | Workflow Mode | Ask Mode |
 |:---:|:---:|
-| ![Workflow Mode](./docs/assets/workflow-mode.png) | ![Ask Mode](./docs/assets/ask-mode.png) |
+| ![Workflow Mode](./docs/assets/ArtifactLayout.png) | ![Ask Mode](./docs/assets/AskMozaiks.png) |
 | *Chat + Artifact split view for complex workflows* | *Full chat with conversation history sidebar* |
 
 ---
@@ -78,7 +78,7 @@ These features **don't exist** in any other open-source agentic framework:
 
 | Minimized | Expanded |
 |:---:|:---:|
-| ![Widget Minimized](./docs/assets/widget-minimized.png) | ![Widget Expanded](./docs/assets/widget-expanded.png) |
+| ![Widget Minimized](./docs/assets/PlguinCollapsed.png) | ![Widget Expanded](./docs/assets/PlguinExapnded.png) |
 | *Unobtrusive floating button* | *Opens anywhere in your app* |
 
 </div>
