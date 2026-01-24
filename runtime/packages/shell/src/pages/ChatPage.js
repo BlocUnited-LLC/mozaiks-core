@@ -47,7 +47,7 @@ const AskHistorySidebar = ({
 }) => {
   const hasSessions = Array.isArray(sessions) && sessions.length > 0;
   return (
-    <aside className="hidden lg:flex flex-col w-64 xl:w-72 2xl:w-80 shrink-0 rounded-2xl border border-[rgba(var(--color-primary-light-rgb),0.25)] bg-[rgba(2,6,23,0.72)] backdrop-blur-xl shadow-[0_20px_60px_rgba(2,6,23,0.6)] px-4 py-4 text-sm text-slate-100">
+    <aside className="hidden lg:flex flex-col w-64 xl:w-72 2xl:w-80 shrink-0 self-stretch min-h-0 h-full rounded-2xl border border-[rgba(var(--color-primary-light-rgb),0.25)] bg-[rgba(2,6,23,0.72)] backdrop-blur-xl shadow-[0_20px_60px_rgba(2,6,23,0.6)] px-4 py-4 text-sm text-slate-100">
       <div className="flex items-center justify-between gap-2">
         <div>
           <p className="text-[11px] tracking-[0.2em] uppercase text-[rgba(148,163,184,0.9)]">Ask</p>
@@ -278,6 +278,10 @@ const ChatPage = () => {
     setGeneralChatSummary,
     generalChatSessions,
     setGeneralChatSessions,
+    askMessages,
+    setAskMessages,
+    workflowMessages,
+    setWorkflowMessages,
   } = useChatUI();
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [forceOverlay, setForceOverlay] = useState(false);
@@ -309,10 +313,14 @@ const ChatPage = () => {
   useEffect(() => {
     if (conversationMode === 'workflow') {
       workflowMessagesCacheRef.current = messages;
+      setWorkflowMessages(messages);
     } else {
       generalMessagesCacheRef.current = messages;
     }
-  }, [messages, conversationMode]);
+    if (conversationMode === 'ask') {
+      setAskMessages(messages);
+    }
+  }, [messages, conversationMode, setAskMessages, setWorkflowMessages]);
   
   // Note: Artifact panel restoration is handled directly in ensureWorkflowMode with setTimeout
   const implicitDevAppId =
@@ -514,6 +522,8 @@ const ChatPage = () => {
         console.log('🧹 [BOOTSTRAP] Closing artifact panel for Ask mode');
         setIsSidePanelOpen(false);
         setCurrentArtifactMessages([]);
+        // IMPORTANT: Also set layoutMode to 'full' - this controls desktop artifact visibility
+        if (setLayoutMode) setLayoutMode('full');
       }, 50);
       return;
     }
@@ -582,12 +592,14 @@ const ChatPage = () => {
   // IMPORTANT: Check conversationMode (actual mode) not queryMode (URL param)
   // because user can toggle mode via UI without changing the URL
   useEffect(() => {
-    if (conversationMode === 'ask' && isSidePanelOpen) {
+    if (conversationMode === 'ask' && (isSidePanelOpen || layoutMode !== 'full')) {
       console.log('🧹 [ASK_MODE_ENFORCER] Closing artifact panel (Ask mode should not have artifacts)');
       setIsSidePanelOpen(false);
       setCurrentArtifactMessages([]);
+      // IMPORTANT: Also set layoutMode to 'full' - this controls desktop artifact visibility
+      if (setLayoutMode) setLayoutMode('full');
     }
-  }, [conversationMode, isSidePanelOpen]);
+  }, [conversationMode, isSidePanelOpen, layoutMode, setLayoutMode]);
 
   useEffect(() => {
     if (conversationMode === 'workflow') {
@@ -615,6 +627,15 @@ const ChatPage = () => {
       generalHydrationPendingRef.current = false;
     });
   }, [activeGeneralChatId, conversationMode, hydrateGeneralTranscript, setMessagesWithLogging]);
+
+  useEffect(() => {
+    if (conversationMode !== 'workflow') return;
+    if (messagesRef.current && messagesRef.current.length > 0) return;
+    if (workflowMessages && workflowMessages.length > 0) {
+      console.log(`📦 [WORKFLOW_RESTORE] Restoring ${workflowMessages.length} shared workflow messages`);
+      setMessagesWithLogging(workflowMessages);
+    }
+  }, [conversationMode, workflowMessages, setMessagesWithLogging]);
 
   // Simplified incoming handler (namespaced chat.* only)
   const handleIncoming = useCallback((data) => {
@@ -2206,8 +2227,11 @@ useEffect(() => {
     setCurrentArtifactMessages([]);
     setPendingInputRequestId(null); // Clear any pending workflow input requests
     
-    // Restore cached general messages if available
-    if (generalMessagesCacheRef.current && generalMessagesCacheRef.current.length > 0) {
+    // Restore cached general messages if available (prefer shared askMessages)
+    if (askMessages && askMessages.length > 0) {
+      console.log(`📦 [MODE_TOGGLE] Restoring ${askMessages.length} cached ask-mode messages (shared)`);
+      setMessagesWithLogging(askMessages);
+    } else if (generalMessagesCacheRef.current && generalMessagesCacheRef.current.length > 0) {
       console.log(`📦 [MODE_TOGGLE] Restoring ${generalMessagesCacheRef.current.length} cached ask-mode messages`);
       setMessagesWithLogging(generalMessagesCacheRef.current);
     } else {
@@ -2217,7 +2241,7 @@ useEffect(() => {
     
     refreshGeneralSessions();
     return sent;
-  }, [conversationMode, refreshGeneralSessions, sendWsMessage, setConversationMode, setMessagesWithLogging, currentArtifactMessages, isSidePanelOpen, layoutMode]);
+  }, [conversationMode, refreshGeneralSessions, sendWsMessage, setConversationMode, setMessagesWithLogging, currentArtifactMessages, isSidePanelOpen, layoutMode, askMessages]);
 
   const startNewGeneralSession = useCallback(() => {
     const sent = sendWsMessage({ type: 'chat.start_general_chat' });
@@ -2270,64 +2294,80 @@ useEffect(() => {
     // Cache general messages and restore workflow messages + artifact panel state
     console.log('🧹 [MODE_TOGGLE] Caching ask-mode messages, restoring workflow messages + artifact panel state');
     generalMessagesCacheRef.current = messagesRef.current;
+    
+    // Restore cached workflow messages (prefer shared workflowMessages)
+    if (workflowMessages && workflowMessages.length > 0) {
+      console.log(`📦 [MODE_TOGGLE] Restoring ${workflowMessages.length} cached workflow messages (shared)`);
+      setMessagesWithLogging(workflowMessages);
+    } else if (workflowMessagesCacheRef.current && workflowMessagesCacheRef.current.length > 0) {
+      console.log(`📦 [MODE_TOGGLE] Restoring ${workflowMessagesCacheRef.current.length} cached workflow messages`);
+      setMessagesWithLogging(workflowMessagesCacheRef.current);
+    } else {
+      console.log('📭 [MODE_TOGGLE] No cached workflow messages, starting fresh');
+      setMessagesWithLogging([]);
+    }
+    
+    // Restore artifact panel state from snapshot (respecting user's previous state)
+    // Use setTimeout to ensure this runs after React state updates settle
+    setTimeout(() => {
+      const snapshot = workflowArtifactSnapshotRef.current;
+      console.log('🎨 [ARTIFACT_RESTORE] Checking snapshot:', snapshot);
       
-      // Restore cached workflow messages
-      if (workflowMessagesCacheRef.current && workflowMessagesCacheRef.current.length > 0) {
-        console.log(`📦 [MODE_TOGGLE] Restoring ${workflowMessagesCacheRef.current.length} cached workflow messages`);
-        setMessagesWithLogging(workflowMessagesCacheRef.current);
-        
-        setTimeout(() => {
-          const snapshot = workflowArtifactSnapshotRef.current;
-          let restoredFromSnapshot = false;
-          if (snapshot?.isOpen) {
-            console.log('🎨 [ARTIFACT_SNAPSHOT_RESTORE] Restoring artifact panel from snapshot');
-            setIsSidePanelOpen(true);
-            if (snapshot.layoutMode && setLayoutMode) {
-              setLayoutMode(snapshot.layoutMode);
-            }
-            if (snapshot.messages?.length) {
-              setCurrentArtifactMessages(snapshot.messages);
-              console.log(`📦 [ARTIFACT_SNAPSHOT_RESTORE] Restored ${snapshot.messages.length} artifact messages from snapshot`);
-            }
-            restoredFromSnapshot = true;
+      // If we have a snapshot, always respect it (whether open or closed)
+      if (snapshot && typeof snapshot.isOpen === 'boolean') {
+        if (snapshot.isOpen) {
+          console.log('🎨 [ARTIFACT_SNAPSHOT_RESTORE] Restoring artifact panel OPEN from snapshot');
+          setIsSidePanelOpen(true);
+          if (snapshot.layoutMode && setLayoutMode) {
+            setLayoutMode(snapshot.layoutMode);
           }
-
-          if (!restoredFromSnapshot) {
-            // Auto-detect if we should open artifact panel based on message content
-            const hasArtifacts = workflowMessagesCacheRef.current.some(msg => {
-              if (msg.ui_mode) return true;
-              if (msg.tool_calls && Array.isArray(msg.tool_calls)) {
-                return msg.tool_calls.some(tc => tc.function?.name === 'render_ui_component');
-              }
-              return false;
-            });
-            
-            if (hasArtifacts) {
-              console.log('🎨 [ARTIFACT_AUTO_OPEN] Detected UI artifacts in workflow messages, opening artifact panel');
-              setIsSidePanelOpen(true);
-              const artifactMsgs = workflowMessagesCacheRef.current.filter(msg => 
-                msg.ui_mode || (msg.tool_calls && msg.tool_calls.some(tc => tc.function?.name === 'render_ui_component'))
-              );
-              if (artifactMsgs.length > 0) {
-                setCurrentArtifactMessages(artifactMsgs);
-                console.log(`📦 [ARTIFACT_AUTO_OPEN] Restored ${artifactMsgs.length} artifact messages`);
-              }
-            } else {
-              console.log('📭 [ARTIFACT_AUTO_OPEN] No UI artifacts detected, keeping panel closed');
-              setIsSidePanelOpen(false);
-              setCurrentArtifactMessages([]);
-            }
+          if (snapshot.messages?.length) {
+            setCurrentArtifactMessages(snapshot.messages);
+            console.log(`📦 [ARTIFACT_SNAPSHOT_RESTORE] Restored ${snapshot.messages.length} artifact messages`);
           }
-
-          // Reset snapshot once we've attempted restore
-          workflowArtifactSnapshotRef.current = { isOpen: false, messages: [], layoutMode: snapshot?.layoutMode || 'split' };
-        }, 150);
-      } else {
-        console.log('📭 [MODE_TOGGLE] No cached workflow messages, starting fresh');
-        setMessagesWithLogging([]);
+        } else {
+          // User had artifact closed - respect that choice
+          console.log('🎨 [ARTIFACT_SNAPSHOT_RESTORE] Restoring artifact panel CLOSED from snapshot');
+          setIsSidePanelOpen(false);
+          if (setLayoutMode) setLayoutMode('full');
+          // Keep any artifact messages cached but panel closed
+        }
+        // Clear snapshot after restore to allow fresh state capture next time
+        workflowArtifactSnapshotRef.current = { isOpen: false, messages: [], layoutMode: 'split' };
+        return;
       }
+      
+      // No valid snapshot - fall back to auto-detect based on message content
+      // This only happens on first workflow entry, not when toggling back
+      const cachedMessages = workflowMessagesCacheRef.current || [];
+      const hasArtifacts = cachedMessages.some(msg => {
+        if (msg.ui_mode) return true;
+        if (msg.tool_calls && Array.isArray(msg.tool_calls)) {
+          return msg.tool_calls.some(tc => tc.function?.name === 'render_ui_component');
+        }
+        return false;
+      });
+      
+      if (hasArtifacts) {
+        console.log('🎨 [ARTIFACT_AUTO_OPEN] Detected UI artifacts in workflow messages, opening artifact panel');
+        setIsSidePanelOpen(true);
+        if (setLayoutMode) setLayoutMode('split');
+        const artifactMsgs = cachedMessages.filter(msg => 
+          msg.ui_mode || (msg.tool_calls && msg.tool_calls.some(tc => tc.function?.name === 'render_ui_component'))
+        );
+        if (artifactMsgs.length > 0) {
+          setCurrentArtifactMessages(artifactMsgs);
+          console.log(`📦 [ARTIFACT_AUTO_OPEN] Restored ${artifactMsgs.length} artifact messages`);
+        }
+      } else {
+        console.log('📭 [ARTIFACT_AUTO_OPEN] No UI artifacts detected, keeping panel closed');
+        setIsSidePanelOpen(false);
+        if (setLayoutMode) setLayoutMode('full');
+      }
+    }, 100);
+    
     return sent;
-  }, [conversationMode, currentChatId, sendWsMessage, setConversationMode, setMessagesWithLogging, setLayoutMode]);
+  }, [conversationMode, currentChatId, sendWsMessage, setConversationMode, setMessagesWithLogging, setLayoutMode, workflowMessages]);
 
   const resumeWorkflowSession = useCallback((targetChatId, targetWorkflow = null) => {
     if (!targetChatId) {
@@ -2755,7 +2795,8 @@ useEffect(() => {
   const mobileChatTopMarginClass = shouldReserveArtifactSpace ? 'mt-[1.25rem]' : 'mt-[1.25rem]';
 
   const isChatPageSurface = isPrimaryChatRoute && !isInWidgetMode;
-  const showAskHistorySidebar = isChatPageSurface && !isMobileView && conversationMode === 'ask';
+  // Show sidebar on desktop in both Ask and Workflow modes for consistent tighter layout
+  const showAskHistorySidebar = isChatPageSurface && !isMobileView;
   const showMobileAskHistoryMenu = isChatPageSurface && isMobileView && conversationMode === 'ask';
 
   useEffect(() => {
@@ -2951,7 +2992,7 @@ useEffect(() => {
             )}
           </div>
         ) : (
-          <div className="flex flex-1 min-h-0 gap-4 px-3 md:px-6 pb-4">
+          <div className="flex flex-1 min-h-0 gap-4 px-3 md:px-6 pb-4 items-stretch">
             {showAskHistorySidebar && (
               <AskHistorySidebar
                 sessions={generalChatSessions}
@@ -2962,7 +3003,7 @@ useEffect(() => {
                 onRefresh={handleRefreshGeneralSessions}
               />
             )}
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 h-full">
               <FluidChatLayout
                 layoutMode={layoutMode}
                 onLayoutChange={setLayoutMode}

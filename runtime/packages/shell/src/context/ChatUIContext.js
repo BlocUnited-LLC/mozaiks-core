@@ -62,6 +62,11 @@ export const ChatUIProvider = ({
   
   // Workflow sessions list for future dropdown (IN_PROGRESS workflows)
   const [workflowSessions, setWorkflowSessions] = useState([]);
+  
+  // Ask mode messages - persists across chat page + widget
+  const [askMessages, setAskMessages] = useState([]);
+  // Workflow mode messages - persists across chat page + routes
+  const [workflowMessages, setWorkflowMessages] = useState([]);
 
   useEffect(() => {
     try {
@@ -180,6 +185,13 @@ export const ChatUIProvider = ({
     setGeneralChatSessions,
     workflowSessions,
     setWorkflowSessions,
+    
+    // Ask mode messages (shared between chat page + widget)
+    askMessages,
+    setAskMessages,
+    // Workflow mode messages (shared across chat page + routes)
+    workflowMessages,
+    setWorkflowMessages,
 
     // Configuration
     config: config.getConfig(),

@@ -24,11 +24,15 @@ const PersistentChatWidget = ({
     activeWorkflowName,
     setActiveChatId,
     setActiveWorkflowName,
+    askMessages,
+    setAskMessages,
   } = useChatUI();
   const navigate = useNavigate();
 
   const [isExpanded, setIsExpanded] = useState(false);
-  const [messages, setMessages] = useState([]);
+  // Use shared askMessages from context so conversation persists across pages
+  const messages = askMessages;
+  const setMessages = setAskMessages;
 
   const toggleExpanded = () => {
     setIsExpanded(prev => !prev);
@@ -151,36 +155,43 @@ const PersistentChatWidget = ({
       {/* Chat panel */}
       <div className="pointer-events-auto w-[26rem] max-w-[calc(100vw-2.5rem)] h-[50vh] md:h-[70vh] min-h-[360px] bg-gradient-to-br from-gray-900/95 via-slate-900/95 to-black/95 backdrop-blur-xl border border-[rgba(var(--color-primary-light-rgb),0.3)] rounded-2xl rounded-tr-none shadow-2xl overflow-hidden flex flex-col">
         
-        {/* Widget header with two navigation buttons only */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(var(--color-primary-light-rgb),0.2)] bg-[rgba(0,0,0,0.3)]">
-          {/* Left: Brain button → Ask mode (Chat Station) */}
-          <button
-            type="button"
-            onClick={handleGoToAskMode}
-            className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[rgba(var(--color-secondary-rgb),0.2)] to-[rgba(var(--color-primary-rgb),0.2)] border border-[rgba(var(--color-secondary-rgb),0.4)] hover:border-[rgba(var(--color-secondary-rgb),0.7)] hover:scale-105 transition-all"
-            title="MozaiksAI Chat Station"
-          >
-            <span className="text-2xl" role="img" aria-hidden="true">🧠</span>
-            <span className="text-sm font-medium text-gray-300 group-hover:text-white">Chat Station</span>
-          </button>
-          
-          {/* Right: Mozaiks logo only → Workflow mode (persisted) */}
-          <button
-            type="button"
-            onClick={handleGoToWorkflowMode}
-            className="group p-3 rounded-xl bg-gradient-to-r from-[rgba(var(--color-primary-rgb),0.2)] to-[rgba(var(--color-secondary-rgb),0.2)] border border-[rgba(var(--color-primary-light-rgb),0.4)] hover:border-[rgba(var(--color-primary-light-rgb),0.7)] hover:scale-105 transition-all"
-            title="Resume Workflow"
-          >
-            <img
-              src="/mozaik_logo.svg"
-              className="w-8 h-8 opacity-80 group-hover:opacity-100 transition-all"
-              alt="Workflow"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = '/mozaik.png';
-              }}
-            />
-          </button>
+        {/* Widget header - same style as Ask mode */}
+        <div className="flex-shrink-0 bg-[rgba(0,0,0,0.6)] border-b border-[rgba(var(--color-primary-light-rgb),0.2)] backdrop-blur-xl">
+          <div className="flex flex-row items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3">
+            {/* Left: Brain + MozaiksAI title (click to go to Ask mode) */}
+            <button
+              type="button"
+              onClick={handleGoToAskMode}
+              className="flex items-center gap-2 sm:gap-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)]/60 rounded-xl min-w-0 flex-1"
+              title="Open Chat Station"
+            >
+              <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg flex-shrink-0 bg-gradient-to-br from-[var(--color-secondary)] to-[var(--color-primary)]">
+                <span className="text-xl sm:text-2xl" role="img" aria-hidden="true">🧠</span>
+              </span>
+              <span className="text-left min-w-0 flex-1">
+                <span className="block text-sm sm:text-lg font-bold text-white tracking-tight truncate">MozaiksAI</span>
+                <span className="block text-[10px] sm:text-xs text-gray-400 truncate">Chat Station</span>
+              </span>
+            </button>
+            
+            {/* Right: Mozaiks logo (click to go to Workflow mode) */}
+            <button
+              onClick={handleGoToWorkflowMode}
+              className="group relative p-2 rounded-lg bg-gradient-to-r from-[rgba(var(--color-primary-rgb),0.1)] to-[rgba(var(--color-secondary-rgb),0.1)] border border-[rgba(var(--color-primary-light-rgb),0.3)] hover:border-[rgba(var(--color-primary-light-rgb),0.6)] transition-all duration-300 backdrop-blur-sm flex-shrink-0"
+              title="Resume Workflow"
+            >
+              <img
+                src="/mozaik_logo.svg"
+                className="w-8 h-8 opacity-70 group-hover:opacity-100 transition-all duration-300 group-hover:scale-105"
+                alt="Workflow"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/mozaik.png';
+                }}
+              />
+              <div className="absolute inset-0 bg-[rgba(var(--color-primary-light-rgb),0.1)] rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
+            </button>
+          </div>
         </div>
 
         {/* Chat content area - remove any extra decorations */}

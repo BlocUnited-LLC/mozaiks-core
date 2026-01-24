@@ -419,12 +419,12 @@ const ModernChatInterface = ({
   );
 
   return (
-    <div className={`flex flex-col h-full rounded-2xl border border-[rgba(var(--color-primary-light-rgb),0.3)] md:overflow-hidden overflow-visible shadow-2xl bg-gradient-to-br from-white/5 to-[rgba(var(--color-primary-rgb),0.05)] backdrop-blur-sm ${plainContainer ? '' : 'cosmic-ui-module artifact-panel'} p-0`} style={{ overflow: 'clip' }}>
+    <div className={`relative chat-shell ${conversationMode === 'ask' ? 'chat-shell-ask' : 'chat-shell-workflow'} flex flex-col h-full rounded-2xl border border-[rgba(var(--color-primary-light-rgb),0.3)] md:overflow-hidden overflow-visible shadow-2xl bg-gradient-to-br from-white/5 to-[rgba(var(--color-primary-rgb),0.05)] backdrop-blur-sm ${plainContainer ? '' : 'cosmic-ui-module artifact-panel'} p-0`} style={{ overflow: 'clip' }}>
       {/* Per-turn loading: rely on subtle typing indicator inside messages area; avoid full-page spinner after init */}
       
       {/* Fixed Command Center Header - Dark background to match artifact */}
       {!hideHeader && (
-      <div className="flex-shrink-0 bg-[rgba(0,0,0,0.6)] border-b border-[rgba(var(--color-primary-light-rgb),0.2)] backdrop-blur-xl">
+      <div className={`flex-shrink-0 chat-header-backdrop ${conversationMode === 'ask' ? 'chat-header-ask' : 'chat-header-workflow'} border-b border-[rgba(var(--color-primary-light-rgb),0.22)] backdrop-blur-xl`}>
         <div className="flex flex-row items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3 md:px-5 md:py-3.5">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             {showAskHistoryToggle && (
@@ -532,13 +532,13 @@ const ModernChatInterface = ({
       )}
     {/* Chat Messages Area - ONLY THIS SCROLLS */}
     <div className="flex-1 relative overflow-hidden" role="log" aria-live="polite" aria-relevant="additions">
-        <div className={`absolute inset-0 pointer-events-none ${isOnChatPage ? 'chat-feed-backdrop' : 'bg-[rgba(0,0,0,0.45)]'} z-0`} />
+      <div className={`absolute inset-0 pointer-events-none ${isOnChatPage ? 'chat-feed-backdrop' : 'bg-[rgba(0,0,0,0.45)]'} ${isOnChatPage ? (conversationMode === 'ask' ? 'chat-backdrop-ask' : 'chat-backdrop-workflow') : ''} z-0`} />
         <div 
           ref={chatContainerRef}
           className={`absolute inset-0 overflow-y-auto my-scroll1 z-10 ${isOnChatPage ? '' : 'px-2 py-2 md:p-6'}`}
         >
           {isOnChatPage ? (
-            <div className={`chat-feed-shell ${conversationMode === 'ask' ? 'chat-feed-shell-ask' : ''}`}>
+            <div className="chat-feed-shell chat-feed-shell-ask">
               {messageStack}
             </div>
           ) : disableMobileShellChrome ? (

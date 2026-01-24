@@ -283,6 +283,37 @@
     linear-gradient(180deg, rgba(2, 6, 23, 0.65) 0%, rgba(2, 6, 23, 0.9) 70%, rgba(1, 5, 15, 0.95) 100%);
 }
 
+.chat-header-backdrop {
+  position: relative;
+  background: radial-gradient(circle at 20% 0%, rgba(15, 23, 42, 0.45), transparent 60%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.55) 0%, rgba(2, 6, 23, 0.75) 70%, rgba(1, 5, 15, 0.8) 100%);
+}
+
+.chat-header-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.6;
+  mix-blend-mode: screen;
+}
+
+.chat-header-ask::after {
+  background: radial-gradient(1200px 280px at 20% 10%, rgba(var(--color-secondary-rgb), 0.24), transparent 60%),
+    radial-gradient(700px 260px at 80% 20%, rgba(99, 102, 241, 0.18), transparent 65%);
+}
+
+.chat-header-workflow::after {
+  background: radial-gradient(1200px 280px at 20% 10%, rgba(var(--color-primary-rgb), 0.24), transparent 60%),
+    radial-gradient(700px 260px at 80% 20%, rgba(14, 165, 233, 0.18), transparent 65%);
+}
+
+@media (max-width: 768px) {
+  .chat-header-backdrop::after {
+    opacity: 0.45;
+  }
+}
+
 .chat-feed-shell {
   position: relative;
   display: flex;
@@ -310,10 +341,56 @@
   width: 100%;
 }
 
+.chat-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.45;
+  mix-blend-mode: screen;
+  transition: opacity 200ms ease;
+}
+
+.chat-shell-ask::before {
+  background: linear-gradient(140deg, rgba(var(--color-secondary-rgb), 0.18), rgba(59, 130, 246, 0.08));
+}
+
+.chat-shell-workflow::before {
+  background: linear-gradient(140deg, rgba(var(--color-primary-rgb), 0.16), rgba(14, 165, 233, 0.08));
+}
+
 .chat-feed-stream {
   position: relative;
   z-index: 1;
   width: 100%;
+}
+
+.chat-feed-backdrop.chat-backdrop-ask::after,
+.chat-feed-backdrop.chat-backdrop-workflow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.75;
+  mix-blend-mode: screen;
+}
+
+.chat-feed-backdrop.chat-backdrop-ask::after {
+  background: radial-gradient(1200px 600px at 20% 10%, rgba(var(--color-secondary-rgb), 0.32), transparent 60%),
+              radial-gradient(800px 500px at 80% 20%, rgba(99, 102, 241, 0.22), transparent 65%);
+}
+
+.chat-feed-backdrop.chat-backdrop-workflow::after {
+  background: radial-gradient(1200px 600px at 20% 10%, rgba(var(--color-primary-rgb), 0.32), transparent 60%),
+              radial-gradient(900px 500px at 80% 25%, rgba(14, 165, 233, 0.22), transparent 65%);
+}
+
+@media (max-width: 768px) {
+  .chat-feed-backdrop.chat-backdrop-ask::after,
+  .chat-feed-backdrop.chat-backdrop-workflow::after {
+    opacity: 0.6;
+  }
 }
 
 @media (min-width: 640px) {
@@ -336,7 +413,7 @@
 
 @media (min-width: 1024px) {
   .chat-feed-shell-ask {
-    max-width: 1040px;
+    max-width: 1120px;
     padding: 2.25rem clamp(1.75rem, 4vw, 3rem) 4.25rem;
   }
 
