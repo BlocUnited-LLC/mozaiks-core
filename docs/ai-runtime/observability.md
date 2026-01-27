@@ -1,4 +1,5 @@
 # Observability Deep Dive
+> **Doc Status:** reference (not contract-critical)
 
 **Purpose:** Document MozaiksAI's observability stack—metrics collection, performance tracking, logging configuration, and monitoring endpoints.
 
@@ -677,3 +678,4 @@ config = PerformanceConfig(
 ---
 
 **Questions?** See [Troubleshooting Guide](../operations/troubleshooting.md) or [Logging & Debugging](../operations/logging_and_debugging.md).
+

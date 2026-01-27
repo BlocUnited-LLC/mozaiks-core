@@ -1,4 +1,5 @@
 # Persistence & Resume Deep Dive
+> **Doc Status:** authoritative (platform depends on this doc)
 
 **Purpose:** Document MongoDB persistence architecture, chat session storage, message handling, and AG2 resume patterns that enable seamless conversation continuity.
 
@@ -713,3 +714,4 @@ logger.info(f"Normalized {len(raw_msgs)} → {len(normalized)} messages")
 ---
 
 **Questions?** See [Troubleshooting Guide](../operations/troubleshooting.md) or [API Endpoints](../reference/api_endpoints.md).
+

@@ -21,7 +21,7 @@ class InsightsAuthHeaderTests(unittest.TestCase):
             sdk_version="1.2.3",
             mozaiks_app_id="app_123",
             mozaiks_api_key="moz_live_abcdef123456",
-            internal_api_key="legacy_internal_key",
+            internal_api_key="internal_key",
         )
         client = InsightsClient(cfg)
 
@@ -32,18 +32,18 @@ class InsightsAuthHeaderTests(unittest.TestCase):
         self.assertEqual(headers["X-Mozaiks-Api-Key"], "moz_live_abcdef123456")
         self.assertNotIn("X-Internal-Api-Key", headers)
 
-    def test_headers_fall_back_to_legacy_internal_key(self) -> None:
+    def test_headers_fall_back_to_internal_key(self) -> None:
         cfg = InsightsClientConfig(
             base_url="https://example.test",
             sdk_version="1.0.0",
-            internal_api_key="legacy_internal_key",
+            internal_api_key="internal_key",
         )
         client = InsightsClient(cfg)
         headers = client._headers(correlation_id="corr-2")
 
         self.assertEqual(headers["X-Correlation-Id"], "corr-2")
         self.assertEqual(headers["X-Mozaiks-Sdk-Version"], "1.0.0")
-        self.assertEqual(headers["X-Internal-Api-Key"], "legacy_internal_key")
+        self.assertEqual(headers["X-Internal-Api-Key"], "internal_key")
         self.assertNotIn("X-Mozaiks-Api-Key", headers)
 
 

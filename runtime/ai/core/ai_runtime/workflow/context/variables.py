@@ -337,7 +337,7 @@ def _load_workflow_plan(workflow_name: str) -> Tuple[ContextVariablesPlan, Dict[
 
 
 # ---------------------------------------------------------------------------
-# Schema utilities (optional, reused from legacy implementation)
+# Schema utilities (optional, reused from prior implementation)
 # ---------------------------------------------------------------------------
 
 async def _get_all_collections_first_docs(database_name: str) -> Dict[str, Any]:

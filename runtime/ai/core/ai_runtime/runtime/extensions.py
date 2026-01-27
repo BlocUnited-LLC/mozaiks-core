@@ -43,7 +43,7 @@ def _iter_declared_extensions() -> Iterable[dict[str, Any]]:
         - kind: startup_service
           entrypoint: pkg.mod:ServiceClass
 
-    Backward/alt schema supported:
+    Alternate schema supported:
         - id: api_router
           entrypoints: { router: pkg.mod:get_router }
           prefix: ""

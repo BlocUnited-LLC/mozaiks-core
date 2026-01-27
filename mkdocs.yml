@@ -112,6 +112,7 @@ nav:
     - Inline Persistence: frontend/inline-component-persistence.md
 
   - Guides:
+    - Subscription Management: guides/subscription-management.md
     - Creating Plugins: guides/creating-plugins.md
     - Creating Workflows: guides/creating-workflows.md
     - Operations Runbook: guides/operations-runbook.md

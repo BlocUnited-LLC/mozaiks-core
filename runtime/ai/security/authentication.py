@@ -32,7 +32,7 @@ def _auth_mode() -> str:
     raw = (os.getenv("MOZAIKS_AUTH_MODE") or "external").strip().lower()
     if raw in {"external", "platform", "local"}:
         return raw
-    # Backwards-compatible aliases (deprecated).
+    # Compatibility aliases (deprecated).
     if raw == "oidc":
         return "external"
     if raw == "jwt":

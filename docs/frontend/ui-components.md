@@ -1,4 +1,5 @@
 # UI Components Reference
+> **Doc Status:** authoritative (platform depends on this doc)
 
 ## Purpose
 
@@ -1422,3 +1423,4 @@ location.reload();
 - **[UI Tool Pipeline](../workflows/ui_tool_pipeline.md)**: Complete agent-to-frontend flow
 - **[Tool Manifest](../workflows/tool_manifest.md)**: Tool registration and configuration
 - **[Structured Outputs](../workflows/structured_outputs.md)**: Pydantic schema design for payloads
+

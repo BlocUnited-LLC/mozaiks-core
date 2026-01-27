@@ -171,18 +171,18 @@ class AG2PersistenceManager:
         return coll
 
     async def _ensure_workflow_stats_indexes(self, coll):
-        """Drop legacy unique indexes that conflict with rollup documents."""
+        """Drop deprecated unique indexes that conflict with rollup documents."""
         try:
             existing = await coll.list_indexes().to_list(length=None)
-            legacy_index_names = {"ux_chat_seq", "ux_workflow_chat_seq"}
+            deprecated_index_names = {"ux_chat_seq", "ux_workflow_chat_seq"}
             for idx in existing:
                 name = idx.get("name")
-                if name in legacy_index_names:
+                if name in deprecated_index_names:
                     try:
                         await coll.drop_index(name)
-                        logger.info("Dropped legacy WorkflowStats index %s", name)
+                        logger.info("Dropped deprecated WorkflowStats index %s", name)
                     except Exception as drop_err:
-                        logger.warning("Failed to drop legacy WorkflowStats index %s: %s", name, drop_err)
+                        logger.warning("Failed to drop deprecated WorkflowStats index %s: %s", name, drop_err)
             self._workflow_stats_indexes_checked = True
         except Exception as idx_err:
             logger.warning("WorkflowStats index check failed: %s", idx_err)
@@ -1605,7 +1605,7 @@ class AG2PersistenceManager:
         
         Args:
             chat_id: Chat session identifier
-            app_id: App identifier (legacy: app_id)
+            app_id: App identifier (alias: app_id)
             event_id: UI tool event identifier (for correlation)
             metadata: UI tool metadata (ui_tool_id, display, payload, etc.)
         """
@@ -1684,7 +1684,7 @@ class AG2PersistenceManager:
         
         Args:
             chat_id: Chat session identifier
-            app_id: App identifier (legacy: app_id)
+            app_id: App identifier (alias: app_id)
             event_id: UI tool event identifier (for correlation)
             completed: Whether the tool interaction is complete
             status: Completion status ("completed", "dismissed", etc.)

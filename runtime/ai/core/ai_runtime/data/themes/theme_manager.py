@@ -1,6 +1,6 @@
 # ============================================================================
 # FILE: core/data/theme_manager.py
-# DESCRIPTION: Persistence and validation for app theme configuration (legacy: app)
+# DESCRIPTION: Persistence and validation for app theme configuration (previous: app)
 # ============================================================================
 
 from __future__ import annotations
@@ -120,11 +120,95 @@ class ThemeBranding(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+# ---------------------------------------------------------------------------
+# Chat UI configuration models
+# ---------------------------------------------------------------------------
+
+class ChatModeConfig(BaseModel):
+    tint: Optional[str] = None
+    label: Optional[str] = None
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class ChatModesConfig(BaseModel):
+    ask: Optional[ChatModeConfig] = None
+    workflow: Optional[ChatModeConfig] = None
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class ChatConfig(BaseModel):
+    modes: Optional[ChatModesConfig] = None
+    bubbleRadius: Optional[str] = None
+
+    model_config = ConfigDict(extra="forbid")
+
+
+# ---------------------------------------------------------------------------
+# Header configuration models
+# ---------------------------------------------------------------------------
+
+class HeaderLogoConfig(BaseModel):
+    src: Optional[str] = None
+    wordmark: Optional[str] = None
+    alt: Optional[str] = None
+    href: Optional[str] = None
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class HeaderActionConfig(BaseModel):
+    id: str
+    label: Optional[str] = None
+    icon: Optional[str] = None
+    variant: Optional[str] = "gradient"
+    visible: Optional[bool] = True
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class HeaderConfig(BaseModel):
+    logo: Optional[HeaderLogoConfig] = None
+    actions: Optional[list[HeaderActionConfig]] = None
+    showNotifications: Optional[bool] = True
+    showProfile: Optional[bool] = True
+
+    model_config = ConfigDict(extra="forbid")
+
+
+# ---------------------------------------------------------------------------
+# Footer configuration models
+# ---------------------------------------------------------------------------
+
+class FooterLinkConfig(BaseModel):
+    label: str
+    href: Optional[str] = None
+    external: Optional[bool] = False
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class FooterConfig(BaseModel):
+    links: Optional[list[FooterLinkConfig]] = None
+    visible: Optional[bool] = True
+    poweredBy: Optional[str] = None
+
+    model_config = ConfigDict(extra="forbid")
+
+
+# ---------------------------------------------------------------------------
+# Top-level theme configuration
+# ---------------------------------------------------------------------------
+
 class ThemeConfig(BaseModel):
     fonts: ThemeFonts
     colors: ThemeColors
     shadows: ThemeShadows
     branding: ThemeBranding
+    chat: Optional[ChatConfig] = None
+    header: Optional[HeaderConfig] = None
+    footer: Optional[FooterConfig] = None
 
     model_config = ConfigDict(extra="forbid")
 
@@ -134,8 +218,11 @@ class ThemeUpdatePayload(BaseModel):
     colors: Optional[Dict[str, Any]] = None
     shadows: Optional[Dict[str, Any]] = None
     branding: Optional[Dict[str, Any]] = None
+    chat: Optional[Dict[str, Any]] = None
+    header: Optional[Dict[str, Any]] = None
+    footer: Optional[Dict[str, Any]] = None
 
-    @field_validator("fonts", "colors", "shadows", "branding", mode="before")
+    @field_validator("fonts", "colors", "shadows", "branding", "chat", "header", "footer", mode="before")
     @classmethod
     def ensure_dict(cls, value):
         if value is None:
@@ -228,6 +315,41 @@ DEFAULT_THEME: Dict[str, Any] = {
         "logo": "/mozaik_logo.svg",
         "favicon": "/mozaik.png",
     },
+    "chat": {
+        "modes": {
+            "ask": {"tint": "#06b6d4", "label": "Ask"},
+            "workflow": {"tint": "#8b5cf6", "label": "Workflow"},
+        },
+        "bubbleRadius": "18px",
+    },
+    "header": {
+        "logo": {
+            "src": "/mozaik_logo.svg",
+            "wordmark": "/mozaik.png",
+            "alt": "Mozaiks logo",
+            "href": "https://mozaiks.ai",
+        },
+        "actions": [
+            {
+                "id": "discover",
+                "label": "Discover",
+                "icon": "sparkle",
+                "variant": "gradient",
+                "visible": True,
+            },
+        ],
+        "showNotifications": True,
+        "showProfile": True,
+    },
+    "footer": {
+        "links": [
+            {"label": "Legal Notice", "href": "/legal"},
+            {"label": "Terms of Service", "href": "/terms"},
+            {"label": "Cookie Policy", "href": "/cookies"},
+        ],
+        "visible": True,
+        "poweredBy": None,
+    },
 }
 
 
@@ -259,7 +381,7 @@ class ThemeManager:
             db = self._persistence.client["MozaiksAI"]
             self._collection = db["Themes"]
             # _id is the canonical key; keep secondary indexes non-unique to avoid
-            # unique-null collisions for legacy docs missing newer fields.
+            # unique-null collisions for older docs missing newer fields.
             await self._collection.create_index("app_id")
             return self._collection
 ################################################################################

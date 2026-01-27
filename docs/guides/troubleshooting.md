@@ -95,7 +95,7 @@ curl https://keycloak.example.com/realms/mozaiks/.well-known/openid-configuratio
 
 1. **Verify registry entry**
 ```json
-// backend/core/config/plugin_registry.json
+// runtime/ai/core/config/plugin_registry.json
 {
   "name": "my_plugin",
   "enabled": true,
@@ -105,7 +105,7 @@ curl https://keycloak.example.com/realms/mozaiks/.well-known/openid-configuratio
 
 2. **Check backend module exists**
 ```
-plugins/
+runtime/ai/plugins/
 └── my_plugin/
     ├── __init__.py   ← Must exist (can be empty)
     └── logic.py      ← Must have execute() function
@@ -113,7 +113,7 @@ plugins/
 
 3. **Verify execute function signature**
 ```python
-# plugins/my_plugin/logic.py
+# runtime/ai/plugins/my_plugin/logic.py
 async def execute(data: dict) -> dict:  # ← Must be async
     action = data.get("action")
     # ...
@@ -121,7 +121,7 @@ async def execute(data: dict) -> dict:  # ← Must be async
 
 4. **Check navigation config**
 ```json
-// backend/core/config/navigation_config.json
+// runtime/ai/core/config/navigation_config.json
 {
   "plugin_name": "my_plugin",
   "path": "/plugins/my_plugin"

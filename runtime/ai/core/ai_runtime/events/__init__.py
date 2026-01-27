@@ -62,8 +62,6 @@ from .unified_event_dispatcher import (
     emit_ui_tool_event
 )
 
-from .handoff_events import emit_handoff_event, HANDOFF_EVENT_TYPE
-
 __all__ = [
     # Core dispatcher
     "UnifiedEventDispatcher",
@@ -84,7 +82,5 @@ __all__ = [
     # Convenience functions
     "emit_business_event",
     "emit_ui_tool_event",
-    "emit_handoff_event",
-    "HANDOFF_EVENT_TYPE",
 ]
 

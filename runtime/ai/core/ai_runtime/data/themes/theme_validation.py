@@ -115,7 +115,7 @@ def auto_validate_theme(data: Dict[str, Any]) -> ThemeValidationResult:
 
 
 def validate_theme(data: Dict[str, Any], *, mode: str = "auto") -> ThemeValidationResult:
-    """Backward-compatible dispatcher that normalizes the legacy entry point."""
+    """Compatibility dispatcher that normalizes the previous entry point."""
 
     normalized_mode = (mode or "auto").lower()
     if normalized_mode == "auto":

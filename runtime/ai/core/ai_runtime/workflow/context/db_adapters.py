@@ -89,7 +89,7 @@ _ADAPTER_REGISTRY: Dict[str, DatabaseAdapter] = {
 def get_db_adapter(source: ContextVariableSource) -> Optional[DatabaseAdapter]:
     """
     Factory function to get a database adapter based on the source definition.
-    Defaults to MongoDB if db_type is not specified for backward compatibility.
+    Defaults to MongoDB if db_type is not specified for compatibility.
     """
     db_type = getattr(source, "db_type", "mongodb") or "mongodb"
     adapter = _ADAPTER_REGISTRY.get(db_type.lower())

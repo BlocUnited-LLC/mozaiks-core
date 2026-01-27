@@ -12,6 +12,7 @@ using Serilog;
 
 using Payment.API.Services.Workers;
 using Mozaiks.Auth;
+using Payment.API.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -120,6 +121,11 @@ builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<MozaiksPayService>();
 builder.Services.AddScoped<SettlementService>();
 builder.Services.AddScoped<EconomicEventAppender>();
+
+// Entitlement sync infrastructure
+builder.Services.AddScoped<IEntitlementManifestStore, EntitlementManifestRepository>();
+builder.Services.AddScoped<IUsageEventStore, UsageEventRepository>();
+
 builder.Services.AddHostedService<RefundWorker>();
 builder.Services.AddHostedService<SettlementWorker>();
 builder.Services.AddScoped<IEconomicEventRepository, EconomicEventRepository>();

@@ -1,4 +1,5 @@
 # Lifecycle Tools - Workflow Orchestration Hooks
+> **Doc Status:** reference (not contract-critical)
 
 ## Overview
 
@@ -374,3 +375,4 @@ Lifecycle tool execution emits business events through the unified event dispatc
 **Status**: Production-ready (v1.0)  
 **Owner**: MozaiksAI Runtime Team  
 **Last Updated**: 2025-01-09
+

@@ -52,7 +52,6 @@ public class PluginRegistryService : IPluginRegistryService
 
     public Task<List<string>> GetCategoriesAsync()
     {
-        // TODO: Could be dynamic from DB, but for now return standard categories
         return Task.FromResult(new List<string>
         {
             "Content",

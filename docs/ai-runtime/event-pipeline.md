@@ -1,4 +1,5 @@
 # Event Pipeline Deep Dive
+> **Doc Status:** authoritative (platform depends on this doc)
 
 **Purpose:** Document the UnifiedEventDispatcher—MozaiksAI's central event routing system that handles Business, UI Tool, and AG2 Runtime events.
 
@@ -596,3 +597,4 @@ await dispatcher.dispatch(event)
 ---
 
 **Questions?** See [Runtime Overview](runtime_overview.md) or [Troubleshooting Guide](../operations/troubleshooting.md).
+

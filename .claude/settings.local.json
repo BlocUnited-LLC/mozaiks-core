@@ -6,7 +6,10 @@
       "Bash(git push:*)",
       "Bash(pip show:*)",
       "Bash(gh release create:*)",
-      "Bash(gh release view:*)"
+      "Bash(gh release view:*)",
+      "Bash(dir \"c:\\\\Users\\\\mbari\\\\OneDrive\\\\Desktop\\\\BlocUnited\\\\BlocUnited Code\\\\mozaiks-core\\\\docs\\\\assets\\\\widgetAction.mp4\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\mbari\\\\OneDrive\\\\Desktop\\\\BlocUnited\\\\BlocUnited Code\\\\mozaiks-platform\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)"
     ]
   }
 }

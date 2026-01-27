@@ -42,6 +42,9 @@ namespace Payment.API.Infrastructure.Observability
         private readonly Counter<long> _settlementWorkerEmptyRuns;
         private readonly Counter<long> _settlementWorkerErrors;
 
+        // Token usage tracking for entitlements
+        private readonly Counter<long> _tokenUsageTotal;
+
         private long _currentOpenRounds;
         private double _totalRaised;
         private long _pendingRefunds;
@@ -91,6 +94,9 @@ namespace Payment.API.Infrastructure.Observability
             _settlementWorkerRuns = _meter.CreateCounter<long>("mozaiks.payment.settlement.worker_runs");
             _settlementWorkerEmptyRuns = _meter.CreateCounter<long>("mozaiks.payment.settlement.worker_empty_runs");
             _settlementWorkerErrors = _meter.CreateCounter<long>("mozaiks.payment.settlement.worker_errors");
+
+            // Token usage counter for entitlements/billing
+            _tokenUsageTotal = _meter.CreateCounter<long>("mozaiks.entitlements.token_usage_total");
 
             _meter.CreateObservableGauge("mozaiks.payment.funding.current_open_rounds", () => new Measurement<long>(_currentOpenRounds));
             _meter.CreateObservableGauge("mozaiks.payment.funding.total_raised", () => new Measurement<double>(_totalRaised));
@@ -174,5 +180,9 @@ namespace Payment.API.Infrastructure.Observability
         public void RecordPaymentConfirmLatency(TimeSpan duration) => _paymentConfirmLatency.Record(duration.TotalMilliseconds);
         public void RecordRefundProcessLatency(TimeSpan duration) => _refundProcessLatency.Record(duration.TotalMilliseconds);
         public void RecordSettlementProcessLatency(TimeSpan duration) => _settlementProcessLatency.Record(duration.TotalMilliseconds);
+
+        // Token usage tracking for entitlements
+        public void RecordTokenUsage(string appId, long tokensUsed) =>
+            _tokenUsageTotal.Add(tokensUsed, KeyValuePair.Create<string, object?>("appId", appId));
     }
 }

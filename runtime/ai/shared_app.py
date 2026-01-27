@@ -1481,7 +1481,7 @@ async def chat_meta(
             "cache_seed": doc.get("cache_seed"),
             "status": doc.get("status"),
             "last_sequence": doc.get("last_sequence"),
-            "last_artifact": doc.get("last_artifact"),  # UI tool artifacts (legacy/quick restore)
+            "last_artifact": doc.get("last_artifact"),  # UI tool artifacts (quick restore)
             "artifact_instance_id": artifact_instance_id,  # WorkflowSession artifact ID
             "artifact_state": artifact_state,  # Full artifact state for multi-workflow navigation
             "app_id": app_id,
@@ -2071,7 +2071,7 @@ async def get_available_workflows(
     based on their dependency prerequisites.
     
     Args:
-        app_id: App identifier (legacy: app_id)
+        app_id: App identifier (alias: app_id)
         user_id: User identifier
         
     Returns:

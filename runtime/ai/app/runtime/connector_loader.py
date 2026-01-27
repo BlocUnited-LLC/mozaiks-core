@@ -30,7 +30,7 @@ def is_managed_mode() -> bool:
     """Managed mode is enabled by env vars (not a security boundary)."""
     hosting_mode = (os.getenv("MOZAIKS_HOSTING_MODE") or "").strip().lower()
     hosted = hosting_mode == "hosted"
-    # Backwards compatible alias: MOZAIKS_MANAGED=true implies hosted operation.
+    # Compatibility alias: MOZAIKS_MANAGED=true implies hosted operation.
     if not hosted and not _env_truthy(os.getenv("MOZAIKS_MANAGED")):
         return False
 

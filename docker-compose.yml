@@ -11,8 +11,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - VITE_API_URL=http://localhost:8010
-      - VITE_AUTH_URL=http://localhost:8020
+      - REACT_APP_API_BASE_URL=http://localhost:8000
+      - REACT_APP_WS_URL=ws://localhost:8000
     depends_on:
       - identity-api
 
@@ -26,9 +26,11 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - PORT=8000
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - MONGODB_URI=mongodb://mongodb:27017/MozaiksDB
       - KEYCLOAK_URL=http://keycloak:8080
+      - FRONTEND_URL=http://localhost:3000
     depends_on:
       - mongodb
 
@@ -102,19 +104,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8060:8080"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - MongoDB__ConnectionString=mongodb://mongodb:27017
-      - MongoDB__DatabaseName=MozaiksDB
-    depends_on:
-      - mongodb
-
-  user-api:
-    build:
-      context: ./backend/src/User.API/User.API
-      dockerfile: Dockerfile
-    ports:
-      - "8001:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - MongoDB__ConnectionString=mongodb://mongodb:27017

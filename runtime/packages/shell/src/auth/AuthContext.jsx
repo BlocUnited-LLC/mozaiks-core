@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }) => {
    * Get the subject (sub) claim from the current token.
    * 
    * SECURITY NOTES:
-   * - This is for LEGACY ROUTING HINTS only — NOT for identity.
+  * - This is for routing hints only — NOT for identity.
    * - The server MUST derive user identity from the JWT sub claim.
    * - MozaiksAI validates that any path-based user_id matches JWT sub.
    * - In local mode, returns the server-validated user_id (NOT client state).

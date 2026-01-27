@@ -17,7 +17,7 @@ Deliberate simplifications / removals:
     * collections. WorkflowStats therefore contains three logical types:
     *   - per-session metrics docs: `metrics_{chat_id}` (real-time usage/metrics)
     *   - append-only normalized event rows (audit/trace)
-    *   - pre-computed rollup summaries: `mon_{app_id}_{workflow_name}` (legacy: app_id)
+    *   - pre-computed rollup summaries: `mon_{app_id}_{workflow_name}` (alias: app_id)
 
 Key Collections (post‑refactor):
     ChatSessions        : One doc per chat (messages + minimal usage + status)
@@ -25,13 +25,13 @@ Key Collections (post‑refactor):
     WorkflowSummaries   : One aggregated rollup per (app_id, workflow_name)
 
 ChatSessions Stored Fields (superset; some optional):
-    _id, app_id (+ legacy app_id), workflow_name, user_id, status, created_at, last_updated_at,
+    _id, app_id (+ app_id alias), workflow_name, user_id, status, created_at, last_updated_at,
     completed_at?, trace_id?, duration_sec (float),
     usage_prompt_tokens_final?, usage_completion_tokens_final?, usage_total_tokens_final?,
     usage_total_cost_final?, usage_summary_raw?, messages[]
 
 WorkflowSummaryDoc Stored Fields:
-    _id, app_id (+ legacy app_id), workflow_name, overall_avg, chat_sessions, agents
+    _id, app_id (+ app_id alias), workflow_name, overall_avg, chat_sessions, agents
 
 NOTE: We intentionally keep rollup computation *read‑only* over ChatSessions;
             token & cost fields are copied from flattened usage_* finals in sessions.

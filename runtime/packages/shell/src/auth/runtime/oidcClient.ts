@@ -29,7 +29,7 @@ const getUserManager = (): UserManager => {
 /**
  * Extract the subject (sub) claim from the current user's ID token.
  * 
- * SECURITY NOTE: This is for LEGACY ROUTING HINTS only.
+ * SECURITY NOTE: This is for routing hints only.
  * The server MUST derive user identity from the JWT, not trust client-supplied values.
  * MozaiksAI will validate that any path-based user_id matches the JWT sub claim.
  * 
@@ -107,7 +107,7 @@ export const oidc = {
   /**
    * Get the subject (sub) claim from the current user's ID token.
    * 
-   * SECURITY: This is for LEGACY ROUTING HINTS only.
+  * SECURITY: This is for routing hints only.
    * Server MUST derive identity from JWT, not client-supplied values.
    */
   async getTokenSubject(): Promise<string | null> {

@@ -113,7 +113,7 @@ class TemplateRenderer:
         if not channel_template:
             channel_template = self.templates.get("_default", {}).get(channel, {})
 
-        # Normalize common legacy keys from notification_templates.json
+        # Normalize common alias keys from notification_templates.json
         channel_template = self._normalize_channel_template(channel, channel_template)
         
         # Build substitution variables

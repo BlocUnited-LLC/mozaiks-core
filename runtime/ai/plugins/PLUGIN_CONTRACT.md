@@ -758,7 +758,99 @@ Content-Type: application/json
 
 ---
 
-## 12. Security Rules
+## 12. Entitlements Contract
+
+Plugins can check if users have access to features or limits.
+
+### How It Works
+
+1. **Runtime checks plugin access BEFORE calling `execute()`**
+2. **Plugins get `_entitlements` context for feature/limit checks**
+3. **Self-hosted without config = no restrictions**
+
+### Injected Entitlement Context
+
+```python
+async def execute(data: dict) -> dict:
+    # Always present
+    user_id = data["user_id"]
+    app_id = data["app_id"]
+    
+    # Entitlements (when configured)
+    entitlements = data.get("_entitlements", {})
+    # {
+    #     "tier": "pro",
+    #     "features": {"advanced_export": True},
+    #     "limits": {"exports_remaining": 45},
+    #     "enforce": False  # True in platform mode
+    # }
+```
+
+### Checking Features
+
+```python
+async def execute(data: dict) -> dict:
+    entitlements = data.get("_entitlements", {})
+    features = entitlements.get("features", {})
+    
+    # Check feature access
+    if not features.get("advanced_export", True):  # Default True = OSS mode
+        return {
+            "error": "This feature requires a Pro subscription",
+            "error_code": "FEATURE_GATED"
+        }
+    
+    # Feature is available, proceed
+    return do_export()
+```
+
+### Checking Limits
+
+```python
+async def execute(data: dict) -> dict:
+    entitlements = data.get("_entitlements", {})
+    limits = entitlements.get("limits", {})
+    
+    exports_remaining = limits.get("exports_remaining", -1)  # -1 = unlimited
+    
+    if exports_remaining == 0:
+        return {
+            "error": "Monthly export limit reached",
+            "error_code": "LIMIT_EXCEEDED"
+        }
+    
+    # Limit available, proceed
+    return do_export()
+```
+
+### Self-Hosted Behavior
+
+When `_entitlements` is empty or missing, plugins work without restrictions:
+
+```python
+async def execute(data: dict) -> dict:
+    entitlements = data.get("_entitlements", {})
+    features = entitlements.get("features", {})
+    
+    # Default True = works in self-hosted mode
+    if not features.get("my_feature", True):
+        return {"error": "Upgrade required", "error_code": "FEATURE_GATED"}
+    
+    # In self-hosted: features.get() returns True (default)
+    # In platform: features.get() returns actual subscription value
+```
+
+### Standard Error Codes
+
+| Code | Meaning |
+|------|---------|
+| `FEATURE_GATED` | Feature not in user's plan |
+| `LIMIT_EXCEEDED` | Usage limit reached |
+| `ENTITLEMENT_ERROR` | System error checking entitlements |
+
+---
+
+## 13. Security Rules
 
 1. **ALWAYS scope database queries by `user_id`**
 2. **NEVER trust client-provided `user_id` or `app_id`** - use injected values
@@ -768,7 +860,7 @@ Content-Type: application/json
 
 ---
 
-## 13. Testing Your Plugin
+## 14. Testing Your Plugin
 
 ```python
 # Test locally
@@ -806,3 +898,4 @@ asyncio.run(test())
 - [ ] Database queries scoped by `user_id`
 - [ ] ObjectIds converted to strings in responses
 - [ ] Proper logging with `mozaiks_plugins.{plugin_name}` logger
+- [ ] Entitlement checks use defaults that work in self-hosted mode

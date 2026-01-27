@@ -3,27 +3,34 @@ import { useNavigate } from 'react-router-dom';
 import { useChatUI } from '../context/ChatUIContext';
 import { useWidgetMode } from '../hooks/useWidgetMode';
 import Header from '../components/layout/Header';
+import useTheme from '../styles/useTheme';
 
 /**
  * My Workflows Page
- *
- * THIS IS JUST A PLACEHOLDER IMPLEMENTATION.
  */
 const MyWorkflowsPage = () => {
   const navigate = useNavigate();
   const {
-    config
+    config,
+    user
   } = useChatUI();
   useWidgetMode(); // Enable persistent chat widget for this page
   const [workflows, setWorkflows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all'); // all, completed, in-progress
+  const [filterStatus, setFilterStatus] = useState('all'); // all, available, in-progress, locked
   const [sortBy, setSortBy] = useState('recent'); // recent, name, status
+  const [loadError, setLoadError] = useState(null);
 
-  // App ID for API calls (currently using mock data)
-  // eslint-disable-next-line no-unused-vars
+  const apiBaseUrl = config?.api?.baseUrl || process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
   const currentAppId = config?.chat?.defaultAppId || process.env.REACT_APP_DEFAULT_APP_ID;
+  const currentUserId =
+    user?.id ||
+    user?.user_id ||
+    user?.userId ||
+    config?.chat?.defaultUserId ||
+    process.env.REACT_APP_DEFAULT_USER_ID;
+  const { theme: chatTheme } = useTheme(currentAppId);
 
   useEffect(() => {
     loadWorkflows();
@@ -31,42 +38,70 @@ const MyWorkflowsPage = () => {
 
   const loadWorkflows = async () => {
     setLoading(true);
+    setLoadError(null);
     try {
-      // TODO: Replace with actual API call to backend
-      // const response = await fetch(`/api/workflows/${currentAppId}`);
-      // const data = await response.json();
-      
-      // Mock data for now
-      const mockWorkflows = [
-        {
-          id: 'wf-001',
-          name: 'Revenue Dashboard',
-          description: 'Analytics dashboard with real-time metrics',
-          status: 'completed',
-          created_at: new Date('2025-01-10'),
-          updated_at: new Date('2025-01-15'),
-          chat_id: 'chat-001',
-          workflow_type: 'MozaiksAI',
-          thumbnail: null,
-          tags: ['analytics', 'dashboard']
-        },
-        {
-          id: 'wf-002',
-          name: 'User Management System',
-          description: 'CRUD operations for user accounts',
-          status: 'in-progress',
-          created_at: new Date('2025-01-14'),
-          updated_at: new Date('2025-01-15'),
-          chat_id: 'chat-002',
-          workflow_type: 'MozaiksAI',
-          thumbnail: null,
-          tags: ['auth', 'admin']
-        },
-      ];
-      
-      setWorkflows(mockWorkflows);
+      if (!currentAppId) {
+        throw new Error('Missing app_id configuration for workflow listing');
+      }
+
+      const workflowConfigRes = await fetch(`${apiBaseUrl}/api/workflows`);
+      if (!workflowConfigRes.ok) {
+        throw new Error(await workflowConfigRes.text());
+      }
+      const workflowConfigs = await workflowConfigRes.json();
+
+      const availableRes = await fetch(`${apiBaseUrl}/api/workflows/${encodeURIComponent(currentAppId)}/available`);
+      if (!availableRes.ok) {
+        throw new Error(await availableRes.text());
+      }
+      const availablePayload = await availableRes.json();
+      const available = Array.isArray(availablePayload?.workflows) ? availablePayload.workflows : [];
+
+      const sessionsRes = currentUserId
+        ? await fetch(`${apiBaseUrl}/api/sessions/list/${encodeURIComponent(currentAppId)}/${encodeURIComponent(currentUserId)}`)
+        : null;
+      let sessions = [];
+      if (sessionsRes) {
+        if (!sessionsRes.ok) {
+          throw new Error(await sessionsRes.text());
+        }
+        const sessionPayload = await sessionsRes.json();
+        sessions = Array.isArray(sessionPayload?.sessions) ? sessionPayload.sessions : [];
+      }
+
+      const sessionsByWorkflow = new Map();
+      for (const session of sessions) {
+        if (session?.workflow_name) {
+          sessionsByWorkflow.set(session.workflow_name, session);
+        }
+      }
+
+      const workflowList = available.map((entry) => {
+        const id = entry?.id || entry?.workflow_name || entry?.name;
+        const wfConfig = id && workflowConfigs ? workflowConfigs[id] : null;
+        const session = id ? sessionsByWorkflow.get(id) : null;
+        const status = session ? 'in-progress' : (entry?.available ? 'available' : 'locked');
+        return {
+          id: id || 'unknown',
+          name: wfConfig?.display_name || wfConfig?.name || id || 'Workflow',
+          description: wfConfig?.description || wfConfig?.summary || null,
+          status,
+          created_at: session?.created_at || null,
+          updated_at: session?.last_updated_at || session?.updated_at || null,
+          chat_id: session?.chat_id || null,
+          workflow_type: id || null,
+          thumbnail: wfConfig?.thumbnail || null,
+          tags: Array.isArray(wfConfig?.tags) ? wfConfig.tags : [],
+          locked_reason: entry?.locked_reason || null,
+          available: Boolean(entry?.available),
+        };
+      });
+
+      setWorkflows(workflowList);
     } catch (error) {
       console.error('Failed to load workflows:', error);
+      setLoadError(error?.message || String(error));
+      setWorkflows([]);
     } finally {
       setLoading(false);
     }
@@ -97,25 +132,23 @@ const MyWorkflowsPage = () => {
           return a.status.localeCompare(b.status);
         case 'recent':
         default:
-          return new Date(b.updated_at) - new Date(a.updated_at);
+          return new Date(b.updated_at || 0) - new Date(a.updated_at || 0);
       }
     });
 
   const handleResumeWorkflow = (workflow) => {
-    // Navigate back to chat with the specific chat_id
+    if (!workflow?.chat_id) return;
     navigate(`/chat?chat_id=${workflow.chat_id}&workflow=${workflow.workflow_type}`);
   };
 
   const handleViewArtifact = (workflow) => {
-    // Open chat with artifact panel visible
+    if (!workflow?.chat_id) return;
     navigate(`/chat?chat_id=${workflow.chat_id}&workflow=${workflow.workflow_type}&view=artifact`);
   };
 
   const handleExportWorkflow = async (workflow) => {
     try {
-      // TODO: Implement export functionality
       console.log('Exporting workflow:', workflow.id);
-      // Could download as JSON, zip with code, or generate deployment package
     } catch (error) {
       console.error('Export failed:', error);
     }
@@ -127,30 +160,42 @@ const MyWorkflowsPage = () => {
     }
     
     try {
-      // TODO: API call to delete workflow
       setWorkflows(prev => prev.filter(wf => wf.id !== workflow.id));
     } catch (error) {
       console.error('Delete failed:', error);
     }
   };
 
+  const handleHeaderAction = (actionId) => {
+    if (actionId === 'discover') {
+      navigate('/chat');
+    }
+  };
+
   const getStatusBadge = (status) => {
     const styles = {
-      completed: 'bg-green-500/20 text-green-400 border-green-500/30',
+      available: 'bg-green-500/20 text-green-400 border-green-500/30',
       'in-progress': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+      locked: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
       failed: 'bg-red-500/20 text-red-400 border-red-500/30'
     };
     
     return (
       <span className={`px-2 py-1 text-xs rounded-full border ${styles[status] || styles['in-progress']}`}>
-        {status === 'in-progress' ? 'In Progress' : status.charAt(0).toUpperCase() + status.slice(1)}
+        {status === 'in-progress'
+          ? 'In Progress'
+          : status === 'available'
+            ? 'Available'
+            : status === 'locked'
+              ? 'Locked'
+              : status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
   };
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      <Header onDiscoverClick={() => navigate('/chat')} />
+      <Header chatTheme={chatTheme} onAction={handleHeaderAction} />
       
       <main className="flex-1 overflow-hidden flex flex-col pt-16 sm:pt-20 md:pt-16">
         {/* Page Header */}
@@ -194,8 +239,9 @@ const MyWorkflowsPage = () => {
                 className="px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:border-[var(--color-primary-light)] focus:ring-2 focus:ring-[var(--color-primary-light)]/20 transition-all"
               >
                 <option value="all">All Status</option>
-                <option value="completed">Completed</option>
+                <option value="available">Available</option>
                 <option value="in-progress">In Progress</option>
+                <option value="locked">Locked</option>
               </select>
               
               {/* Sort */}
@@ -212,6 +258,12 @@ const MyWorkflowsPage = () => {
           </div>
         </div>
         
+        {loadError && (
+          <div className="max-w-7xl mx-auto w-full px-6 py-4 text-sm text-[var(--color-warning)]">
+            {loadError}
+          </div>
+        )}
+
         {/* Workflows Grid */}
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto">

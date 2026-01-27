@@ -1,4 +1,5 @@
 # Workflow Integration Guide
+> **Doc Status:** authoritative (platform depends on this doc)
 
 ## Purpose
 
@@ -1183,3 +1184,4 @@ curl http://localhost:8000/api/workflows | jq '.'
 - **[Workflow Authoring](../workflows/workflow_authoring.md)**: Creating new workflows
 - **[Configuration Reference](../runtime/configuration_reference.md)**: Environment variables and settings
 - **[Deployment Guide](../operations/deployment.md)**: Production deployment patterns
+

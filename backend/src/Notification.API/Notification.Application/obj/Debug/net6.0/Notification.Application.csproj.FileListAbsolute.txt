@@ -29,3 +29,4 @@ C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\
 C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\src\Notification.API\Notification.Application\obj\Debug\net6.0\refint\Notification.Application.dll
 C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\src\Notification.API\Notification.Application\obj\Debug\net6.0\Notification.Application.pdb
 C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\src\Notification.API\Notification.Application\obj\Debug\net6.0\ref\Notification.Application.dll
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\src\Notification.API\Notification.Application\obj\Debug\net6.0\Notification.Application.sourcelink.json

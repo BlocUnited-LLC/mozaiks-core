@@ -68,7 +68,7 @@ export class DynamicUIHandler {
       return;
     }
     if (type !== type.toLowerCase()) {
-      // Enforce strictness: reject mixed-case legacy emissions instead of silently normalizing
+      // Enforce strictness: reject mixed-case emissions instead of silently normalizing
       console.warn(`⚠️ Rejecting non-lowercase UI event type '${type}' (expected canonical lowercase)`);
       return;
     }

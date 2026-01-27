@@ -1,0 +1,7 @@
+# Stripe Webhook Handler - Requirements
+# Install with: pip install -r requirements.txt
+
+flask>=2.3.0
+stripe>=7.0.0
+requests>=2.31.0
+gunicorn>=21.0.0  # For production deployment

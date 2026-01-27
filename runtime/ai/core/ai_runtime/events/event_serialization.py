@@ -19,6 +19,11 @@ into transport-friendly payload dictionaries consumed by the WebSocket/UI layer.
 Key transformation: 'kind' field (internal) -> 'type' field (WebSocket/frontend)
 Examples: {"kind": "text"} -> {"type": "chat.text", "data": {...}}
 
+Orchestration Events (v1.1):
+  - kind: orchestration.run_started | orchestration.run_completed | orchestration.run_failed
+  - kind: orchestration.agent_started | orchestration.agent_completed
+  - status: in_progress | completed | failed | cancelled
+
 Goals:
  - Single source of truth for AG2 event mapping, normalization, structured output flags
  - Keep orchestration loop lean and focused on control flow  
@@ -31,6 +36,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 from dataclasses import dataclass
+from datetime import datetime, UTC
 
 from core.ai_runtime.workflow.validation.tools import (
 	SENTINEL_AGENT_KEY,
@@ -41,6 +47,18 @@ from core.ai_runtime.workflow.validation.tools import (
 	SENTINEL_STATUS,
 	SENTINEL_TOOL_KEY,
 )
+
+
+# ---------------------------------------------------------------------------
+# Orchestration Event Constants (v1.1 - Platform Contract)
+# ---------------------------------------------------------------------------
+class OrchestrationStatus:
+	"""Standard status values for orchestration events."""
+	IN_PROGRESS = "in_progress"
+	COMPLETED = "completed"
+	FAILED = "failed"
+	CANCELLED = "cancelled"
+
 
 # Lightweight dataclass to pass context (avoids long arg lists if extended later)
 @dataclass
@@ -137,6 +155,38 @@ def extract_agent_name(obj: Any) -> Optional[str]:
 		return None
 
 
+def _safe_agent_label(value: Any) -> Optional[str]:
+	"""Best-effort label for agent-like values."""
+	try:
+		if isinstance(value, str) and value.strip():
+			return value.strip()
+		if hasattr(value, "name") and isinstance(value.name, str) and value.name.strip():
+			return value.name.strip()
+		if hasattr(value, "agent_name") and isinstance(value.agent_name, str) and value.agent_name.strip():
+			return value.agent_name.strip()
+		if value is None:
+			return None
+		return str(value)
+	except Exception:
+		return None
+
+
+def _safe_transition_target_label(target: Any) -> Optional[str]:
+	"""Best-effort label for transition targets."""
+	try:
+		if target is None:
+			return None
+		if hasattr(target, "display_name") and callable(getattr(target, "display_name")):
+			return target.display_name()
+		if hasattr(target, "agent_name") and isinstance(target.agent_name, str) and target.agent_name.strip():
+			return target.agent_name.strip()
+		if hasattr(target, "normalized_name") and callable(getattr(target, "normalized_name")):
+			return target.normalized_name()
+		return str(target)
+	except Exception:
+		return None
+
+
 # ---------------------------------------------------------------------------
 # Main builder
 # ---------------------------------------------------------------------------
@@ -157,6 +207,18 @@ def build_ui_event_payload(*, ev: Any, ctx: EventBuildContext) -> Optional[Dict[
 			GroupChatRunChatEvent as _GRCE,
 		)
 		from autogen.events.client_events import UsageSummaryEvent as _US
+		try:
+			from autogen.agentchat.group.events.transition_events import (
+				AfterWorksTransitionEvent as _AWT,
+				OnContextConditionTransitionEvent as _OCT,
+				OnConditionLLMTransitionEvent as _OLT,
+				ReplyResultTransitionEvent as _RRT,
+			)
+		except Exception:  # pragma: no cover
+			_AWT = object  # type: ignore
+			_OCT = object  # type: ignore
+			_OLT = object  # type: ignore
+			_RRT = object  # type: ignore
 		try:
 			from autogen.events.print_event import PrintEvent as _PE
 		except Exception:  # pragma: no cover
@@ -342,13 +404,43 @@ def build_ui_event_payload(*, ev: Any, ctx: EventBuildContext) -> Optional[Dict[
 	if isinstance(ev, _SS):
 		selected = getattr(ev, "selected", None) or getattr(ev, "next", None)
 		current_agent = extract_agent_name(ev) or ctx.turn_agent
+		
+		# Orchestration v1.1: Agent transition as orchestration event
+		# Emit both select_speaker (for chat UI) and agent_started (for orchestration tracking)
 		payload.update({
-			"kind": "select_speaker",
-			"agent": current_agent,
-			"selected_speaker": selected,  # Include both for clarity
+			"kind": "orchestration.agent_started",
+			"run_id": None,  # Will be set by transport layer from chat_id
+			"status": OrchestrationStatus.IN_PROGRESS,
+			"agent": selected,
+			"timestamp": datetime.now(UTC).isoformat() + "Z",
+			"previous_agent": current_agent,
+			"selected_speaker": selected,  # Backward compat
 		})
 		# Enhanced logging to trace handoffs
 		ctx.wf_logger.info(f"🎭 [SPEAKER_SELECT] {current_agent} → {selected} (turn handoff)")
+		return payload
+
+	# Transition (handoff) events -------------------------------------
+	if isinstance(ev, (_AWT, _OCT, _OLT, _RRT)):
+		if isinstance(ev, _AWT):
+			handoff_type = "after_work"
+		elif isinstance(ev, _OCT):
+			handoff_type = "context"
+		elif isinstance(ev, _OLT):
+			handoff_type = "llm"
+		else:
+			handoff_type = "reply_result"
+		source_agent = _safe_agent_label(getattr(ev, "source_agent", None)) or extract_agent_name(ev)
+		transition_target = getattr(ev, "transition_target", None)
+		target_label = _safe_transition_target_label(transition_target)
+		payload.update({
+			"kind": "handoff",
+			"handoff_type": handoff_type,
+			"agent": source_agent,
+			"source_agent": source_agent,
+			"target": target_label,
+			"target_type": transition_target.__class__.__name__ if transition_target is not None else None,
+		})
 		return payload
 
 	# GroupChatResumeEvent --------------------------------------------
@@ -362,13 +454,14 @@ def build_ui_event_payload(*, ev: Any, ctx: EventBuildContext) -> Optional[Dict[
 
 	# GroupChatRunChatEvent -------------------------------------------
 	if isinstance(ev, _GRCE):
-		# Map run lifecycle orchestration marker to a semantic kind so UI can
-		# optionally display or ignore it deterministically instead of treating
-		# it as a generic 'unknown'. This also avoids spinner lock conditions
-		# that previously depended on chat.text only.
+		# Orchestration v1.1: Semantic kind for deterministic UI spinner control
+		# Platform can stop spinners on run_completed/run_failed, not chat.text presence
 		payload.update({
-			"kind": "run_start",
+			"kind": "orchestration.run_started",
+			"run_id": None,  # Will be set by transport layer from chat_id
+			"status": OrchestrationStatus.IN_PROGRESS,
 			"agent": extract_agent_name(ev) or ctx.turn_agent,
+			"timestamp": datetime.now(UTC).isoformat() + "Z",
 			"message": "Workflow run initialized"
 		})
 		return payload
@@ -386,6 +479,7 @@ def build_ui_event_payload(*, ev: Any, ctx: EventBuildContext) -> Optional[Dict[
 
 	# RunCompletionEvent -----------------------------------------------
 	if isinstance(ev, _RC):
+		# Orchestration v1.1: Semantic kind for deterministic UI spinner control
 		# Extract comprehensive completion metadata from AG2's RunCompletionEvent
 		summary = getattr(ev, "summary", None)
 		history = getattr(ev, "history", None)
@@ -394,9 +488,11 @@ def build_ui_event_payload(*, ev: Any, ctx: EventBuildContext) -> Optional[Dict[
 		context_vars = getattr(ev, "context_variables", None)
 		
 		payload.update({
-			"kind": "run_complete",
+			"kind": "orchestration.run_completed",
+			"run_id": None,  # Will be set by transport layer from chat_id
+			"status": OrchestrationStatus.COMPLETED,
 			"agent": last_speaker or extract_agent_name(ev) or ctx.turn_agent,
-			"status": 1,  # Workflow completed successfully
+			"timestamp": datetime.now(UTC).isoformat() + "Z",
 		})
 		
 		# Add optional metadata if available
@@ -417,16 +513,27 @@ def build_ui_event_payload(*, ev: Any, ctx: EventBuildContext) -> Optional[Dict[
 	if isinstance(ev, _EE):
 		err_msg = getattr(ev, "message", None) or normalize_text_content(getattr(ev, "content", None))
 		code = getattr(ev, "code", None) or getattr(ev, "error_code", None)
+		
+		# Orchestration v1.1: Run-level errors use orchestration namespace
+		# This allows UI to stop spinner deterministically on failures
 		payload.update({
-			"kind": "error",
+			"kind": "orchestration.run_failed",
+			"run_id": None,  # Will be set by transport layer from chat_id
+			"status": OrchestrationStatus.FAILED,
 			"agent": extract_agent_name(ev) or ctx.turn_agent,
+			"timestamp": datetime.now(UTC).isoformat() + "Z",
 			"message": err_msg,
+			"error": err_msg,
 			"code": code,
 		})
 		return payload
 
-	# Fallback marker
-	payload.update({"kind": "unknown"})
+	# Fallback marker - log for observability when AG2 adds new event types
+	ctx.wf_logger.warning(
+		f"⚠️ [UNKNOWN_EVENT] Unhandled AG2 event type: {et_name}. "
+		f"Consider adding handler in event_serialization.py"
+	)
+	payload.update({"kind": "unknown", "raw_type": et_name})
 	return payload
 
 def build_structured_output_ready_event(
@@ -449,6 +556,7 @@ def build_structured_output_ready_event(
 
 __all__ = [
 	"EventBuildContext",
+	"OrchestrationStatus",
 	"normalize_text_content",
 	"serialize_event_content",
 	"extract_agent_name",

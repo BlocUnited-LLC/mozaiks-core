@@ -1,0 +1,59 @@
+# entitlements.yaml
+# Self-hosted entitlements configuration for MozaiksCore
+#
+# This file defines what apps can do when running Core standalone
+# (without mozaiks-platform).
+#
+# Place this file in one of:
+#   - ./entitlements.yaml (current directory)
+#   - ./config/entitlements.yaml
+#   - /etc/mozaiks/entitlements.yaml
+#
+# Or set MOZAIKS_ENTITLEMENTS_FILE=/path/to/your/config.yaml
+
+# Defaults apply to all apps unless overridden
+defaults:
+  tier: "self-hosted"
+  plan_name: "Self-Hosted"
+  
+  # Token budget (-1 = unlimited)
+  token_budget:
+    limit: -1          # No limit for self-hosters
+    period: "monthly"
+    enforcement: "none"  # hard, soft, warn, none
+  
+  # Features (true = enabled, false = disabled)
+  # Missing features default to true (everything allowed)
+  features:
+    workflow_execution: true
+    multi_agent: true
+    code_execution: true
+    function_calling: true
+    vision: true
+    file_upload: true
+    web_search: true
+    mcp_tools: true
+  
+  # Rate limits (-1 = unlimited)
+  rate_limits:
+    requests_per_minute: -1
+    concurrent_workflows: -1
+    max_tokens_per_request: -1
+
+# Per-app overrides (optional)
+# apps:
+#   my-production-app:
+#     tier: "enterprise"
+#     token_budget:
+#       limit: 1000000
+#       enforcement: "soft"
+#     features:
+#       code_execution: true
+#     rate_limits:
+#       concurrent_workflows: 10
+#   
+#   my-dev-app:
+#     tier: "development"
+#     token_budget:
+#       limit: 100000
+#       enforcement: "warn"

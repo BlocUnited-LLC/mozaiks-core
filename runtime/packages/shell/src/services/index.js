@@ -1,5 +1,5 @@
 import config from '../config';
-import { MockAuthAdapter, TokenAuthAdapter } from '../adapters/auth';
+import { TokenAuthAdapter } from '../adapters/auth';
 import { WebSocketApiAdapter, RestApiAdapter } from '../adapters/api';
 
 class ChatUIServices {
@@ -25,17 +25,7 @@ class ChatUIServices {
   createAuthAdapter(customAdapter) {
     if (customAdapter) return customAdapter;
 
-    const authMode = config.get('auth.mode');
-    
-    switch (authMode) {
-      case 'mock':
-        return new MockAuthAdapter();
-      case 'token':
-        return new TokenAuthAdapter(config.get('api.baseUrl'));
-      default:
-        console.warn(`Unknown auth mode: ${authMode}, using mock`);
-        return new MockAuthAdapter();
-    }
+    return new TokenAuthAdapter(config.get('api.baseUrl'));
   }
 
   createApiAdapter(customAdapter) {

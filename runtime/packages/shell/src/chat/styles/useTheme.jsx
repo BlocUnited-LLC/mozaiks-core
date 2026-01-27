@@ -5,7 +5,14 @@
 // ============================================================================
 
 import { useState, useEffect } from 'react';
-import { getTheme, DEFAULT_THEME, getCurrentAppId } from './themeProvider';
+import {
+  getTheme,
+  DEFAULT_THEME,
+  DEFAULT_HEADER_CONFIG,
+  DEFAULT_FOOTER_CONFIG,
+  DEFAULT_CHAT_CONFIG,
+  getCurrentAppId,
+} from './themeProvider';
 
 const DYNAMIC_FALLBACKS = {
   primary: {
@@ -251,6 +258,22 @@ export function getDynamicColorClass(theme, type = 'primary', variant = 'main', 
 
   const base = propertyMap[property] || propertyMap.bg;
   return [base, fallback].filter(Boolean).join(' ').trim();
+}
+
+/**
+ * CONFIG ACCESSOR HELPERS
+ * Return theme config sections with defaults merged in
+ */
+export function getHeaderConfig(theme) {
+  return { ...DEFAULT_HEADER_CONFIG, ...theme?.header };
+}
+
+export function getFooterConfig(theme) {
+  return { ...DEFAULT_FOOTER_CONFIG, ...theme?.footer };
+}
+
+export function getChatConfig(theme) {
+  return { ...DEFAULT_CHAT_CONFIG, ...theme?.chat };
 }
 
 export default useTheme;

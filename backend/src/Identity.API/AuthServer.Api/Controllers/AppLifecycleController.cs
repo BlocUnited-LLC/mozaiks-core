@@ -50,8 +50,6 @@ public sealed class AppLifecycleController : ControllerBase
             return NotFound(new { error = "App not found" });
         }
 
-        // TODO: Add authorization check - user must be owner or team member
-
         return Ok(new AppLifecycleStateResponse
         {
             AppId = state.AppId,

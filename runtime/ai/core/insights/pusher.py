@@ -218,7 +218,7 @@ async def run_insights_push_loop(*, shutdown_event: asyncio.Event | None = None)
     env = _env_name()
     base_url = (settings.insights_base_url or "").strip()
     per_app_api_key = (settings.mozaiks_api_key or "").strip()
-    legacy_internal_key = (settings.insights_internal_api_key or "").strip()
+    fallback_internal_key = (settings.insights_internal_api_key or "").strip()
     sdk_version = (settings.mozaiks_sdk_version or "1.0.0").strip()
 
     if not base_url:
@@ -230,9 +230,9 @@ async def run_insights_push_loop(*, shutdown_event: asyncio.Event | None = None)
     if per_app_api_key:
         key_prefix = per_app_api_key[:12] + "..." if len(per_app_api_key) > 12 else "***"
         logger.info(f"Telemetry configured with per-app API key: {key_prefix}")
-    elif legacy_internal_key:
+    elif fallback_internal_key:
         logger.warning(
-            "Telemetry using deprecated INSIGHTS_INTERNAL_API_KEY (or INTERNAL_API_KEY fallback). "
+            "Telemetry using deprecated INSIGHTS_INTERNAL_API_KEY (or INTERNAL_API_KEY alias). "
             "Configure MOZAIKS_API_KEY for per-app authentication."
         )
     else:
@@ -244,7 +244,7 @@ async def run_insights_push_loop(*, shutdown_event: asyncio.Event | None = None)
         sdk_version=sdk_version,
         mozaiks_app_id=app_id,
         mozaiks_api_key=per_app_api_key or None,
-        internal_api_key=(legacy_internal_key or None),
+        internal_api_key=(fallback_internal_key or None),
     )
     client = InsightsClient(config)
 

@@ -118,10 +118,14 @@ if db is not None:
     subscriptions_collection = db["subscriptions"]
     subscription_history_collection = db["subscription_history"]
     billing_history_collection = db["billing_history"]
-    
+
     # Add the settings collection
     settings_collection = db["settings"]
-    
+
+    # Add the entitlement usage collection (Contract v1.0)
+    # Stores per-user, per-plugin usage for consumable limits
+    entitlement_usage_collection = db["entitlement_usage"]
+
     # Initialize indexes for settings collection
     @with_retry(max_retries=5, delay=2)
     async def create_settings_indexes():
@@ -129,19 +133,65 @@ if db is not None:
             # Create compound index on user_id + plugin_name for faster lookups
             await settings_collection.create_index([("user_id", 1), ("plugin_name", 1)])
             logger.info("✅ Created index on user_id and plugin_name in settings collection")
-            
+
             # Add TTL index for temporary settings if needed
             # await settings_collection.create_index([("expires_at", 1)], expireAfterSeconds=0)
             # logger.info("✅ Created TTL index on expires_at in settings collection")
         except Exception as e:
             logger.error(f"❌ Error creating settings indexes: {e}")
             raise
+
+    # Initialize indexes for entitlement usage collection (Contract v1.0)
+    @with_retry(max_retries=5, delay=2)
+    async def create_entitlement_usage_indexes():
+        """
+        Create indexes for entitlement_usage collection.
+
+        Schema:
+        {
+            app_id: str,
+            user_id: str,
+            plugin: str,
+            limit_key: str,
+            period: str,      # e.g., "2026-01" for monthly
+            period_type: str, # "monthly", "daily", "weekly", "never"
+            used: int,
+            limit: int,
+            first_use: datetime,
+            last_use: datetime,
+            updated_at: datetime
+        }
+        """
+        try:
+            # Unique compound index for fast lookups and upserts
+            await entitlement_usage_collection.create_index(
+                [
+                    ("app_id", 1),
+                    ("user_id", 1),
+                    ("plugin", 1),
+                    ("limit_key", 1)
+                ],
+                unique=True
+            )
+            logger.info("✅ Created unique index on entitlement_usage collection")
+
+            # Index for period-based queries (cleanup, reporting)
+            await entitlement_usage_collection.create_index(
+                [("period", 1), ("period_type", 1)]
+            )
+            logger.info("✅ Created period index on entitlement_usage collection")
+
+        except Exception as e:
+            logger.error(f"❌ Error creating entitlement_usage indexes: {e}")
+            raise
+
 else:
     users_collection = None
     subscriptions_collection = None
     subscription_history_collection = None
     billing_history_collection = None
     settings_collection = None
+    entitlement_usage_collection = None
 
 # Async functions to initialize enterprise data
 @with_retry(max_retries=5, delay=1)
@@ -189,10 +239,14 @@ async def initialize_database():
     await verify_connection()
     await create_enterprise_index()
     await ensure_enterprise_exists()
-    
+
     # Only create settings indexes if settings_collection is available
     if settings_collection is not None:
         await create_settings_indexes()
+
+    # Create entitlement usage indexes (Contract v1.0)
+    if entitlement_usage_collection is not None:
+        await create_entitlement_usage_indexes()
 
 # Cache for frequently accessed database lookups
 class DBCache:

@@ -1,4 +1,5 @@
 # MozaiksAI - Build -> Deploy -> Runtime Contract (MozaiksCore Integration) (2026-01-02)
+> **Doc Status:** authoritative (platform depends on this doc)
 
 This is a **fresh handoff spec** for MozaiksAI (the build/runtime system) so MozaiksCore (shell app) + Mozi UI can reliably:
 - identify an "app/project",

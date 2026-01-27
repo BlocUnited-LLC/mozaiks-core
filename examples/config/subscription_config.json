@@ -1,0 +1,52 @@
+{
+  "subscription_plans": [
+    {
+      "name": "free",
+      "price": 0,
+      "currency": "USD",
+      "billing_cycle": "monthly",
+      "description": "Basic access - perfect for trying out mozaiks",
+      "plugins_unlocked": ["basic_chat"]
+    },
+    {
+      "name": "starter",
+      "price": 9.99,
+      "currency": "USD",
+      "billing_cycle": "monthly",
+      "description": "For individuals and small projects",
+      "plugins_unlocked": [
+        "basic_chat",
+        "file_manager",
+        "streaming"
+      ]
+    },
+    {
+      "name": "pro",
+      "price": 29.99,
+      "currency": "USD",
+      "billing_cycle": "monthly",
+      "description": "For power users and teams",
+      "plugins_unlocked": [
+        "basic_chat",
+        "file_manager",
+        "streaming",
+        "code_interpreter",
+        "vector_search",
+        "document_loader"
+      ]
+    },
+    {
+      "name": "enterprise",
+      "price": 99.99,
+      "currency": "USD",
+      "billing_cycle": "monthly",
+      "description": "Unlimited access for organizations",
+      "plugins_unlocked": ["*"]
+    }
+  ],
+  "settings": {
+    "trial_plan": "pro",
+    "trial_period_days": 14,
+    "default_plan": "free"
+  }
+}

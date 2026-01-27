@@ -37,7 +37,7 @@ class TokenManager:
         workflow_name: str,
         persistence_manager: Any,
     ) -> Dict[str, Any]:
-        """Legacy compatibility shim: runtime never gates chat start."""
+        """Compatibility shim: runtime never gates chat start."""
         return {"allowed": True}
 
     @staticmethod

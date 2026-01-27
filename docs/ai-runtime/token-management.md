@@ -1,4 +1,5 @@
 # Token Management & Billing Architecture
+> **Doc Status:** authoritative (platform depends on this doc)
 
 **Overview:** MozaiksAI implements a real-time token tracking and billing system integrated with AG2's native usage summary lifecycle, supporting both free trial mode and production billing.
 
@@ -1087,3 +1088,4 @@ MozaiksAI's token management system provides:
 - **Atomicity:** MongoDB atomic updates prevent double-spending
 - **Scalability:** Incremental rollup updates, not full recomputes
 - **Flexibility:** Free trial vs. production mode via single env variable
+

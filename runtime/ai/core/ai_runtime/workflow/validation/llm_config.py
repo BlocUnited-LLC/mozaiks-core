@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 def _attach_autogen_cache(llm_config: Dict[str, Any]) -> None:
     """Attach an Autogen disk cache rooted in a writable location.
 
-    Why: Autogen's legacy behavior uses cache_root='.cache', which can fail on
+    Why: Autogen's default behavior uses cache_root='.cache', which can fail on
     Docker Desktop + bind mounts (PermissionError). We inject a Cache object so
     Autogen uses it instead of creating './.cache/<seed>'.
 
@@ -330,7 +330,7 @@ async def get_llm_config(
 ) -> Tuple[Optional[Any], Dict[str, Any]]:
     """Build (or retrieve from cache) an LLM runtime config.
 
-    Returns a tuple (wrapper_placeholder, llm_config). The first element is kept for backward
+    Returns a tuple (wrapper_placeholder, llm_config). The first element is kept for
     compatibility with earlier callers but is always None; the second is the dict passed to
     ConversableAgent.
     """

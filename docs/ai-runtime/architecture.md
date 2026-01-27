@@ -1,4 +1,5 @@
 # 🤖 AI Runtime Architecture
+> **Doc Status:** reference (not contract-critical)
 
 > The AI Runtime is the **agent orchestration engine** — built on AG2 (Autogen), it manages workflows, agents, tools, and real-time streaming.
 
@@ -336,3 +337,4 @@ DATABASE_URI=mongodb://...
 - 📖 [Core Architecture](../core/architecture.md) — Core system overview
 - 📡 [WebSockets](../core/websockets.md) — WebSocket streaming
 - 🗄️ [Database](../core/database.md) — MongoDB persistence
+

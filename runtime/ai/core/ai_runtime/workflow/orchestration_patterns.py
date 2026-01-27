@@ -637,7 +637,7 @@ async def _stream_events(
         
         if not group_manager or not hasattr(group_manager, "a_resume"):
             wf_logger.error(" [AG2_RESUME] Pattern missing required a_resume capability!")
-            raise RuntimeError("Pattern missing required a_resume capability; backward compatibility removed")
+            raise RuntimeError("Pattern missing required a_resume capability; compatibility no longer supported")
             
         wf_logger.info(f" [AG2_RESUME] Calling group_manager.a_resume() with {len(initial_messages)} messages, max_rounds={max_turns}")
         

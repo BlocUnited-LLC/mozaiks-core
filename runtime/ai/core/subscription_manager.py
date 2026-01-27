@@ -351,18 +351,101 @@ class SubscriptionManager:
         """Checks whether a user has access to a given plugin based on their subscription plan."""
         # First check if trial has expired
         await self.check_trial_status(user_id)
-        
+
         # Then get current subscription (which will be updated if trial expired)
         subscription = await self.get_user_subscription(user_id)
         user_plan = subscription["plan"]
-        
+
         # Find what plugins are unlocked for this plan
         unlocked_plugins = []
         for plan in self.subscription_config.get("subscription_plans", []):
             if plan["name"].lower() == user_plan.lower():
                 unlocked_plugins = plan["plugins_unlocked"]
-        
+
         return "*" in unlocked_plugins or plugin_name in unlocked_plugins
+
+    async def get_user_plugin_tier(self, user_id: str, plugin_name: str) -> str:
+        """
+        Get the user's tier for a specific plugin.
+
+        Contract v1.0: Plugin-level entitlements support per-plugin tier assignments.
+
+        Resolution order:
+        1. subscription.plugin_tiers[plugin_name] (per-plugin override)
+        2. subscription_config.plans[plan].plugins[plugin_name] (plan-level mapping)
+        3. subscription.plan (global plan name)
+        4. "free" (default fallback)
+
+        Args:
+            user_id: User identifier
+            plugin_name: Plugin name
+
+        Returns:
+            Tier name (e.g., "free", "basic", "pro")
+        """
+        # First check if trial has expired
+        await self.check_trial_status(user_id)
+
+        # Get current subscription
+        subscription = await subscriptions_collection.find_one({"user_id": user_id})
+
+        if not subscription:
+            return "free"
+
+        # Check for per-plugin tier override (set by Control Plane)
+        plugin_tiers = subscription.get("plugin_tiers", {})
+        if plugin_name in plugin_tiers:
+            return plugin_tiers[plugin_name]
+
+        # Check subscription_config for plan→plugin tier mapping
+        user_plan = subscription.get("plan", "free")
+        for plan_config in self.subscription_config.get("subscription_plans", []):
+            if plan_config.get("name", "").lower() == user_plan.lower():
+                # Check if plan defines plugin-specific tiers
+                plugins_mapping = plan_config.get("plugins", {})
+                if plugin_name in plugins_mapping:
+                    return plugins_mapping[plugin_name]
+
+        # Fallback to global plan name as tier
+        return user_plan
+
+    async def set_user_plugin_tier(
+        self,
+        user_id: str,
+        plugin_name: str,
+        tier: str,
+        *,
+        _internal_call: bool = False
+    ):
+        """
+        Set a user's tier for a specific plugin.
+
+        WRITE OPERATION - Control Plane only.
+
+        Args:
+            user_id: User identifier
+            plugin_name: Plugin name
+            tier: Tier to assign
+            _internal_call: Must be True (called from admin routes)
+        """
+        _require_internal_call("set_plugin_tier", _internal_call)
+
+        now = datetime.now(timezone.utc)
+
+        await subscriptions_collection.update_one(
+            {"user_id": user_id},
+            {
+                "$set": {
+                    f"plugin_tiers.{plugin_name}": tier,
+                    "updated_at": now.isoformat()
+                }
+            },
+            upsert=True
+        )
+
+        logger.info(f"✅ Set plugin tier for user {user_id}: {plugin_name}={tier}")
+
+        return {"success": True, "user_id": user_id, "plugin": plugin_name, "tier": tier}
 
     def calculate_next_billing_date(self, current_date):
         """

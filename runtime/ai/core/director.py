@@ -44,6 +44,7 @@ from core.routes.app_metadata import router as app_metadata_router
 from core.routes.push_subscriptions import router as push_subscriptions_router
 from core.routes.events import router as events_router
 from core.routes.subscription_sync import router as subscription_sync_router
+from core.routes.billing import router as billing_router
 
 logger = logging.getLogger("mozaiks_core")
 logging.basicConfig(level=logging.INFO)
@@ -97,6 +98,7 @@ app.include_router(app_metadata_router, prefix="/__mozaiks/admin/app", tags=["ad
 app.include_router(push_subscriptions_router)  # Has prefix /api/push
 app.include_router(events_router, prefix="/api/events", tags=["events"])
 app.include_router(subscription_sync_router)
+app.include_router(billing_router)  # Platform <-> Core billing integration (/api/v1/entitlements)
 
 # Determine if monetization is enabled
 MONETIZATION = os.getenv("MONETIZATION", "0") == "1"
@@ -130,13 +132,19 @@ def get_app_id() -> str:
     return APP_ID
 
 
-def inject_request_context(user: dict, data: dict, user_jwt: Optional[str] = None) -> dict:
+async def inject_request_context(
+    user: dict,
+    data: dict,
+    plugin_name: str,
+    user_jwt: Optional[str] = None
+) -> dict:
     """
-    Inject app_id, user_id, and optional user_jwt into request data.
-    
+    Inject app_id, user_id, entitlements and optional user_jwt into request data.
+
     SECURITY: These values are server-derived and cannot be overridden by client.
-    
+
     Contract v1.0.0: Includes user_jwt for plugin-to-service calls.
+    Contract v1.1.0: Includes _entitlements for feature/limit checks.
     """
     data["app_id"] = APP_ID
     data["user_id"] = user["user_id"]
@@ -147,10 +155,283 @@ def inject_request_context(user: dict, data: dict, user_jwt: Optional[str] = Non
         "roles": user.get("roles", []),
         "is_superadmin": user.get("is_superadmin", False),
     }
+
+    # Contract v1.1.0: Inject entitlements for plugin feature/limit checks
+    # Empty dict = self-hosted mode, plugins use defaults (no restrictions)
+    data["_entitlements"] = await _build_entitlements_context(user, plugin_name)
+
     # Contract v1.0.0: Inject bearer token for plugin-to-service authentication
     if user_jwt:
         data["user_jwt"] = user_jwt
     return data
+
+
+async def _build_entitlements_context(user: dict, plugin_name: str = None) -> dict:
+    """
+    Build entitlements context from user's subscription state and plugin config.
+
+    Contract v1.1.0: Loads plugin-level entitlements.yaml and populates context.
+
+    Returns empty dict in self-hosted mode (no restrictions).
+    Returns populated dict in platform mode (feature/limit gates).
+
+    Context structure:
+    {
+        "tier": str,              # User's tier for this plugin
+        "features": {             # Feature flags
+            "feature_key": bool,
+            ...
+        },
+        "limits": {               # Consumable/cap limits with usage
+            "limit_key": {
+                "allowed": int,
+                "used": int,
+                "remaining": int
+            },
+            ...
+        },
+        "enforce": bool           # Whether to enforce (platform mode)
+    }
+    """
+    if not MONETIZATION:
+        # Self-hosted: No entitlements = no restrictions
+        return {}
+
+    if not plugin_name:
+        # No plugin specified - return basic context
+        return {
+            "enforce": MONETIZATION,
+            "features": {},
+            "limits": {},
+        }
+
+    try:
+        # Import entitlements module (lazy to avoid circular imports)
+        from core.entitlements.loader import load_plugin_entitlements, has_entitlements_yaml
+        from core.entitlements.usage import get_all_usage
+        from core.entitlements import build_entitlements_context
+
+        # Check if plugin has entitlements.yaml
+        if not has_entitlements_yaml(plugin_name):
+            # No entitlements.yaml = features default true, limits unlimited
+            return {
+                "enforce": MONETIZATION,
+                "features": {},
+                "limits": {},
+            }
+
+        # Load plugin entitlements config
+        entitlements_config = load_plugin_entitlements(plugin_name)
+        if not entitlements_config:
+            # Invalid YAML or load error - enforcement disabled
+            return {
+                "enforce": False,
+                "features": {},
+                "limits": {},
+            }
+
+        # Get user's tier for this plugin
+        user_tier = await subscription_manager.get_user_plugin_tier(
+            user["user_id"],
+            plugin_name
+        )
+
+        # Get current usage data
+        usage_data = await get_all_usage(user["user_id"], plugin_name)
+
+        # Build full entitlements context
+        context = build_entitlements_context(
+            user_tier=user_tier,
+            plugin_name=plugin_name,
+            entitlements_config=entitlements_config,
+            usage_data=usage_data
+        )
+
+        # Add enforcement flag
+        context["enforce"] = MONETIZATION
+
+        return context
+
+    except ImportError as e:
+        logger.warning(f"Entitlements module not available: {e}")
+        return {
+            "enforce": MONETIZATION,
+            "features": {},
+            "limits": {},
+        }
+    except Exception as e:
+        logger.error(f"Error building entitlements context for {plugin_name}: {e}")
+        return {
+            "enforce": MONETIZATION,
+            "features": {},
+            "limits": {},
+        }
+
+
+async def _auto_enforce_entitlements(
+    user: dict,
+    plugin_name: str,
+    action: str,
+    data: dict
+) -> Optional[Dict[str, Any]]:
+    """
+    Auto-enforce entitlements before plugin execution.
+
+    Contract v1.1.0: If plugin's entitlements.yaml has an 'actions' section,
+    automatically check required features and limits.
+
+    Args:
+        user: User dict
+        plugin_name: Plugin name
+        action: Action being performed
+        data: Request data (with _entitlements injected)
+
+    Returns:
+        None if allowed, or error dict if blocked
+    """
+    if not MONETIZATION:
+        return None
+
+    try:
+        from core.entitlements.loader import load_plugin_entitlements
+        from core.entitlements import check_action
+        from core.entitlements.events import emit_feature_blocked_event, emit_limit_reached_event
+
+        entitlements_config = load_plugin_entitlements(plugin_name)
+        if not entitlements_config:
+            return None
+
+        # Check if actions section exists and defines this action
+        actions_config = entitlements_config.get("actions", {})
+        if action not in actions_config:
+            return None  # No auto-enforcement for this action
+
+        # Check if dry-run mode
+        dry_run = data.get("_entitlement_dry_run", False)
+
+        # Perform the check
+        entitlements = data.get("_entitlements", {})
+        result = await check_action(
+            user_id=user["user_id"],
+            plugin=plugin_name,
+            action=action,
+            entitlements=entitlements,
+            entitlements_config=entitlements_config
+        )
+
+        if not result["allowed"]:
+            # Emit appropriate event
+            if result["blocking_type"] == "feature":
+                await emit_feature_blocked_event(
+                    user_id=user["user_id"],
+                    plugin=plugin_name,
+                    feature_key=result.get("blocking_reason", "unknown"),
+                    tier=entitlements.get("tier", "unknown")
+                )
+                return {
+                    "error": result["blocking_reason"],
+                    "error_code": "FEATURE_GATED",
+                    "tier": entitlements.get("tier"),
+                }
+            elif result["blocking_type"] == "limit":
+                # Extract limit details for event
+                await emit_limit_reached_event(
+                    user_id=user["user_id"],
+                    plugin=plugin_name,
+                    limit_key="unknown",  # Extracted from blocking_reason if needed
+                    attempted=1,
+                    limit=0,
+                    period=""
+                )
+                return {
+                    "error": result["blocking_reason"],
+                    "error_code": "LIMIT_EXCEEDED",
+                }
+
+        # If dry-run, return the check result without proceeding
+        if dry_run:
+            return {
+                "dry_run": True,
+                "allowed": True,
+                "would_consume": result.get("would_consume", {})
+            }
+
+        return None  # Allowed
+
+    except ImportError:
+        return None
+    except Exception as e:
+        logger.error(f"Error in auto-enforcement for {plugin_name}/{action}: {e}")
+        return None  # Fail open
+
+
+async def _auto_consume_entitlements(
+    user: dict,
+    plugin_name: str,
+    action: str,
+    result: Any
+) -> None:
+    """
+    Auto-consume entitlements after successful plugin execution.
+
+    Contract v1.1.0: If action defines 'consumes', decrement limits.
+
+    Args:
+        user: User dict
+        plugin_name: Plugin name
+        action: Action that was performed
+        result: Plugin execution result
+    """
+    if not MONETIZATION:
+        return
+
+    # Don't consume if result indicates error
+    if isinstance(result, dict) and result.get("error"):
+        return
+
+    try:
+        from core.entitlements.loader import load_plugin_entitlements
+        from core.entitlements.usage import consume_limit
+
+        entitlements_config = load_plugin_entitlements(plugin_name)
+        if not entitlements_config:
+            return
+
+        actions_config = entitlements_config.get("actions", {})
+        action_config = actions_config.get(action)
+        if not action_config:
+            return
+
+        consumes = action_config.get("consumes", {})
+        limits_config = entitlements_config.get("limits", {})
+
+        for limit_key, amount in consumes.items():
+            limit_def = limits_config.get(limit_key, {})
+            period_type = limit_def.get("reset", "monthly")
+
+            # Get user's limit value for this tier
+            user_tier = await subscription_manager.get_user_plugin_tier(
+                user["user_id"],
+                plugin_name
+            )
+            from core.entitlements.loader import get_tier_config
+            tier_config = get_tier_config(entitlements_config, user_tier)
+            tier_limits = tier_config.get("limits", {})
+            limit_value = tier_limits.get(limit_key, 0)
+
+            await consume_limit(
+                user_id=user["user_id"],
+                plugin=plugin_name,
+                limit_key=limit_key,
+                amount=amount,
+                period_type=period_type,
+                limit_value=limit_value
+            )
+
+    except ImportError:
+        pass
+    except Exception as e:
+        logger.error(f"Error in auto-consume for {plugin_name}/{action}: {e}")
 
 
 async def ensure_plugins_up_to_date():
@@ -562,31 +843,52 @@ async def execute_plugin(plugin_name: str, request: Request, user: dict = Depend
         user_jwt = auth_header[7:].strip()  # Strip "Bearer " prefix
 
     # SECURITY: Inject server-derived context (app_id + user_id + user_jwt)
+    # Contract v1.1.0: Also injects _entitlements from plugin's entitlements.yaml
     # Client cannot override these values
-    data = inject_request_context(user, data, user_jwt=user_jwt)
-    
+    data = await inject_request_context(user, data, plugin_name, user_jwt=user_jwt)
+
     # Validate user access to the plugin (if monetization is enabled)
     # Skip access check if monetization is disabled
     if MONETIZATION and plugin_name != "subscription_manager" and not await subscription_manager.is_plugin_accessible(user["user_id"], plugin_name):
         logger.warning(f"Access denied for User {user['user_id']} to plugin '{plugin_name}'")
         raise HTTPException(status_code=403, detail=f"Access denied: Subscription does not allow '{plugin_name}'.")
 
+    # Contract v1.1.0: Auto-enforce entitlements if action is defined in entitlements.yaml
+    action = data.get("action", "")
+    enforcement_result = await _auto_enforce_entitlements(user, plugin_name, action, data)
+    if enforcement_result:
+        # Check if this is a dry-run response
+        if enforcement_result.get("dry_run"):
+            return enforcement_result
+
+        # Otherwise it's an error - blocked by entitlements
+        error_code = enforcement_result.get("error_code", "ENTITLEMENT_ERROR")
+        if error_code == "FEATURE_GATED":
+            raise HTTPException(status_code=403, detail=enforcement_result["error"])
+        elif error_code == "LIMIT_EXCEEDED":
+            raise HTTPException(status_code=429, detail=enforcement_result["error"])
+        else:
+            raise HTTPException(status_code=403, detail=enforcement_result.get("error", "Entitlement check failed"))
+
     execution_start = time.time()
-    
+
     try:
         result = await plugin_manager.execute_plugin(plugin_name, data)
-        
+
         execution_time = time.time() - execution_start
         logger.info(f"Plugin {plugin_name} executed in {execution_time:.2f}s for app={APP_ID} user={user['user_id']}")
-        
+
         if isinstance(result, dict) and "error" in result:
             logger.error(f"Execution error for plugin {plugin_name}: {result['error']}")
             raise HTTPException(status_code=500, detail=result["error"])
 
+        # Contract v1.1.0: Auto-consume entitlements on success
+        await _auto_consume_entitlements(user, plugin_name, action, result)
+
         # Publish event when a plugin is successfully executed
         event_bus.publish("plugin_executed", {
             "app_id": APP_ID,
-            "plugin": plugin_name, 
+            "plugin": plugin_name,
             "user": user["user_id"],
             "execution_time": execution_time
         })

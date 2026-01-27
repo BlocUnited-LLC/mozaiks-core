@@ -12,7 +12,7 @@ type RuntimeAuthConfig = Partial<{
 
 const readEnv = (name: string): string | undefined => {
   try {
-    const env = (import.meta as any)?.env as Record<string, string | undefined> | undefined;
+    const env = (globalThis as any)?.import?.meta?.env as Record<string, string | undefined> | undefined;
     const value = env?.[name];
     return typeof value === "string" && value.trim() ? value.trim() : undefined;
   } catch {
@@ -70,7 +70,7 @@ export const getAuthMode = (): AuthMode => {
     return mode;
   }
 
-  // Backwards-compatible aliases (deprecated).
+  // Compatibility aliases (deprecated).
   if (mode === "oidc") return "external";
 
   // DEFAULT: Fall back to external (OIDC) — never default to local

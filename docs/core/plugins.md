@@ -1,4 +1,5 @@
 # 🔌 Plugin System
+> **Doc Status:** authoritative (platform depends on this doc)
 
 > Plugins are the **primary way to add features** to MozaiksCore apps. They're sandboxed, self-contained, and integrate via configuration.
 
@@ -41,7 +42,7 @@ graph LR
 ## 📁 Plugin Structure
 
 ```
-plugins/
+runtime/ai/plugins/
 └── my_plugin/
     ├── __init__.py           # Required (can be empty)
     ├── logic.py              # Required: Main entry point
@@ -50,6 +51,7 @@ plugins/
 ```
 
 **Minimum required:** `__init__.py` + `logic.py`
+**Default directory:** `runtime/ai/plugins` (override with `MOZAIKS_PLUGINS_PATH`)
 
 ---
 
@@ -519,3 +521,4 @@ Before deploying your plugin:
 - 📡 [Events](./events.md) — Event bus in depth
 - 🔔 [Notifications](./notifications.md) — Multi-channel notifications
 - 📡 [WebSockets](./websockets.md) — Real-time updates
+

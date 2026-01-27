@@ -190,7 +190,7 @@ public class TransactionalEmailService : ITransactionalEmailService
             GlobalVariables = new Dictionary<string, string>
             {
                 ["action_url"] = actionUrl,
-                ["app_name"] = appId // TODO: Lookup actual app name
+                ["app_name"] = appId
             }
         });
     }

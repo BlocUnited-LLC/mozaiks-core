@@ -23,7 +23,7 @@ public sealed class ProvisioningAgentOptions
     public string ApiKey { get; set; } = string.Empty;
 
     /// <summary>
-    /// Legacy key name - alias for ApiKey.
+    /// Alias key name for ApiKey.
     /// </summary>
     public string InternalApiKey
     {

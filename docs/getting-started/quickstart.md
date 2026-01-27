@@ -109,8 +109,8 @@ mozaiks-core/
 │   ├── backend/           # Python FastAPI backend
 │   │   ├── main.py        # Entry point
 │   │   ├── core/          # Core systems
-│   │   └── plugins/       # Backend plugins
 │   └── ai/                # AI Runtime
+│       ├── plugins/       # Backend plugins
 │       └── ...
 ├── packages/
 │   └── shell/             # React frontend
@@ -145,6 +145,21 @@ Navigate to http://localhost:5173 and verify:
 
 ---
 
+## 🧰 Optional CLI Helpers
+
+Mozaiks-core includes a small CLI for scaffolding and diagnostics.
+
+```bash
+cd runtime/ai
+python -m cli.main doctor
+python -m cli.main db --check-db
+python -m cli.main new plugin todo
+```
+
+📚 Full CLI guide: [CLI Guide](../guides/cli.md)
+
+---
+
 ## 🎯 Next Steps
 
 | Goal | Guide |
@@ -153,6 +168,7 @@ Navigate to http://localhost:5173 and verify:
 | Add AI capabilities | [Creating Workflows](../guides/creating-workflows.md) |
 | Deploy to production | [Deployment Guide](../guides/deployment.md) |
 | Troubleshoot issues | [Troubleshooting](../guides/troubleshooting.md) |
+| Use the CLI | [CLI Guide](../guides/cli.md) |
 
 ---
 

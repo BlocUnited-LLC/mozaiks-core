@@ -1,4 +1,5 @@
 # Synthetic Events - Runtime Event Stream Compensation
+> **Doc Status:** reference (not contract-critical)
 
 ## Overview
 
@@ -374,3 +375,4 @@ Synthetic events are **not counted separately** in workflow metrics. They repres
 **Status**: Production-ready (v1.0)  
 **Owner**: MozaiksAI Runtime Team  
 **Last Updated**: 2025-10-21
+

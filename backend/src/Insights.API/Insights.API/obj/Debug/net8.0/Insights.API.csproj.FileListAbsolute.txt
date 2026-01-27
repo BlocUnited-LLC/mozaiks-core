@@ -181,3 +181,4 @@ C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\
 C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\src\Insights.API\Insights.API\obj\Debug\net8.0\Insights.API.pdb
 C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\src\Insights.API\Insights.API\obj\Debug\net8.0\Insights.API.genruntimeconfig.cache
 C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\src\Insights.API\Insights.API\obj\Debug\net8.0\ref\Insights.API.dll
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\src\Insights.API\Insights.API\obj\Debug\net8.0\Insights.API.sourcelink.json

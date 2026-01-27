@@ -125,20 +125,45 @@ docker-compose up -d
 ```
 
 This starts:
-- **MongoDB** — Database
-- **Identity API** — Auth & app registry (port 5001)
-- **Plugin Runtime** — Plugin execution (port 8000)
-- **AI Runtime** — AG2 workflows (port 8080)
+- **MongoDB** — Database (port 27017)
+- **Redis** — Cache (port 6379)
+- **RabbitMQ** — Message broker (ports 5672/15672)
+- **Keycloak** — Local OIDC (port 8080)
+- **Identity API** — Auth & app registry (port 8020)
+- **Billing API** — Payments (port 8002)
+- **Insights API** — Telemetry (port 8060)
+- **Notification API** — Messaging (port 8007)
+- **AI Runtime** — AG2 workflows (port 8000)
+- **Plugin Runtime Host** — Plugin execution (port 8090)
 
 ### 3. Run Frontend
 
 ```bash
 cd runtime/packages/shell
 npm install
-npm run dev
+npm start
 ```
 
-Open http://localhost:5173
+Open http://localhost:3000
+
+---
+
+## CLI (optional)
+
+Mozaiks-core ships a small developer CLI for scaffolding and environment checks.
+
+```bash
+cd runtime/ai
+python -m cli.main --help
+```
+
+Common commands:
+- `python -m cli.main doctor`
+- `python -m cli.main db --check-db`
+- `python -m cli.main new plugin todo`
+- `python -m cli.main new workflow assistant`
+
+📚 **Full guide**: [docs/guides/cli.md](docs/guides/cli.md)
 
 ---
 
@@ -149,7 +174,7 @@ Plugins are self-contained Python modules that add features to your app.
 ### Plugin Structure
 
 ```
-runtime/plugins/
+runtime/ai/plugins/
 └── my_plugin/
     ├── __init__.py
     ├── manifest.json

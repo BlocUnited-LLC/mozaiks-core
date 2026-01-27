@@ -59,6 +59,9 @@ namespace Payment.API.Infrastructure.Observability
         public void Info(string eventName, ActorContext actor, EntityContext entity, object? payload = null, string? serviceOverride = null)
             => Write(LogLevel.Information, "INFO", eventName, actor, entity, payload, serviceOverride);
 
+        public void Debug(string eventName, ActorContext actor, EntityContext entity, object? payload = null, string? serviceOverride = null)
+            => Write(LogLevel.Debug, "DEBUG", eventName, actor, entity, payload, serviceOverride);
+
         public void Warn(string eventName, ActorContext actor, EntityContext entity, object? payload = null, string? serviceOverride = null)
             => Write(LogLevel.Warning, "WARN", eventName, actor, entity, payload, serviceOverride);
 

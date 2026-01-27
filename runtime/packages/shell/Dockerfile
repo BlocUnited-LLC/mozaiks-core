@@ -2,7 +2,7 @@
 # MozaiksCore Shell - Production Dockerfile
 # ==========================================
 # Build: docker build -t mozaiks/shell:latest .
-# Run:   docker run -p 5173:80 mozaiks/shell:latest
+# Run:   docker run -p 3000:80 mozaiks/shell:latest
 
 # ------------------------------------------------------------------------------
 # Stage 1: Builder
@@ -24,8 +24,8 @@ RUN npm run build
 # ------------------------------------------------------------------------------
 FROM nginx:alpine AS runtime
 
-# Copy built assets
-COPY --from=builder /build/dist /usr/share/nginx/html
+# Copy built assets (CRA outputs to /build/build)
+COPY --from=builder /build/build /usr/share/nginx/html
 
 # Copy nginx config if exists (using wildcard to make it optional)
 COPY nginx.con[f] /etc/nginx/conf.d/default.conf

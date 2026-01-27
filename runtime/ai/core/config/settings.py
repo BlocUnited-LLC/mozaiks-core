@@ -169,17 +169,17 @@ class Settings:
         # Platform/external auth requires external JWT verification (JWKS).
         if self.mozaiks_auth_mode in {"platform", "external"}:
             if not self.platform_jwks_url:
-                raise RuntimeError("MOZAIKS_AUTH_MODE=platform|external requires MOZAIKS_JWKS_URL (or legacy MOZAIKS_PLATFORM_JWKS_URL)")
+                raise RuntimeError("MOZAIKS_AUTH_MODE=platform|external requires MOZAIKS_JWKS_URL (or MOZAIKS_PLATFORM_JWKS_URL alias)")
             if not self.platform_jwt_issuer:
-                raise RuntimeError("MOZAIKS_AUTH_MODE=platform|external requires MOZAIKS_ISSUER (or legacy MOZAIKS_PLATFORM_ISSUER)")
+                raise RuntimeError("MOZAIKS_AUTH_MODE=platform|external requires MOZAIKS_ISSUER (or MOZAIKS_PLATFORM_ISSUER alias)")
             if not self.platform_jwt_audience:
-                raise RuntimeError("MOZAIKS_AUTH_MODE=platform|external requires MOZAIKS_AUDIENCE (or legacy MOZAIKS_PLATFORM_AUDIENCE)")
+                raise RuntimeError("MOZAIKS_AUTH_MODE=platform|external requires MOZAIKS_AUDIENCE (or MOZAIKS_PLATFORM_AUDIENCE alias)")
             if not (self.platform_user_id_claim or "").strip():
-                raise RuntimeError("MOZAIKS_USER_ID_CLAIM is required (or legacy MOZAIKS_PLATFORM_USER_ID_CLAIM)")
+                raise RuntimeError("MOZAIKS_USER_ID_CLAIM is required (or MOZAIKS_PLATFORM_USER_ID_CLAIM alias)")
             if not (self.platform_roles_claim or "").strip():
-                raise RuntimeError("MOZAIKS_ROLES_CLAIM is required (or legacy MOZAIKS_PLATFORM_ROLES_CLAIM)")
+                raise RuntimeError("MOZAIKS_ROLES_CLAIM is required (or MOZAIKS_PLATFORM_ROLES_CLAIM alias)")
             if not (self.platform_email_claim or "").strip():
-                raise RuntimeError("MOZAIKS_EMAIL_CLAIM is required (or legacy MOZAIKS_PLATFORM_EMAIL_CLAIM)")
+                raise RuntimeError("MOZAIKS_EMAIL_CLAIM is required (or MOZAIKS_PLATFORM_EMAIL_CLAIM alias)")
             if not (self.platform_superadmin_role or "").strip() and not (self.platform_superadmin_claim or "").strip():
                 raise RuntimeError("Configure MOZAIKS_SUPERADMIN_ROLE and/or MOZAIKS_SUPERADMIN_CLAIM")
 
@@ -237,13 +237,13 @@ def load_settings() -> Settings:
 
     allowed_hosts = tuple(_normalize_host(h) for h in _split_csv(_env_str("ALLOWED_HOSTS")) if h)
 
-    legacy_managed = _env_bool("MOZAIKS_MANAGED", default=False)
+    managed_env = _env_bool("MOZAIKS_MANAGED", default=False)
 
     hosting_mode = _normalize_choice(
         "MOZAIKS_HOSTING_MODE",
         _env_str("MOZAIKS_HOSTING_MODE"),
         {"hosted", "self_host"},
-        "hosted" if legacy_managed else "self_host",
+        "hosted" if managed_env else "self_host",
     )
     raw_auth_mode = _env_str("MOZAIKS_AUTH_MODE")
     normalized_auth_mode = (raw_auth_mode or "").strip().lower() or None
@@ -256,11 +256,11 @@ def load_settings() -> Settings:
         "MOZAIKS_AUTH_MODE",
         normalized_auth_mode,
         {"platform", "external", "local"},
-        "platform" if legacy_managed else "external",
+        "platform" if managed_env else "external",
     )
 
-    # Backwards-compatible alias (deprecated): hosted + platform auth.
-    mozaiks_managed = bool(legacy_managed or (hosting_mode == "hosted" and auth_mode == "platform"))
+    # Compatibility alias (deprecated): hosted + platform auth.
+    mozaiks_managed = bool(managed_env or (hosting_mode == "hosted" and auth_mode == "platform"))
 
     # Token exchange (platform/external -> app-scoped JWT) is optional.
     # - MOZAIKS_TOKEN_EXCHANGE=true: app endpoints require app-scoped tokens (minted via /api/auth/token-exchange)
@@ -357,7 +357,7 @@ def load_settings() -> Settings:
         auto_refresh_plugins=_env_bool("MOZAIKS_AUTO_REFRESH_PLUGINS", default=env != "production"),
         max_request_body_bytes=_env_int("MAX_REQUEST_BODY_BYTES", default=1_000_000),
         # Contract v1.0.0: MOZAIKS_PLUGIN_TIMEOUT_SECONDS (default 30s)
-        # Backward-compatible: also checks legacy PLUGIN_EXEC_TIMEOUT_S
+        # Compatibility: also checks PLUGIN_EXEC_TIMEOUT_S alias
         plugin_exec_timeout_s=_env_float(
             "MOZAIKS_PLUGIN_TIMEOUT_SECONDS",
             default=_env_float("PLUGIN_EXEC_TIMEOUT_S", default=30.0),

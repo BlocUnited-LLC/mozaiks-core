@@ -54,7 +54,7 @@ class TokenClaims:
     def validate_app_id(self, path_app_id: str) -> bool:
         """Validate that token app_id matches path/payload app_id."""
         if not self.mozaiks_app_id:
-            # No app_id claim in token - allow (legacy token)
+            # No app_id claim in token - allow
             return True
         return str(self.mozaiks_app_id) == str(path_app_id)
 

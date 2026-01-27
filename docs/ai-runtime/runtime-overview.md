@@ -1,4 +1,5 @@
 # Runtime Layer Overview
+> **Doc Status:** authoritative (platform depends on this doc)
 
 **Purpose:** Introduce the MozaiksAI runtime layer—the execution engine that orchestrates AG2 workflows, manages transport, persists state, and provides observability.
 
@@ -459,3 +460,4 @@ db.workflow_stats_acme_corp_Generator.find()
 ---
 
 **Questions?** See [Troubleshooting](../operations/troubleshooting.md) or review the [API Reference](../reference/api_endpoints.md).
+

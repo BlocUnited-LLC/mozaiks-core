@@ -17,7 +17,7 @@ def init_event_logging() -> None:
     if _initialized:
         return
 
-    # Kept for backward compatibility: callers may still invoke this.
+    # Kept for compatibility: callers may still invoke this.
     # We intentionally do not subscribe/persist plugin/theme/subscription/AI analytics.
     event_bus  # referenced to avoid unused-import warnings if tooling is strict.
 

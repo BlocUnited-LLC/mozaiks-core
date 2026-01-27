@@ -91,53 +91,6 @@ const TreeNode = ({ name, node, depth, selectedPath, onSelectFile }) => {
   );
 };
 
-const DEFAULT_ARTIFACT = {
-  artifactId: 'demo',
-  updatedAt: new Date().toISOString(),
-  files: [
-    {
-      path: 'package.json',
-      content: JSON.stringify(
-        {
-          name: 'artifact-demo',
-          private: true,
-          version: '0.0.0',
-          type: 'module',
-          scripts: {
-            dev: 'vite --host 0.0.0.0 --port 3000',
-          },
-          dependencies: {
-            react: '^18.0.0',
-            'react-dom': '^18.0.0',
-          },
-          devDependencies: {
-            vite: '^5.0.0',
-            '@vitejs/plugin-react': '^4.2.0',
-          },
-        },
-        null,
-        2
-      ),
-    },
-    {
-      path: 'vite.config.js',
-      content: `import { defineConfig } from 'vite'\nimport react from '@vitejs/plugin-react'\n\nexport default defineConfig({\n  plugins: [react()],\n  server: {\n    host: '0.0.0.0',\n    port: 3000,\n  },\n})\n`,
-    },
-    {
-      path: 'index.html',
-      content: `<!doctype html>\n<html>\n  <head>\n    <meta charset="UTF-8" />\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n    <title>Artifact Preview</title>\n  </head>\n  <body>\n    <div id="root"></div>\n    <script type="module" src="/src/main.jsx"></script>\n  </body>\n</html>\n`,
-    },
-    {
-      path: 'src/main.jsx',
-      content: `import React from 'react'\nimport ReactDOM from 'react-dom/client'\nimport App from './App.jsx'\n\nReactDOM.createRoot(document.getElementById('root')).render(\n  <React.StrictMode>\n    <App />\n  </React.StrictMode>,\n)\n`,
-    },
-    {
-      path: 'src/App.jsx',
-      content: `export default function App() {\n  return (\n    <div style={{ fontFamily: 'system-ui', padding: 24 }}>\n      <h1>Artifact Preview</h1>\n      <p>Edit files in the Code tab, then switch to Preview.</p>\n    </div>\n  )\n}\n`,
-    },
-  ],
-};
-
 const ArtifactPage = () => {
   const { artifactId } = useParams();
   const apiBaseUrl = config.get('api.baseUrl');
@@ -149,14 +102,9 @@ const ArtifactPage = () => {
   const [previewStatus, setPreviewStatus] = useState(null); // starting|running|error
   const [previewError, setPreviewError] = useState(null);
   const [wsDisconnected, setWsDisconnected] = useState(false);
+  const [artifactError, setArtifactError] = useState(null);
 
-  const [filesMap, setFilesMap] = useState(() => {
-    const files = (DEFAULT_ARTIFACT.files || []).reduce((acc, f) => {
-      acc[f.path] = f.content;
-      return acc;
-    }, {});
-    return files;
-  });
+  const [filesMap, setFilesMap] = useState({});
 
   const [selectedPath, setSelectedPath] = useState(() => {
     const keys = Object.keys(filesMap);
@@ -168,11 +116,14 @@ const ArtifactPage = () => {
     setSelectedPath((prev) => (prev && filesMap?.[prev] != null ? prev : (keys.includes('package.json') ? 'package.json' : keys[0] || null)));
   }, [filesMap]);
 
-  // Placeholder artifact loading: wire-ready for real backend storage.
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      if (!artifactId) return;
+      setArtifactError(null);
+      if (!artifactId) {
+        setArtifactError('Missing artifact id');
+        return;
+      }
       try {
         const res = await fetch(`${apiBaseUrl}/api/artifacts/${encodeURIComponent(artifactId)}`);
         if (!res.ok) throw new Error('artifact not found');
@@ -182,9 +133,15 @@ const ArtifactPage = () => {
           if (f?.path && typeof f.content === 'string') acc[f.path] = f.content;
           return acc;
         }, {});
-        if (Object.keys(next).length) setFilesMap(next);
-      } catch {
-        // Fallback to demo artifact
+        if (Object.keys(next).length) {
+          setFilesMap(next);
+        } else {
+          setFilesMap({});
+          setArtifactError('Artifact has no files');
+        }
+      } catch (err) {
+        setFilesMap({});
+        setArtifactError(err?.message || String(err));
       }
     };
     load();
@@ -282,9 +239,12 @@ const ArtifactPage = () => {
     setPreviewStatus('starting');
 
     try {
+      if (!artifactId) {
+        throw new Error('Missing artifact id');
+      }
       let sid = sandboxId;
       if (!sid) {
-        const res = await fetch(`${apiBaseUrl}/api/artifacts/${encodeURIComponent(artifactId || 'demo')}/sandbox`, {
+        const res = await fetch(`${apiBaseUrl}/api/artifacts/${encodeURIComponent(artifactId)}/sandbox`, {
           method: 'POST',
         });
         if (!res.ok) throw new Error(await res.text());
@@ -395,6 +355,11 @@ const ArtifactPage = () => {
             {previewStatus === 'error' && previewError && (
               <div className="absolute top-3 left-3 right-3 text-xs text-[var(--color-error)] bg-black/60 border border-white/10 rounded-md p-2">
                 {previewError}
+              </div>
+            )}
+            {artifactError && (
+              <div className="absolute top-3 left-3 right-3 text-xs text-[var(--color-warning)] bg-black/60 border border-white/10 rounded-md p-2">
+                {artifactError}
               </div>
             )}
             {wsDisconnected && (

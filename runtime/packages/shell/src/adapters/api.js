@@ -213,7 +213,7 @@ export class WebSocketApiAdapter extends ApiAdapter {
     });
   }
 
-  async _legacySendMessageToWorkflowHttp(message, appId, userId, workflowname = null, chatId = null) {
+  async _sendMessageToWorkflowHttp(message, appId, userId, workflowname = null, chatId = null) {
     // Use dynamic default workflow type
     const actualworkflowname = workflowname || workflowConfig.getDefaultWorkflow();
     
@@ -403,7 +403,7 @@ export class WebSocketApiAdapter extends ApiAdapter {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('appId', appId);
-    formData.append('appId', appId); // legacy
+    formData.append('appId', appId);
     formData.append('userId', userId);
     formData.append('chatId', chatId);
     if (intent) formData.append('intent', intent);
@@ -661,5 +661,5 @@ export class RestApiAdapter extends ApiAdapter {
   }
 }
 
-// Default API instance (app-scoped; legacy: appApi)
+// Default API instance (app-scoped)
 export const appApi = new RestApiAdapter(config.get ? config.get('api') : config?.config?.api);

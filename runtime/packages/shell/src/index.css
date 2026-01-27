@@ -117,7 +117,7 @@
   --color-text-muted: #64748b;
   --color-text-on-accent: #020617;
 
-  /* Legacy aliases maintained for compatibility */
+  /* Alias tokens maintained for compatibility */
   --color-dark: var(--color-background);
   --color-light: var(--color-text-primary);
   --color-card: var(--color-surface);
@@ -137,6 +137,8 @@
   --widget-bottom-offset: calc(env(safe-area-inset-bottom, 0px) + 2rem);
 
   /* Chat presentation tokens */
+  --chat-mode-ask-tint: #06b6d4;
+  --chat-mode-workflow-tint: #8b5cf6;
   --chat-bubble-radius: 18px;
   --chat-bubble-padding-y: 0.95rem;
   --chat-bubble-padding-x: 1.15rem;

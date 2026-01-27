@@ -1,4 +1,5 @@
 # Transport & Streaming Deep Dive
+> **Doc Status:** authoritative (platform depends on this doc)
 
 **Purpose:** Document SimpleTransport—MozaiksAI's bidirectional communication layer that manages WebSocket connections, message filtering, and event streaming between backend and frontend.
 
@@ -996,3 +997,4 @@ IOWebsockets.run_server_in_thread(
 ---
 
 **Questions?** See [Runtime Overview](runtime_overview.md) or [API Reference](../reference/api_endpoints.md).
+

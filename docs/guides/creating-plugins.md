@@ -49,7 +49,7 @@ graph TB
 ### Create Plugin Directory
 
 ```
-runtime/backend/plugins/
+runtime/ai/plugins/
 └── task_manager/
     ├── __init__.py      # Empty, required
     ├── logic.py         # Main entry point

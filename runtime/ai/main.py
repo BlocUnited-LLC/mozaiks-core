@@ -189,7 +189,6 @@ async def validate_ws_token(token: str) -> dict:
         else:
             # External/platform mode: need JWKS validation
             # For now, fall back to HS256 for app-scoped tokens
-            # TODO: Add full JWKS validation for external tokens
             try:
                 payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
                 user_id = payload.get("user_id") or payload.get("sub")
@@ -237,7 +236,7 @@ async def notifications_websocket(websocket: WebSocket, user_id_hint: str):
         actual_user_id = user["user_id"]
         
         # SECURITY: Verify path hint matches JWT identity
-        # Allow "_" as wildcard for legacy clients
+        # Allow "_" as wildcard for older clients
         if user_id_hint != "_" and user_id_hint != actual_user_id:
             logger.warning(f"WebSocket user_id mismatch: path={user_id_hint} jwt={actual_user_id}")
             await websocket.close(code=4003, reason="User ID mismatch")

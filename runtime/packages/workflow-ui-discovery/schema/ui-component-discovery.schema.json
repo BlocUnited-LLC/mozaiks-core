@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mozaiks.dev/schemas/ui-component-discovery.json",
+  "title": "UI Component Discovery Configuration",
+  "description": "Configuration schema for @mozaiks/workflow-ui-discovery",
+  "type": "object",
+  "properties": {
+    "ui_component_discovery": {
+      "type": "object",
+      "description": "Runtime behavior for UI component discovery",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether component discovery is enabled"
+        },
+        "scan_paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "frontend/workflows/*/components/",
+            "frontend/workflows/_shared/components/"
+          ],
+          "description": "Glob patterns for paths to scan for components"
+        },
+        "exclude_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "index.js",
+            "index.ts",
+            "*.test.js",
+            "*.test.ts",
+            "*.spec.js",
+            "*.spec.ts",
+            "*.stories.js",
+            "*.stories.ts"
+          ],
+          "description": "File patterns to exclude from discovery"
+        },
+        "component_extensions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^\\.[a-z]+$"
+          },
+          "default": [".js", ".jsx", ".ts", ".tsx"],
+          "description": "File extensions to include as components"
+        },
+        "auto_generate_index": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to automatically generate index.js files"
+        },
+        "generate_root_registry": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to generate a root workflows/index.js registry"
+        },
+        "generate_workflow_index": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to generate workflow-level index.js files (when workflow_config_file exists)"
+        },
+        "workflow_config_file": {
+          "type": "string",
+          "default": "theme_config.json",
+          "description": "Config file name that triggers workflow-level index generation"
+        },
+        "index_template": {
+          "type": "string",
+          "enum": ["esm", "cjs", "typescript"],
+          "default": "esm",
+          "description": "Template format for generated index files"
+        },
+        "watch_mode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to watch for changes in development mode"
+        },
+        "watch_debounce_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 300,
+          "description": "Debounce delay in milliseconds for file watch events"
+        },
+        "on_startup": {
+          "type": "string",
+          "enum": ["generate", "validate", "skip"],
+          "default": "generate",
+          "description": "Action to take on runtime startup"
+        },
+        "on_build": {
+          "type": "string",
+          "enum": ["generate", "validate", "skip"],
+          "default": "generate",
+          "description": "Action to take during production build"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

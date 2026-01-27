@@ -206,3 +206,4 @@ C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\
 C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\src\Identity.API\AuthServer.Api.Tests\obj\Debug\net8.0\AuthServer.Api.Tests.pdb
 C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\src\Identity.API\AuthServer.Api.Tests\obj\Debug\net8.0\AuthServer.Api.Tests.genruntimeconfig.cache
 C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\src\Identity.API\AuthServer.Api.Tests\obj\Debug\net8.0\ref\AuthServer.Api.Tests.dll
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\src\Identity.API\AuthServer.Api.Tests\obj\Debug\net8.0\AuthServer.Api.Tests.sourcelink.json

@@ -1,4 +1,5 @@
 # ValidationEngine Workflow Architecture Specification
+> **Doc Status:** roadmap (keep discoverable)
 
 > **Version:** 1.0.0  
 > **Status:** Draft  
@@ -1093,3 +1094,4 @@ ChatUI/src/workflows/ValidationEngine/
 ---
 
 *This specification is the source of truth for ValidationEngine workflow development. All implementation should align with these definitions.*
+

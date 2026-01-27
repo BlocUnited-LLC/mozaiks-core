@@ -394,7 +394,7 @@ class UnifiedWorkflowManager:
         
         if not workflow_path.exists():
             raise ValueError(f"Workflow not found: {workflow_name}")
-        # Load configuration directly (modular JSON files) – canonical, no legacy keys
+        # Load configuration directly (modular JSON files) – canonical, no non-canonical keys
         config = self._load_modular_workflow_config(workflow_path)
         if not config:
             logger.warning(f"⚠️ Empty config for workflow: {workflow_name}")
@@ -580,7 +580,7 @@ class UnifiedWorkflowManager:
         """Return a normalized mapping: agent_name -> model_name or None.
 
         Supports both the new dict-based registry ({"Agent": "Model"|None})
-        and the legacy list-based registry ([{"agent": "...","agent_definition": "...|None"}]).
+        and the list-based registry ([{"agent": "...","agent_definition": "...|None"}]).
         """
         config = self.get_config(workflow_name)
         so = config.get("structured_outputs") or {}
@@ -595,7 +595,7 @@ class UnifiedWorkflowManager:
                     normalized[agent] = model if isinstance(model, str) else None
             return normalized
 
-        # Legacy schema: list of {agent, agent_definition}
+        # List schema: list of {agent, agent_definition}
         if isinstance(reg, list):
             for item in reg:
                 if isinstance(item, dict):
@@ -786,7 +786,7 @@ class UnifiedWorkflowManager:
         return self.get_status_summary()
 
     # ========================================================================
-    # INTERNAL CONFIG LOADING (replaces legacy file_manager)
+    # INTERNAL CONFIG LOADING (replaces previous file_manager)
     # ========================================================================
     def _load_config_if_exists(self, base_path: Path, config_name: str) -> Dict[str, Any]:
         """Load YAML config file.
@@ -816,7 +816,7 @@ class UnifiedWorkflowManager:
 
         Canonical files: orchestrator.yaml, agents.yaml, handoffs.yaml, context_variables.yaml,
         structured_outputs.yaml, tools.yaml, ui_config.yaml, hooks.yaml.
-        Tools file expected to expose unified 'tools' list (no legacy agent_tools/ui_tools splitting).
+        Tools file expected to expose unified 'tools' list (no agent_tools/ui_tools splitting).
         
         Top-level merge rules:
           - orchestrator keys merged at root
@@ -841,7 +841,7 @@ class UnifiedWorkflowManager:
         # Tools file (canonical unified list under 'tools')
         tools_data = self._load_config_if_exists(workflow_path, 'tools')
         if tools_data:
-            # Validate: ensure only 'tools' key we care about; ignore legacy keys if appear
+            # Validate: ensure only 'tools' key we care about; ignore non-canonical keys if appear
             tools_list = tools_data.get('tools')
             lifecycle_tools = tools_data.get('lifecycle_tools')
             if isinstance(tools_list, list):

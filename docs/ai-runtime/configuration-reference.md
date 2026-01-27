@@ -1,4 +1,5 @@
 # Configuration Reference
+> **Doc Status:** authoritative (platform depends on this doc)
 
 **Purpose:** Complete reference for all environment variables, startup options, and feature toggles in the MozaiksAI runtime.
 
@@ -601,3 +602,4 @@ db.chat_sessions.findOne({"_id": "chat_abc123"}, {"cache_seed": 1})
 ---
 
 **Questions?** See [Troubleshooting Guide](../operations/troubleshooting.md) or open a GitHub issue.
+

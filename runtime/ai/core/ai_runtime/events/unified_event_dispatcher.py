@@ -391,14 +391,28 @@ class UnifiedEventDispatcher:
             if 'auto_tool_mode' in event_dict:
                 event_dict['auto_tool_mode'] = bool(event_dict['auto_tool_mode'])
 
+        # Orchestration v1.1: Inject run_id from chat_id for orchestration events
+        if kind.startswith('orchestration.') and chat_id:
+            event_dict['run_id'] = chat_id
+
+        # Namespace mapping: internal 'kind' -> WebSocket 'type'
+        # Orchestration events pass through as-is (orchestration.* -> chat.orchestration.*)
         ns_map = {
             'print': 'chat.print', 'text': 'chat.text', 'input_request': 'chat.input_request', 'input_ack': 'chat.input_ack',
             'input_timeout': 'chat.input_timeout', 'select_speaker': 'chat.select_speaker', 'resume_boundary': 'chat.resume_boundary',
             'usage_delta': 'chat.usage_delta', 'usage_summary': 'chat.usage_summary', 'run_complete': 'chat.run_complete', 'error': 'chat.error', 'tool_call': 'chat.tool_call', 'tool_response': 'chat.tool_response',
             'structured_output_ready': 'chat.structured_output_ready', 'run_start': 'chat.run_start', 'ui_tool_dismiss': 'chat.ui_tool_dismiss',
-            'attachment_uploaded': 'chat.attachment_uploaded'
+            'attachment_uploaded': 'chat.attachment_uploaded',
+            # Orchestration v1.1 events - pass through with chat. prefix
+            'orchestration.run_started': 'chat.orchestration.run_started',
+            'orchestration.run_completed': 'chat.orchestration.run_completed',
+            'orchestration.run_failed': 'chat.orchestration.run_failed',
+            'orchestration.agent_started': 'chat.orchestration.agent_started',
+            'orchestration.agent_completed': 'chat.orchestration.agent_completed',
+            'orchestration.tool_started': 'chat.orchestration.tool_started',
+            'orchestration.tool_completed': 'chat.orchestration.tool_completed',
         }
-        mapped_type = kind if kind.startswith('chat.') else ns_map.get(kind, kind)
+        mapped_type = kind if kind.startswith('chat.') else ns_map.get(kind, f'chat.{kind}')
         
         return {'type': mapped_type, 'data': event_dict, 'timestamp': timestamp}
 

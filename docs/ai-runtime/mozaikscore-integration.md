@@ -1,4 +1,5 @@
 # MozaiksAI Runtime — Stateless Integration Description (for MozaiksCore)
+> **Doc Status:** authoritative (platform depends on this doc)
 
 This document is **self-contained**: it assumes the reader (human or LLM) has **no access** to the MozaiksAI repo, source files, or other markdown docs. Treat what’s below as the **integration contract**: what MozaiksAI is, what MozaiksCore owns, and the concrete HTTP + WebSocket protocol to implement.
 
@@ -419,3 +420,4 @@ Common optional knobs:
 - `PACK_GRAPH_PATH`: override where the pack graph JSON is loaded from
 - `CHAT_START_IDEMPOTENCY_SEC`: start-request reuse window (default `15` seconds)
 - `LOG_LEVEL`: `DEBUG|INFO|WARNING|ERROR`
+

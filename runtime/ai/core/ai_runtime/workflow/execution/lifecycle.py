@@ -255,7 +255,7 @@ class LifecycleToolManager:
         trigger: "LifecycleTrigger | str",
         **kwargs: Any,
     ) -> None:
-        """Compatibility shim for legacy trigger dispatchers."""
+        """Compatibility shim for earlier trigger dispatchers."""
 
         # Normalize trigger value to LifecycleTrigger enum where possible
         resolved_trigger: Optional[LifecycleTrigger]

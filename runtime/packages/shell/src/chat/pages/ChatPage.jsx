@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import Header from "../components/layout/Header";
+import Footer from "../components/layout/Footer";
 import ChatInterface from "../components/chat/ChatInterface";
 import ArtifactPanel from "../components/chat/ArtifactPanel";
 import WorkflowCompletion from "../components/chat/WorkflowCompletion";
@@ -11,6 +12,7 @@ import workflowConfig from '../config/workflowConfig';
 import { getLoadedWorkflows, getWorkflow } from '@chat-workflows/index';
 import { dynamicUIHandler } from '../core/dynamicUIHandler';
 import LoadingSpinner from '../utils/AgentChatLoadingSpinner';
+import useTheme from "../styles/useTheme";
 
 // Debug utilities
 const DEBUG_LOG_ALL_AGENT_OUTPUT = true;
@@ -316,7 +318,7 @@ const ChatPage = () => {
   // Note: Artifact panel restoration is handled directly in ensureWorkflowMode with setTimeout
   const implicitDevAppId =
     process.env.NODE_ENV !== 'production' &&
-    (process.env.REACT_APP_ALLOW_IMPLICIT_APP_ID === 'true' || config?.auth?.mode === 'mock')
+    process.env.REACT_APP_ALLOW_IMPLICIT_APP_ID === 'true'
       ? 'local-dev'
       : null;
 
@@ -327,6 +329,7 @@ const ChatPage = () => {
     process.env.REACT_APP_DEFAULT_app_id ||
     implicitDevAppId ||
     null;
+  const { theme: chatTheme } = useTheme(currentAppId);
   const currentUserId = user?.id || config?.chat?.defaultUserId || '56132';
   const [generalSessionsLoading, setGeneralSessionsLoading] = useState(false);
   // Workflow completion state
@@ -360,7 +363,7 @@ const ChatPage = () => {
   const initSpinnerHiddenOnceRef = useRef(false);
   // Track whether we suppressed the synthetic first instruction message (when no initial message configured)
   const firstAgentMessageSuppressedRef = useRef(false);
-  // Removed legacy dynamic UI accumulation & dedupe refs (no longer needed with chat.* events)
+  // Removed dynamic UI accumulation & dedupe refs (no longer needed with chat.* events)
 
 
   // Helper function to extract agent name from nested message structure
@@ -561,7 +564,7 @@ const ChatPage = () => {
         console.warn('[PIPELINE] Non-visual agent message received (unexpected?)', agentDbg);
       }
     }
-    // Minimal legacy passthrough for still-emitted dynamic UI events until backend fully migrated
+    // Minimal passthrough for still-emitted dynamic UI events until backend fully migrated
     if (data.type === 'ui_tool_event' || data.type === 'UI_TOOL_EVENT') {
       // Create a response callback that uses the WebSocket connection
       const sendResponse = (responseData) => {
@@ -762,7 +765,7 @@ const ChatPage = () => {
     }
     
     // Allow chat.* events and other known event types (like input_request, unknown, etc.)
-    if (!data.type.startsWith('chat.') && !['input_request', 'unknown'].includes(data.type)) return; // ignore unrecognized legacy
+    if (!data.type.startsWith('chat.') && !['input_request', 'unknown'].includes(data.type)) return; // ignore unrecognized event types
 
     // Some events may arrive already as { type:'chat.text', data:{ ...actualFields... } } (no double-serialization)
     // or after the above unwrap we can still retain an inner data object we need to promote.
@@ -2396,7 +2399,7 @@ useEffect(() => {
         }
         // If we lack a real eventId (e.g., restored artifact), don't submit to backend; just close locally
         if (!action.eventId) {
-          console.log('ℹ️ Skipping backend submission for restored or legacy UI tool response (no eventId)');
+          console.log('ℹ️ Skipping backend submission for restored UI tool response (no eventId)');
           return;
         }
 
@@ -2451,6 +2454,12 @@ useEffect(() => {
       navigate('/workflows');
     } catch (err) {
       console.warn('Failed to navigate to workflows', err);
+    }
+  };
+
+  const handleHeaderAction = (actionId) => {
+    if (actionId === 'discover') {
+      handleDiscoverClick();
     }
   };
 
@@ -2766,10 +2775,9 @@ useEffect(() => {
       />
       <Header 
         user={user}
-        workflowName={currentWorkflowName}
-        onAppClick={handleAppClick}
+        chatTheme={chatTheme}
         onNotificationClick={handleNotificationClick}
-        onDiscoverClick={handleDiscoverClick}
+        onAction={handleHeaderAction}
       />
       
       {/* Main content area that fills remaining screen height - no scrolling */}
@@ -2891,7 +2899,7 @@ useEffect(() => {
           </div>
         )}
       </div>
-
+      <Footer chatTheme={chatTheme} />
     </div>
   );
 };

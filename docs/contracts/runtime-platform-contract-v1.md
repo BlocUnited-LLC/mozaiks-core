@@ -1,4 +1,5 @@
 # Runtime ↔ Platform Contract v1.0
+> **Doc Status:** authoritative (platform depends on this doc)
 
 > **Status**: DRAFT — Pending confirmation from mozaiks-platform agent  
 > **Version**: 1.0.0  
@@ -898,3 +899,4 @@ Standard error codes:
   // ... type-specific fields
 }
 ```
+

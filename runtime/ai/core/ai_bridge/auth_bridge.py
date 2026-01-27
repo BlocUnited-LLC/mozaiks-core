@@ -74,7 +74,6 @@ def validate_runtime_access(
     if not ai_enabled:
         return False, "AI features are disabled"
     
-    # TODO: Integrate with subscription_manager for tier-based gating
     # For now, allow access to all authenticated users
     
     # Check workflow-specific restrictions

@@ -68,7 +68,7 @@ class UserPrincipal:
     def validate_app_id(self, path_app_id: str) -> bool:
         """Validate that token app_id matches path/payload app_id."""
         if not self.mozaiks_app_id:
-            return True  # No app_id claim - legacy token
+            return True  # No app_id claim
         return str(self.mozaiks_app_id) == str(path_app_id)
 
     def validate_chat_id(self, path_chat_id: str) -> bool:

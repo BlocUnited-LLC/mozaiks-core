@@ -42,7 +42,7 @@ logger = get_core_logger("auth.websocket")
 # Used for all auth failures to indicate the connection violates server policy
 WS_CLOSE_POLICY_VIOLATION = 1008
 
-# Legacy close codes (kept for backwards compatibility, but 1008 is now primary)
+# Close codes (kept for compatibility, but 1008 is now primary)
 WS_CLOSE_AUTH_REQUIRED = 1008
 WS_CLOSE_AUTH_INVALID = 1008
 WS_CLOSE_ACCESS_DENIED = 1008
@@ -77,7 +77,7 @@ class WebSocketUser:
     def validate_app_id(self, path_app_id: str) -> bool:
         """Validate that token app_id matches path/payload app_id."""
         if not self.mozaiks_app_id:
-            return True  # No app_id claim - legacy token
+            return True  # No app_id claim
         return str(self.mozaiks_app_id) == str(path_app_id)
 
     def validate_chat_id(self, path_chat_id: str) -> bool:
@@ -266,7 +266,7 @@ async def authenticate_websocket_with_path_user(
     """
     Authenticate WebSocket AND validate that JWT user matches path user_id.
     
-    This is for backward-compatible routes that have {user_id} in the path.
+    This is for compatibility routes that have {user_id} in the path.
     The path user_id MUST match the JWT sub claim.
     
     Args:

@@ -180,7 +180,7 @@ def compute_required_gates(pack: Dict[str, Any], workflow_name: str) -> List[Dic
     """Return required prerequisite gates for `workflow_name`.
 
     Sources:
-    - Explicit pack["gates"] entries (legacy)
+    - Explicit pack["gates"] entries (compat)
     - Per-workflow dependencies (preferred)
     - Implicit step-order gates from journeys (default)
     """

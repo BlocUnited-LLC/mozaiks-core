@@ -1,7 +1,7 @@
 // /src/websockets/WebSocketProvider.jsx
 // SECURITY: WebSocket authentication uses JWT token via query param.
 // The server MUST validate the token and derive user identity from JWT sub claim.
-// Client-supplied user_id in the URL path is a legacy routing hint only.
+// Client-supplied user_id in the URL path is a routing hint only.
 import React, { createContext, useEffect, useRef, useContext, useState, useCallback } from 'react';
 import { useAuth } from '../auth/AuthContext';
 
@@ -12,7 +12,7 @@ const WebSocketContext = createContext(null);
  * 
  * SECURITY NOTES:
  * - Token is passed via query param (browser-safe, no custom headers in WS)
- * - user_id in path is a LEGACY ROUTING HINT only; server derives identity from JWT sub
+ * - user_id in path is a ROUTING HINT only; server derives identity from JWT sub
  * - MozaiksAI will reject connections where path user_id does not match JWT sub
  * 
  * BOUNDARY NOTE:
@@ -21,7 +21,7 @@ const WebSocketContext = createContext(null);
  * 
  * @param {string} path - The WebSocket endpoint path (e.g., 'notifications')
  * @param {string} token - The JWT access token (delegated user token)
- * @param {string} [userIdHint] - Legacy routing hint (NOT used for identity)
+ * @param {string} [userIdHint] - Routing hint (NOT used for identity)
  * @returns {string|null} - The WebSocket URL or null if token is missing
  */
 const buildSecureWsUrl = (path, token, userIdHint) => {
@@ -35,7 +35,7 @@ const buildSecureWsUrl = (path, token, userIdHint) => {
   const host = window.location.hostname;
   const port = import.meta.env.VITE_WS_PORT || '8080';
 
-  // Build base URL with legacy user_id path segment (required by current backend routes)
+  // Build base URL with user_id path segment (required by current backend routes)
   // NOTE: The server MUST validate JWT and use sub claim for identity, not this path param
   const baseUrl = `${protocol}//${host}:${port}/ws/${path}/${userIdHint || '_'}`;
 
@@ -76,7 +76,7 @@ export const WebSocketProvider = ({ children, path = 'notifications' }) => {
           return;
         }
 
-        // Use user.user_id as legacy routing hint only (server validates via JWT sub)
+        // Use user.user_id as routing hint only (server validates via JWT sub)
         const userIdHint = user?.user_id || '_';
         const wsUrl = buildSecureWsUrl(path, token, userIdHint);
 

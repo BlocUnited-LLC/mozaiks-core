@@ -106,6 +106,41 @@ const DEFAULT_THEME = {
     logo: '/mozaik_logo.svg',
     favicon: '/mozaik.png',
   },
+
+  // Chat UI configuration
+  chat: {
+    modes: {
+      ask: { tint: '#06b6d4', label: 'Ask' },
+      workflow: { tint: '#8b5cf6', label: 'Workflow' },
+    },
+    bubbleRadius: '18px',
+  },
+
+  // Header configuration
+  header: {
+    logo: {
+      src: '/mozaik_logo.svg',
+      wordmark: '/mozaik.png',
+      alt: 'Mozaiks logo',
+      href: 'https://mozaiks.ai',
+    },
+    actions: [
+      { id: 'discover', label: 'Discover', icon: 'sparkle', variant: 'gradient', visible: true },
+    ],
+    showNotifications: true,
+    showProfile: true,
+  },
+
+  // Footer configuration
+  footer: {
+    links: [
+      { label: 'Legal Notice', href: '/legal' },
+      { label: 'Terms of Service', href: '/terms' },
+      { label: 'Cookie Policy', href: '/cookies' },
+    ],
+    visible: true,
+    poweredBy: null,
+  },
 };
 
 /**
@@ -247,7 +282,8 @@ export function applyTheme(theme) {
     // 2. Update CSS custom properties for colors
   const colors = theme.colors || DEFAULT_THEME.colors;
   const shadows = theme.shadows || DEFAULT_THEME.shadows;
-  updateCSSVariables(colors, shadows);
+  const chat = theme.chat || DEFAULT_THEME.chat;
+  updateCSSVariables(colors, shadows, chat);
 
     // 3. Update document title and favicon
     const branding = theme.branding || DEFAULT_THEME.branding;
@@ -334,11 +370,12 @@ function setShadowVar(root, name, value, fallback) {
  * @param {Object} themeColors - Color configuration
  * @param {Object} themeShadows - Shadow token configuration
  */
-function updateCSSVariables(themeColors, themeShadows) {
+function updateCSSVariables(themeColors, themeShadows, themeChat) {
   const root = document.documentElement;
 
   const colors = themeColors || DEFAULT_THEME.colors;
   const shadows = themeShadows || DEFAULT_THEME.shadows;
+  const chat = themeChat || DEFAULT_THEME.chat;
 
   // Primary, secondary & accent scales
   setColorVar(root, 'color-primary', colors.primary?.main, DEFAULT_THEME.colors.primary.main);
@@ -378,7 +415,7 @@ function updateCSSVariables(themeColors, themeShadows) {
   setColorVar(root, 'color-text-muted', colors.text?.muted, DEFAULT_THEME.colors.text.muted);
   setColorVar(root, 'color-text-on-accent', colors.text?.onAccent, DEFAULT_THEME.colors.text.onAccent);
 
-  // Legacy aliases to ease migration
+  // Alias tokens to ease migration
   setColorVar(root, 'color-card', colors.background?.surface, DEFAULT_THEME.colors.background.surface);
   setColorVar(root, 'color-border', colors.border?.subtle, DEFAULT_THEME.colors.border.subtle);
   setColorVar(root, 'color-dark', colors.background?.base, DEFAULT_THEME.colors.background.base);
@@ -393,6 +430,16 @@ function updateCSSVariables(themeColors, themeShadows) {
   setShadowVar(root, 'shadow-error', shadows?.error, DEFAULT_THEME.shadows.error);
   setShadowVar(root, 'shadow-elevated', shadows?.elevated, DEFAULT_THEME.shadows.elevated);
   setShadowVar(root, 'shadow-focus', shadows?.focus, DEFAULT_THEME.shadows.focus);
+
+  // Chat mode tints
+  setColorVar(root, 'chat-mode-ask-tint', chat?.modes?.ask?.tint, DEFAULT_THEME.chat.modes.ask.tint);
+  setColorVar(root, 'chat-mode-workflow-tint', chat?.modes?.workflow?.tint, DEFAULT_THEME.chat.modes.workflow.tint);
+
+  // Chat bubble radius
+  const bubbleRadius = chat?.bubbleRadius || DEFAULT_THEME.chat.bubbleRadius;
+  if (bubbleRadius) {
+    root.style.setProperty('--chat-bubble-radius', bubbleRadius);
+  }
 }
 
 /**
@@ -471,6 +518,11 @@ export function getCurrentAppId() {
     return 'default';
   }
 }
+
+// Exported config defaults for component fallbacks
+export const DEFAULT_HEADER_CONFIG = DEFAULT_THEME.header;
+export const DEFAULT_FOOTER_CONFIG = DEFAULT_THEME.footer;
+export const DEFAULT_CHAT_CONFIG = DEFAULT_THEME.chat;
 
 // Export default theme for reference
 export { DEFAULT_THEME };

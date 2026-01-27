@@ -1,0 +1,145 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Mozaiks Plugin Entitlements Schema",
+  "description": "Schema for plugin-level entitlements.yaml files (Contract v1.0)",
+  "type": "object",
+  "required": ["schema_version", "plugin"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0"],
+      "description": "Schema version (currently only 1.0)"
+    },
+    "plugin": {
+      "type": "string",
+      "description": "Plugin name (must match folder name)"
+    },
+    "features": {
+      "type": "object",
+      "description": "Feature definitions (boolean capabilities)",
+      "additionalProperties": {
+        "$ref": "#/definitions/FeatureDefinition"
+      }
+    },
+    "limits": {
+      "type": "object",
+      "description": "Limit definitions (consumable or cap values)",
+      "additionalProperties": {
+        "$ref": "#/definitions/LimitDefinition"
+      }
+    },
+    "tiers": {
+      "type": "object",
+      "description": "Tier configurations (what each subscription level gets)",
+      "additionalProperties": {
+        "$ref": "#/definitions/TierDefinition"
+      }
+    },
+    "actions": {
+      "type": "object",
+      "description": "Action mappings (enables auto-enforcement)",
+      "additionalProperties": {
+        "$ref": "#/definitions/ActionDefinition"
+      }
+    },
+    "hooks": {
+      "type": "object",
+      "description": "Python function references for dynamic logic",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "definitions": {
+    "FeatureDefinition": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the feature"
+        },
+        "default": {
+          "type": "boolean",
+          "description": "Default value if tier doesn't specify",
+          "default": true
+        }
+      }
+    },
+    "LimitDefinition": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the limit"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["consumable", "cap"],
+          "description": "consumable = gets used up and resets, cap = hard ceiling",
+          "default": "consumable"
+        },
+        "reset": {
+          "type": "string",
+          "enum": ["monthly", "daily", "weekly", "never"],
+          "description": "When the limit resets (for consumables)",
+          "default": "monthly"
+        },
+        "default": {
+          "type": "number",
+          "description": "Default value (0 = blocked)",
+          "default": 0
+        }
+      }
+    },
+    "TierDefinition": {
+      "type": "object",
+      "properties": {
+        "inherits": {
+          "type": "string",
+          "description": "Name of tier to inherit from"
+        },
+        "features": {
+          "type": "object",
+          "description": "Feature values for this tier",
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        },
+        "limits": {
+          "type": "object",
+          "description": "Limit values for this tier",
+          "additionalProperties": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "ActionDefinition": {
+      "type": "object",
+      "properties": {
+        "requires_features": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Features required to perform this action"
+        },
+        "consumes": {
+          "type": "object",
+          "description": "Limits to consume on success",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "checks": {
+          "type": "object",
+          "description": "Pre-flight checks for limits",
+          "additionalProperties": {
+            "type": "string",
+            "enum": ["exact", "estimate"]
+          }
+        }
+      }
+    }
+  }
+}

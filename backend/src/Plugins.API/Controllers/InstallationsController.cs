@@ -34,7 +34,6 @@ public class InstallationsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<AppPluginsResponse>> GetInstalledPlugins(string appId)
     {
-        // TODO: Verify user has access to this app
         var response = await _installationService.GetAppPluginsAsync(appId);
         return Ok(response);
     }

@@ -1,0 +1,52 @@
+{
+  "name": "@mozaiks/workflow-ui-discovery",
+  "version": "1.0.0",
+  "description": "Automatic discovery and index generation for mozaiks workflow UI components",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./discovery": "./src/discovery.js",
+    "./watcher": "./src/watcher.js",
+    "./runtime": "./src/runtime.js",
+    "./cli": "./src/cli.js"
+  },
+  "bin": {
+    "workflow-ui-discover": "./src/cli.js"
+  },
+  "scripts": {
+    "discover": "node ./src/cli.js",
+    "watch": "node ./src/cli.js --watch",
+    "test": "node --test ./tests/*.test.js",
+    "lint": "eslint src/"
+  },
+  "keywords": [
+    "mozaiks",
+    "workflow",
+    "ui",
+    "components",
+    "discovery",
+    "auto-generate",
+    "index"
+  ],
+  "author": "BlocUnited",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BlocUnited/mozaiks-core.git",
+    "directory": "runtime/packages/workflow-ui-discovery"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "src/",
+    "README.md",
+    "schema/"
+  ],
+  "devDependencies": {
+    "eslint": "^8.0.0"
+  },
+  "peerDependencies": {},
+  "dependencies": {}
+}

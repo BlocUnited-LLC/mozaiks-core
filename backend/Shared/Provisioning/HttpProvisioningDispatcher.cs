@@ -66,7 +66,7 @@ public sealed class HttpProvisioningDispatcher : IProvisioningDispatcher
         var correlationId = Activity.Current?.Id ?? Guid.NewGuid().ToString("N");
         request.Headers.Add("X-Correlation-Id", correlationId);
 
-        // Legacy header for backwards compatibility
+        // Alternate header for compatibility
         if (!string.IsNullOrWhiteSpace(_options.ApiKey))
         {
             request.Headers.Add("X-Internal-Api-Key", _options.ApiKey);
