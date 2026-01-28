@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mozaiks-app"
+version = "0.1.0"
+description = "Main FastAPI application for Mozaiks runtime"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = [
+    "mozaiks-ai-runtime",
+    "mozaiks-infrastructure",
+    "mozaiks-platform"
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-asyncio", "httpx"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mozaiks_app*"]
