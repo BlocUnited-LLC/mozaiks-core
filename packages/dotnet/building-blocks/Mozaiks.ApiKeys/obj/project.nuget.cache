@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "6ZoGySO2uZY=",
+  "dgSpecHash": "I2XIkQyNZjA=",
   "success": true,
-  "projectFilePath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\BuildingBlocks\\Mozaiks.ApiKeys\\Mozaiks.ApiKeys.csproj",
+  "projectFilePath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.ApiKeys\\Mozaiks.ApiKeys.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\mbari\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\mbari\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\2.0.0\\microsoft.extensions.logging.abstractions.2.0.0.nupkg.sha512",

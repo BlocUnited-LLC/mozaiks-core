@@ -1,7 +1,7 @@
 {
   "version": 3,
   "targets": {
-    "net6.0": {
+    "net8.0": {
       "AutoMapper/12.0.1": {
         "type": "package",
         "dependencies": {
@@ -73,14 +73,14 @@
           "buildTransitive/netcoreapp3.1/_._": {}
         }
       },
-      "Notification.Domain/1.0.0": {
+      "Mozaiks.Notifications.Domain/1.0.0": {
         "type": "project",
-        "framework": ".NETCoreApp,Version=v6.0",
+        "framework": ".NETCoreApp,Version=v8.0",
         "compile": {
-          "bin/placeholder/Notification.Domain.dll": {}
+          "bin/placeholder/Mozaiks.Notifications.Domain.dll": {}
         },
         "runtime": {
-          "bin/placeholder/Notification.Domain.dll": {}
+          "bin/placeholder/Mozaiks.Notifications.Domain.dll": {}
         }
       }
     }
@@ -225,17 +225,17 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "Notification.Domain/1.0.0": {
+    "Mozaiks.Notifications.Domain/1.0.0": {
       "type": "project",
-      "path": "../Notification.Domain/Notification.Domain.csproj",
-      "msbuildProject": "../Notification.Domain/Notification.Domain.csproj"
+      "path": "../Mozaiks.Notifications.Domain/Mozaiks.Notifications.Domain.csproj",
+      "msbuildProject": "../Mozaiks.Notifications.Domain/Mozaiks.Notifications.Domain.csproj"
     }
   },
   "projectFileDependencyGroups": {
-    "net6.0": [
+    "net8.0": [
       "AutoMapper >= 12.0.1",
       "MediatR >= 12.1.1",
-      "Notification.Domain >= 1.0.0"
+      "Mozaiks.Notifications.Domain >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -244,27 +244,27 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\src\\Notification.API\\Notification.Application\\Notification.Application.csproj",
-      "projectName": "Notification.Application",
-      "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\src\\Notification.API\\Notification.Application\\Notification.Application.csproj",
+      "projectUniqueName": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\services\\Mozaiks.Notifications\\Mozaiks.Notifications.Application\\Mozaiks.Notifications.Application.csproj",
+      "projectName": "Mozaiks.Notifications.Application",
+      "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\services\\Mozaiks.Notifications\\Mozaiks.Notifications.Application\\Mozaiks.Notifications.Application.csproj",
       "packagesPath": "C:\\Users\\mbari\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\src\\Notification.API\\Notification.Application\\obj\\",
+      "outputPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\services\\Mozaiks.Notifications\\Mozaiks.Notifications.Application\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\mbari\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
-        "net6.0"
+        "net8.0"
       ],
       "sources": {
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
-        "net6.0": {
-          "targetAlias": "net6.0",
+        "net8.0": {
+          "targetAlias": "net8.0",
           "projectReferences": {
-            "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\src\\Notification.API\\Notification.Domain\\Notification.Domain.csproj": {
-              "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\src\\Notification.API\\Notification.Domain\\Notification.Domain.csproj"
+            "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\services\\Mozaiks.Notifications\\Mozaiks.Notifications.Domain\\Mozaiks.Notifications.Domain.csproj": {
+              "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\services\\Mozaiks.Notifications\\Mozaiks.Notifications.Domain\\Mozaiks.Notifications.Domain.csproj"
             }
           }
         }
@@ -282,8 +282,8 @@
       "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
-      "net6.0": {
-        "targetAlias": "net6.0",
+      "net8.0": {
+        "targetAlias": "net8.0",
         "dependencies": {
           "AutoMapper": {
             "target": "Package",
@@ -308,15 +308,15 @@
         "downloadDependencies": [
           {
             "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[6.0.36, 6.0.36]"
+            "version": "[8.0.23, 8.0.23]"
           },
           {
             "name": "Microsoft.NETCore.App.Ref",
-            "version": "[6.0.36, 6.0.36]"
+            "version": "[8.0.23, 8.0.23]"
           },
           {
             "name": "Microsoft.WindowsDesktop.App.Ref",
-            "version": "[6.0.36, 6.0.36]"
+            "version": "[8.0.23, 8.0.23]"
           }
         ],
         "frameworkReferences": {
@@ -324,7 +324,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "3eDukzzm8/U=",
+  "dgSpecHash": "84aq7ZAHw58=",
   "success": true,
-  "projectFilePath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\src\\Insights.API\\Insights.API\\Insights.API.csproj",
+  "projectFilePath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\services\\Mozaiks.Insights\\Mozaiks.Insights.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\mbari\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\mbari\\.nuget\\packages\\google.protobuf\\3.22.5\\google.protobuf.3.22.5.nupkg.sha512",

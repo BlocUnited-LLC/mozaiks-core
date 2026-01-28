@@ -1316,30 +1316,6 @@
           "lib/net7.0/ZstdSharp.dll": {}
         }
       },
-      "blocunited-microservice.ServiceDefaults/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v8.0",
-        "dependencies": {
-          "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.10",
-          "Microsoft.Extensions.Http.Resilience": "8.7.0",
-          "Microsoft.Extensions.ServiceDiscovery": "8.1.0",
-          "OpenTelemetry.Exporter.OpenTelemetryProtocol": "1.9.0",
-          "OpenTelemetry.Extensions.Hosting": "1.9.0",
-          "OpenTelemetry.Instrumentation.AspNetCore": "1.9.0",
-          "OpenTelemetry.Instrumentation.Http": "1.9.0",
-          "OpenTelemetry.Instrumentation.Runtime": "1.9.0",
-          "System.IdentityModel.Tokens.Jwt": "7.4.0"
-        },
-        "compile": {
-          "bin/placeholder/blocunited-microservice.ServiceDefaults.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/blocunited-microservice.ServiceDefaults.dll": {}
-        },
-        "frameworkReferences": [
-          "Microsoft.AspNetCore.App"
-        ]
-      },
       "Mozaiks.ApiKeys/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
@@ -1381,6 +1357,30 @@
         },
         "runtime": {
           "bin/placeholder/Mozaiks.Auth.dll": {}
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
+      },
+      "Mozaiks.ServiceDefaults/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.10",
+          "Microsoft.Extensions.Http.Resilience": "8.7.0",
+          "Microsoft.Extensions.ServiceDiscovery": "8.1.0",
+          "OpenTelemetry.Exporter.OpenTelemetryProtocol": "1.9.0",
+          "OpenTelemetry.Extensions.Hosting": "1.9.0",
+          "OpenTelemetry.Instrumentation.AspNetCore": "1.9.0",
+          "OpenTelemetry.Instrumentation.Http": "1.9.0",
+          "OpenTelemetry.Instrumentation.Runtime": "1.9.0",
+          "System.IdentityModel.Tokens.Jwt": "7.4.0"
+        },
+        "compile": {
+          "bin/placeholder/Mozaiks.ServiceDefaults.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Mozaiks.ServiceDefaults.dll": {}
         },
         "frameworkReferences": [
           "Microsoft.AspNetCore.App"
@@ -3569,25 +3569,25 @@
         "zstdsharp.port.nuspec"
       ]
     },
-    "blocunited-microservice.ServiceDefaults/1.0.0": {
-      "type": "project",
-      "path": "../../../AspireAdmin/blocunited-microservice.ServiceDefaults/blocunited-microservice.ServiceDefaults.csproj",
-      "msbuildProject": "../../../AspireAdmin/blocunited-microservice.ServiceDefaults/blocunited-microservice.ServiceDefaults.csproj"
-    },
     "Mozaiks.ApiKeys/1.0.0": {
       "type": "project",
-      "path": "../../../BuildingBlocks/Mozaiks.ApiKeys/Mozaiks.ApiKeys.csproj",
-      "msbuildProject": "../../../BuildingBlocks/Mozaiks.ApiKeys/Mozaiks.ApiKeys.csproj"
+      "path": "../../building-blocks/Mozaiks.ApiKeys/Mozaiks.ApiKeys.csproj",
+      "msbuildProject": "../../building-blocks/Mozaiks.ApiKeys/Mozaiks.ApiKeys.csproj"
     },
     "Mozaiks.Auditing/1.0.0": {
       "type": "project",
-      "path": "../../../BuildingBlocks/Mozaiks.Auditing/Mozaiks.Auditing.csproj",
-      "msbuildProject": "../../../BuildingBlocks/Mozaiks.Auditing/Mozaiks.Auditing.csproj"
+      "path": "../../building-blocks/Mozaiks.Auditing/Mozaiks.Auditing.csproj",
+      "msbuildProject": "../../building-blocks/Mozaiks.Auditing/Mozaiks.Auditing.csproj"
     },
     "Mozaiks.Auth/1.0.0": {
       "type": "project",
-      "path": "../../../BuildingBlocks/Mozaiks.Auth/Mozaiks.Auth.csproj",
-      "msbuildProject": "../../../BuildingBlocks/Mozaiks.Auth/Mozaiks.Auth.csproj"
+      "path": "../../building-blocks/Mozaiks.Auth/Mozaiks.Auth.csproj",
+      "msbuildProject": "../../building-blocks/Mozaiks.Auth/Mozaiks.Auth.csproj"
+    },
+    "Mozaiks.ServiceDefaults/1.0.0": {
+      "type": "project",
+      "path": "../../aspire/Mozaiks.ServiceDefaults/Mozaiks.ServiceDefaults.csproj",
+      "msbuildProject": "../../aspire/Mozaiks.ServiceDefaults/Mozaiks.ServiceDefaults.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -3597,9 +3597,9 @@
       "Mozaiks.ApiKeys >= 1.0.0",
       "Mozaiks.Auditing >= 1.0.0",
       "Mozaiks.Auth >= 1.0.0",
+      "Mozaiks.ServiceDefaults >= 1.0.0",
       "Swashbuckle.AspNetCore >= 8.0.0",
-      "System.IdentityModel.Tokens.Jwt >= 8.7.0",
-      "blocunited-microservice.ServiceDefaults >= 1.0.0"
+      "System.IdentityModel.Tokens.Jwt >= 8.7.0"
     ]
   },
   "packageFolders": {
@@ -3608,11 +3608,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\src\\Insights.API\\Insights.API\\Insights.API.csproj",
-      "projectName": "Insights.API",
-      "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\src\\Insights.API\\Insights.API\\Insights.API.csproj",
+      "projectUniqueName": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\services\\Mozaiks.Insights\\Mozaiks.Insights.csproj",
+      "projectName": "Mozaiks.Insights",
+      "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\services\\Mozaiks.Insights\\Mozaiks.Insights.csproj",
       "packagesPath": "C:\\Users\\mbari\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\src\\Insights.API\\Insights.API\\obj\\",
+      "outputPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\services\\Mozaiks.Insights\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\mbari\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -3627,17 +3627,17 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\AspireAdmin\\blocunited-microservice.ServiceDefaults\\blocunited-microservice.ServiceDefaults.csproj": {
-              "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\AspireAdmin\\blocunited-microservice.ServiceDefaults\\blocunited-microservice.ServiceDefaults.csproj"
+            "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\aspire\\Mozaiks.ServiceDefaults\\Mozaiks.ServiceDefaults.csproj": {
+              "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\aspire\\Mozaiks.ServiceDefaults\\Mozaiks.ServiceDefaults.csproj"
             },
-            "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\BuildingBlocks\\Mozaiks.ApiKeys\\Mozaiks.ApiKeys.csproj": {
-              "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\BuildingBlocks\\Mozaiks.ApiKeys\\Mozaiks.ApiKeys.csproj"
+            "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.ApiKeys\\Mozaiks.ApiKeys.csproj": {
+              "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.ApiKeys\\Mozaiks.ApiKeys.csproj"
             },
-            "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\BuildingBlocks\\Mozaiks.Auditing\\Mozaiks.Auditing.csproj": {
-              "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\BuildingBlocks\\Mozaiks.Auditing\\Mozaiks.Auditing.csproj"
+            "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auditing\\Mozaiks.Auditing.csproj": {
+              "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auditing\\Mozaiks.Auditing.csproj"
             },
-            "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\BuildingBlocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj": {
-              "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\BuildingBlocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj"
+            "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj": {
+              "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj"
             }
           }
         }

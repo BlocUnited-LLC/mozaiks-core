@@ -1,11 +1,11 @@
 {
   "version": 3,
   "targets": {
-    "net6.0": {}
+    "net8.0": {}
   },
   "libraries": {},
   "projectFileDependencyGroups": {
-    "net6.0": []
+    "net8.0": []
   },
   "packageFolders": {
     "C:\\Users\\mbari\\.nuget\\packages\\": {}
@@ -13,24 +13,24 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\src\\Notification.API\\Notification.Domain\\Notification.Domain.csproj",
-      "projectName": "Notification.Domain",
-      "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\src\\Notification.API\\Notification.Domain\\Notification.Domain.csproj",
+      "projectUniqueName": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\services\\Mozaiks.Notifications\\Mozaiks.Notifications.Domain\\Mozaiks.Notifications.Domain.csproj",
+      "projectName": "Mozaiks.Notifications.Domain",
+      "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\services\\Mozaiks.Notifications\\Mozaiks.Notifications.Domain\\Mozaiks.Notifications.Domain.csproj",
       "packagesPath": "C:\\Users\\mbari\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\src\\Notification.API\\Notification.Domain\\obj\\",
+      "outputPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\services\\Mozaiks.Notifications\\Mozaiks.Notifications.Domain\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\mbari\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
-        "net6.0"
+        "net8.0"
       ],
       "sources": {
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
-        "net6.0": {
-          "targetAlias": "net6.0",
+        "net8.0": {
+          "targetAlias": "net8.0",
           "projectReferences": {}
         }
       },
@@ -47,8 +47,8 @@
       "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
-      "net6.0": {
-        "targetAlias": "net6.0",
+      "net8.0": {
+        "targetAlias": "net8.0",
         "imports": [
           "net461",
           "net462",
@@ -63,15 +63,15 @@
         "downloadDependencies": [
           {
             "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[6.0.36, 6.0.36]"
+            "version": "[8.0.23, 8.0.23]"
           },
           {
             "name": "Microsoft.NETCore.App.Ref",
-            "version": "[6.0.36, 6.0.36]"
+            "version": "[8.0.23, 8.0.23]"
           },
           {
             "name": "Microsoft.WindowsDesktop.App.Ref",
-            "version": "[6.0.36, 6.0.36]"
+            "version": "[8.0.23, 8.0.23]"
           }
         ],
         "frameworkReferences": {
@@ -79,7 +79,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

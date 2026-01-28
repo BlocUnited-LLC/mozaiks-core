@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Mozaiks.Auth.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7066ecdfdf5fd5d3c85cd8ac90c5b07332cc5146")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+984185772cc74c9d60e29145b8c211e0b2b2dcdd")]
 [assembly: System.Reflection.AssemblyProductAttribute("Mozaiks.Auth.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Mozaiks.Auth.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

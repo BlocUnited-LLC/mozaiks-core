@@ -24,3 +24,16 @@ C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\
 C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\BuildingBlocks\Mozaiks.ApiKeys\obj\Debug\net8.0\Mozaiks.ApiKeys.pdb
 C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\BuildingBlocks\Mozaiks.ApiKeys\obj\Debug\net8.0\ref\Mozaiks.ApiKeys.dll
 C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\backend\BuildingBlocks\Mozaiks.ApiKeys\obj\Debug\net8.0\Mozaiks.ApiKeys.sourcelink.json
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\packages\dotnet\building-blocks\Mozaiks.ApiKeys\bin\Debug\net8.0\Mozaiks.ApiKeys.deps.json
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\packages\dotnet\building-blocks\Mozaiks.ApiKeys\bin\Debug\net8.0\Mozaiks.ApiKeys.dll
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\packages\dotnet\building-blocks\Mozaiks.ApiKeys\bin\Debug\net8.0\Mozaiks.ApiKeys.pdb
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\packages\dotnet\building-blocks\Mozaiks.ApiKeys\obj\Debug\net8.0\Mozaiks.ApiKeys.csproj.AssemblyReference.cache
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\packages\dotnet\building-blocks\Mozaiks.ApiKeys\obj\Debug\net8.0\Mozaiks.ApiKeys.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\packages\dotnet\building-blocks\Mozaiks.ApiKeys\obj\Debug\net8.0\Mozaiks.ApiKeys.AssemblyInfoInputs.cache
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\packages\dotnet\building-blocks\Mozaiks.ApiKeys\obj\Debug\net8.0\Mozaiks.ApiKeys.AssemblyInfo.cs
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\packages\dotnet\building-blocks\Mozaiks.ApiKeys\obj\Debug\net8.0\Mozaiks.ApiKeys.csproj.CoreCompileInputs.cache
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\packages\dotnet\building-blocks\Mozaiks.ApiKeys\obj\Debug\net8.0\Mozaiks.ApiKeys.sourcelink.json
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\packages\dotnet\building-blocks\Mozaiks.ApiKeys\obj\Debug\net8.0\Mozaiks.ApiKeys.dll
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\packages\dotnet\building-blocks\Mozaiks.ApiKeys\obj\Debug\net8.0\refint\Mozaiks.ApiKeys.dll
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\packages\dotnet\building-blocks\Mozaiks.ApiKeys\obj\Debug\net8.0\Mozaiks.ApiKeys.pdb
+C:\Users\mbari\OneDrive\Desktop\BlocUnited\BlocUnited Code\mozaiks-core\packages\dotnet\building-blocks\Mozaiks.ApiKeys\obj\Debug\net8.0\ref\Mozaiks.ApiKeys.dll

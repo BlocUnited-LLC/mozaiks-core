@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Mozaiks.ApiKeys")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b43d685012d9fd9b4f14a130b1f493bd1d5bd4db")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+984185772cc74c9d60e29145b8c211e0b2b2dcdd")]
 [assembly: System.Reflection.AssemblyProductAttribute("Mozaiks.ApiKeys")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Mozaiks.ApiKeys")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

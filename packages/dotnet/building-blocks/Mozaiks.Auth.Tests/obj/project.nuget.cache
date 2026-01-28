@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "wfPOlkGl0Tk=",
+  "dgSpecHash": "r2nAPGkPuYM=",
   "success": true,
-  "projectFilePath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\control-plane\\src\\BuildingBlocks\\Mozaiks.Auth.Tests\\Mozaiks.Auth.Tests.csproj",
+  "projectFilePath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth.Tests\\Mozaiks.Auth.Tests.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\mbari\\.nuget\\packages\\coverlet.collector\\6.0.4\\coverlet.collector.6.0.4.nupkg.sha512",
     "C:\\Users\\mbari\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\8.0.11\\microsoft.aspnetcore.authentication.jwtbearer.8.0.11.nupkg.sha512",

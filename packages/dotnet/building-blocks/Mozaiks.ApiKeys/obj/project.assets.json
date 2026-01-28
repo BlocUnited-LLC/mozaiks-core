@@ -604,11 +604,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\BuildingBlocks\\Mozaiks.ApiKeys\\Mozaiks.ApiKeys.csproj",
+      "projectUniqueName": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.ApiKeys\\Mozaiks.ApiKeys.csproj",
       "projectName": "Mozaiks.ApiKeys",
-      "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\BuildingBlocks\\Mozaiks.ApiKeys\\Mozaiks.ApiKeys.csproj",
+      "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.ApiKeys\\Mozaiks.ApiKeys.csproj",
       "packagesPath": "C:\\Users\\mbari\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\backend\\BuildingBlocks\\Mozaiks.ApiKeys\\obj\\",
+      "outputPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.ApiKeys\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\mbari\\AppData\\Roaming\\NuGet\\NuGet.Config"

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\control-plane\\src\\BuildingBlocks\\Mozaiks.Auth.Tests\\Mozaiks.Auth.Tests.csproj": {}
+    "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth.Tests\\Mozaiks.Auth.Tests.csproj": {}
   },
   "projects": {
-    "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\control-plane\\src\\BuildingBlocks\\Mozaiks.Auth.Tests\\Mozaiks.Auth.Tests.csproj": {
+    "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth.Tests\\Mozaiks.Auth.Tests.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\control-plane\\src\\BuildingBlocks\\Mozaiks.Auth.Tests\\Mozaiks.Auth.Tests.csproj",
+        "projectUniqueName": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth.Tests\\Mozaiks.Auth.Tests.csproj",
         "projectName": "Mozaiks.Auth.Tests",
-        "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\control-plane\\src\\BuildingBlocks\\Mozaiks.Auth.Tests\\Mozaiks.Auth.Tests.csproj",
+        "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth.Tests\\Mozaiks.Auth.Tests.csproj",
         "packagesPath": "C:\\Users\\mbari\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\control-plane\\src\\BuildingBlocks\\Mozaiks.Auth.Tests\\obj\\",
+        "outputPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth.Tests\\obj\\",
         "projectStyle": "PackageReference",
         "crossTargeting": true,
         "configFilePaths": [
@@ -28,16 +28,16 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\control-plane\\src\\BuildingBlocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj": {
-                "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\control-plane\\src\\BuildingBlocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj"
+              "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj": {
+                "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj"
               }
             }
           },
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\control-plane\\src\\BuildingBlocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj": {
-                "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\control-plane\\src\\BuildingBlocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj"
+              "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj": {
+                "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj"
               }
             }
           }
@@ -711,14 +711,14 @@
         }
       }
     },
-    "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\control-plane\\src\\BuildingBlocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj": {
+    "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\control-plane\\src\\BuildingBlocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj",
+        "projectUniqueName": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj",
         "projectName": "Mozaiks.Auth",
-        "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\control-plane\\src\\BuildingBlocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj",
+        "projectPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth\\Mozaiks.Auth.csproj",
         "packagesPath": "C:\\Users\\mbari\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\control-plane\\src\\BuildingBlocks\\Mozaiks.Auth\\obj\\",
+        "outputPath": "C:\\Users\\mbari\\OneDrive\\Desktop\\BlocUnited\\BlocUnited Code\\mozaiks-core\\packages\\dotnet\\building-blocks\\Mozaiks.Auth\\obj\\",
         "projectStyle": "PackageReference",
         "crossTargeting": true,
         "configFilePaths": [
