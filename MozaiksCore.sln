@@ -3,68 +3,132 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 
-# Identity
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.API", "backend\src\Identity.API\AuthServer.Api\AuthServer.Api.csproj", "{A1111111-1111-1111-1111-111111111111}"
+# Solution Folders
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "building-blocks", "building-blocks", "{10000000-0000-0000-0000-000000000001}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.API.Tests", "backend\src\Identity.API\AuthServer.Api.Tests\AuthServer.Api.Tests.csproj", "{A1111111-1111-1111-1111-111111111112}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{10000000-0000-0000-0000-000000000002}"
 EndProject
-
-# Billing
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Billing.API", "backend\src\Billing.API\Payment.API\Payment.API.csproj", "{B2222222-2222-2222-2222-222222222222}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "aspire", "aspire", "{10000000-0000-0000-0000-000000000003}"
 EndProject
 
-# Insights
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Insights.API", "backend\src\Insights.API\Insights.API\Insights.API.csproj", "{C3333333-3333-3333-3333-333333333333}"
+# Building Blocks
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mozaiks.Auth", "packages\dotnet\building-blocks\Mozaiks.Auth\Mozaiks.Auth.csproj", "{A1000001-0000-0000-0000-000000000001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mozaiks.Auth.Tests", "packages\dotnet\building-blocks\Mozaiks.Auth.Tests\Mozaiks.Auth.Tests.csproj", "{A1000001-0000-0000-0000-000000000002}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mozaiks.ApiKeys", "packages\dotnet\building-blocks\Mozaiks.ApiKeys\Mozaiks.ApiKeys.csproj", "{A1000001-0000-0000-0000-000000000003}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mozaiks.Auditing", "packages\dotnet\building-blocks\Mozaiks.Auditing\Mozaiks.Auditing.csproj", "{A1000001-0000-0000-0000-000000000004}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mozaiks.EventBus", "packages\dotnet\building-blocks\Mozaiks.EventBus\Mozaiks.EventBus.csproj", "{A1000001-0000-0000-0000-000000000005}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mozaiks.Provisioning", "packages\dotnet\building-blocks\Mozaiks.Provisioning\Mozaiks.Provisioning.csproj", "{A1000001-0000-0000-0000-000000000006}"
 EndProject
 
-# Notification
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Notification.API", "backend\src\Notification.API\Notification.API\Notification.API.csproj", "{E5555555-5555-5555-5555-555555555551}"
+# Services
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mozaiks.Billing", "packages\dotnet\services\Mozaiks.Billing\Mozaiks.Billing.csproj", "{B2000001-0000-0000-0000-000000000001}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Notification.Application", "backend\src\Notification.API\Notification.Application\Notification.Application.csproj", "{E5555555-5555-5555-5555-555555555552}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mozaiks.Insights", "packages\dotnet\services\Mozaiks.Insights\Mozaiks.Insights.csproj", "{B2000001-0000-0000-0000-000000000002}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Notification.Domain", "backend\src\Notification.API\Notification.Domain\Notification.Domain.csproj", "{E5555555-5555-5555-5555-555555555553}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mozaiks.Plugins", "packages\dotnet\services\Mozaiks.Plugins\Mozaiks.Plugins.csproj", "{B2000001-0000-0000-0000-000000000003}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Notification.Infrastructure", "backend\src\Notification.API\Notification.Infrastructure\Notification.Infrastructure.csproj", "{E5555555-5555-5555-5555-555555555554}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mozaiks.Notifications.API", "packages\dotnet\services\Mozaiks.Notifications\Mozaiks.Notifications.API\Mozaiks.Notifications.API.csproj", "{B2000001-0000-0000-0000-000000000011}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mozaiks.Notifications.Application", "packages\dotnet\services\Mozaiks.Notifications\Mozaiks.Notifications.Application\Mozaiks.Notifications.Application.csproj", "{B2000001-0000-0000-0000-000000000012}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mozaiks.Notifications.Domain", "packages\dotnet\services\Mozaiks.Notifications\Mozaiks.Notifications.Domain\Mozaiks.Notifications.Domain.csproj", "{B2000001-0000-0000-0000-000000000013}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mozaiks.Notifications.Infrastructure", "packages\dotnet\services\Mozaiks.Notifications\Mozaiks.Notifications.Infrastructure\Mozaiks.Notifications.Infrastructure.csproj", "{B2000001-0000-0000-0000-000000000014}"
+EndProject
+
+# Aspire
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mozaiks.AppHost", "packages\dotnet\aspire\Mozaiks.AppHost\Mozaiks.AppHost.csproj", "{C3000001-0000-0000-0000-000000000001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mozaiks.ServiceDefaults", "packages\dotnet\aspire\Mozaiks.ServiceDefaults\Mozaiks.ServiceDefaults.csproj", "{C3000001-0000-0000-0000-000000000002}"
 EndProject
 
 Global
-GlobalSection(SolutionConfigurationPlatforms) = preSolution
-Debug|Any CPU = Debug|Any CPU
-Release|Any CPU = Release|Any CPU
-EndGlobalSection
-GlobalSection(ProjectConfigurationPlatforms) = postSolution
-{A1111111-1111-1111-1111-111111111111}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-{A1111111-1111-1111-1111-111111111111}.Debug|Any CPU.Build.0 = Debug|Any CPU
-{A1111111-1111-1111-1111-111111111111}.Release|Any CPU.ActiveCfg = Release|Any CPU
-{A1111111-1111-1111-1111-111111111111}.Release|Any CPU.Build.0 = Release|Any CPU
-{A1111111-1111-1111-1111-111111111112}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-{A1111111-1111-1111-1111-111111111112}.Debug|Any CPU.Build.0 = Debug|Any CPU
-{A1111111-1111-1111-1111-111111111112}.Release|Any CPU.ActiveCfg = Release|Any CPU
-{A1111111-1111-1111-1111-111111111112}.Release|Any CPU.Build.0 = Release|Any CPU
-{B2222222-2222-2222-2222-222222222222}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-{B2222222-2222-2222-2222-222222222222}.Debug|Any CPU.Build.0 = Debug|Any CPU
-{B2222222-2222-2222-2222-222222222222}.Release|Any CPU.ActiveCfg = Release|Any CPU
-{B2222222-2222-2222-2222-222222222222}.Release|Any CPU.Build.0 = Release|Any CPU
-{C3333333-3333-3333-3333-333333333333}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-{C3333333-3333-3333-3333-333333333333}.Debug|Any CPU.Build.0 = Debug|Any CPU
-{C3333333-3333-3333-3333-333333333333}.Release|Any CPU.ActiveCfg = Release|Any CPU
-{C3333333-3333-3333-3333-333333333333}.Release|Any CPU.Build.0 = Release|Any CPU
-
-{E5555555-5555-5555-5555-555555555551}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-{E5555555-5555-5555-5555-555555555551}.Debug|Any CPU.Build.0 = Debug|Any CPU
-{E5555555-5555-5555-5555-555555555551}.Release|Any CPU.ActiveCfg = Release|Any CPU
-{E5555555-5555-5555-5555-555555555551}.Release|Any CPU.Build.0 = Release|Any CPU
-{E5555555-5555-5555-5555-555555555552}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-{E5555555-5555-5555-5555-555555555552}.Debug|Any CPU.Build.0 = Debug|Any CPU
-{E5555555-5555-5555-5555-555555555552}.Release|Any CPU.ActiveCfg = Release|Any CPU
-{E5555555-5555-5555-5555-555555555552}.Release|Any CPU.Build.0 = Release|Any CPU
-{E5555555-5555-5555-5555-555555555553}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-{E5555555-5555-5555-5555-555555555553}.Debug|Any CPU.Build.0 = Debug|Any CPU
-{E5555555-5555-5555-5555-555555555553}.Release|Any CPU.ActiveCfg = Release|Any CPU
-{E5555555-5555-5555-5555-555555555553}.Release|Any CPU.Build.0 = Release|Any CPU
-{E5555555-5555-5555-5555-555555555554}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-{E5555555-5555-5555-5555-555555555554}.Debug|Any CPU.Build.0 = Debug|Any CPU
-{E5555555-5555-5555-5555-555555555554}.Release|Any CPU.ActiveCfg = Release|Any CPU
-{E5555555-5555-5555-5555-555555555554}.Release|Any CPU.Build.0 = Release|Any CPU
-EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A1000001-0000-0000-0000-000000000001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1000001-0000-0000-0000-000000000001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1000001-0000-0000-0000-000000000001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1000001-0000-0000-0000-000000000001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1000001-0000-0000-0000-000000000002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1000001-0000-0000-0000-000000000002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1000001-0000-0000-0000-000000000002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1000001-0000-0000-0000-000000000002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1000001-0000-0000-0000-000000000003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1000001-0000-0000-0000-000000000003}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1000001-0000-0000-0000-000000000003}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1000001-0000-0000-0000-000000000003}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1000001-0000-0000-0000-000000000004}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1000001-0000-0000-0000-000000000004}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1000001-0000-0000-0000-000000000004}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1000001-0000-0000-0000-000000000004}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1000001-0000-0000-0000-000000000005}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1000001-0000-0000-0000-000000000005}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1000001-0000-0000-0000-000000000005}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1000001-0000-0000-0000-000000000005}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1000001-0000-0000-0000-000000000006}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1000001-0000-0000-0000-000000000006}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1000001-0000-0000-0000-000000000006}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1000001-0000-0000-0000-000000000006}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2000001-0000-0000-0000-000000000001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2000001-0000-0000-0000-000000000001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2000001-0000-0000-0000-000000000001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2000001-0000-0000-0000-000000000001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2000001-0000-0000-0000-000000000002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2000001-0000-0000-0000-000000000002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2000001-0000-0000-0000-000000000002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2000001-0000-0000-0000-000000000002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2000001-0000-0000-0000-000000000003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2000001-0000-0000-0000-000000000003}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2000001-0000-0000-0000-000000000003}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2000001-0000-0000-0000-000000000003}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2000001-0000-0000-0000-000000000011}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2000001-0000-0000-0000-000000000011}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2000001-0000-0000-0000-000000000011}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2000001-0000-0000-0000-000000000011}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2000001-0000-0000-0000-000000000012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2000001-0000-0000-0000-000000000012}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2000001-0000-0000-0000-000000000012}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2000001-0000-0000-0000-000000000012}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2000001-0000-0000-0000-000000000013}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2000001-0000-0000-0000-000000000013}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2000001-0000-0000-0000-000000000013}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2000001-0000-0000-0000-000000000013}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2000001-0000-0000-0000-000000000014}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2000001-0000-0000-0000-000000000014}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2000001-0000-0000-0000-000000000014}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2000001-0000-0000-0000-000000000014}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3000001-0000-0000-0000-000000000001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3000001-0000-0000-0000-000000000001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3000001-0000-0000-0000-000000000001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3000001-0000-0000-0000-000000000001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3000001-0000-0000-0000-000000000002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3000001-0000-0000-0000-000000000002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3000001-0000-0000-0000-000000000002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3000001-0000-0000-0000-000000000002}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A1000001-0000-0000-0000-000000000001} = {10000000-0000-0000-0000-000000000001}
+		{A1000001-0000-0000-0000-000000000002} = {10000000-0000-0000-0000-000000000001}
+		{A1000001-0000-0000-0000-000000000003} = {10000000-0000-0000-0000-000000000001}
+		{A1000001-0000-0000-0000-000000000004} = {10000000-0000-0000-0000-000000000001}
+		{A1000001-0000-0000-0000-000000000005} = {10000000-0000-0000-0000-000000000001}
+		{A1000001-0000-0000-0000-000000000006} = {10000000-0000-0000-0000-000000000001}
+		{B2000001-0000-0000-0000-000000000001} = {10000000-0000-0000-0000-000000000002}
+		{B2000001-0000-0000-0000-000000000002} = {10000000-0000-0000-0000-000000000002}
+		{B2000001-0000-0000-0000-000000000003} = {10000000-0000-0000-0000-000000000002}
+		{B2000001-0000-0000-0000-000000000011} = {10000000-0000-0000-0000-000000000002}
+		{B2000001-0000-0000-0000-000000000012} = {10000000-0000-0000-0000-000000000002}
+		{B2000001-0000-0000-0000-000000000013} = {10000000-0000-0000-0000-000000000002}
+		{B2000001-0000-0000-0000-000000000014} = {10000000-0000-0000-0000-000000000002}
+		{C3000001-0000-0000-0000-000000000001} = {10000000-0000-0000-0000-000000000003}
+		{C3000001-0000-0000-0000-000000000002} = {10000000-0000-0000-0000-000000000003}
+	EndGlobalSection
 EndGlobal
