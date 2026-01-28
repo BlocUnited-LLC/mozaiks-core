@@ -6,9 +6,7 @@
   "license": "MIT",
   "description": "Mozaiks Core - Open source runtime, SDK, and AI engine",
   "workspaces": [
-    "runtime/packages/*",
-    "runtime/ai/packages/*",
-    "packages/*"
+    "packages/frontend/*"
   ],
   "scripts": {
     "dev": "turbo run dev",
