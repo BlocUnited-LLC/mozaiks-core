@@ -2,7 +2,7 @@
 FastAPI authentication dependencies for protected HTTP routes.
 
 Usage:
-    from core.ai_runtime.auth.dependencies import require_user, require_any_auth
+    from mozaiks_ai.runtime.auth.dependencies import require_user, require_any_auth
 
     @app.get("/api/user/profile")
     async def get_profile(user: UserPrincipal = Depends(require_user)):
@@ -19,8 +19,8 @@ from dataclasses import dataclass
 from fastapi import Request, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from core.ai_runtime.auth.config import get_auth_config
-from core.ai_runtime.auth.jwt_validator import get_jwt_validator, TokenClaims, AuthError
+from mozaiks_ai.runtime.auth.config import get_auth_config
+from mozaiks_ai.runtime.auth.jwt_validator import get_jwt_validator, TokenClaims, AuthError
 from logs.logging_config import get_core_logger
 
 logger = get_core_logger("auth.dependencies")

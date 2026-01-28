@@ -19,7 +19,7 @@ if str(BACKEND_DIR) not in sys.path:
 
 def _fresh_database_module():
     sys.modules.pop("core.config.database", None)
-    import core.config.database as database  # noqa: E402
+    import mozaiks_infra.config.database as database  # noqa: E402
 
     return importlib.reload(database)
 

@@ -20,11 +20,11 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Header, Query
 from pydantic import BaseModel, Field
 
-from core.notifications.broadcast import broadcast_service
-from core.notifications.scheduler import digest_scheduler
-from core.notifications.templates import template_renderer
-from core.notifications.channels import get_all_channels_config
-from core.ai_runtime.auth.dependencies import require_admin_or_internal
+from mozaiks_platform.notifications.broadcast import broadcast_service
+from mozaiks_platform.notifications.scheduler import digest_scheduler
+from mozaiks_platform.notifications.templates import template_renderer
+from mozaiks_platform.notifications.channels import get_all_channels_config
+from mozaiks_ai.runtime.auth.dependencies import require_admin_or_internal
 
 logger = logging.getLogger("mozaiks_core.routes.notifications_admin")
 

@@ -8,13 +8,13 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from core.config.settings import settings
-from core.config.config_loader import get_ai_capabilities, get_config_path
-from core.runtime.manager import runtime_manager
-from core.runtime.execution_tokens import mint_execution_token
-from core.state_manager import state_manager
-from core.subscription_manager import subscription_manager
-from core.ai_runtime.auth.dependencies import get_current_user
+from mozaiks_infra.config.settings import settings
+from mozaiks_infra.config.config_loader import get_ai_capabilities, get_config_path
+from mozaiks_ai.core_runtime.manager import runtime_manager
+from mozaiks_ai.core_runtime.execution_tokens import mint_execution_token
+from mozaiks_infra.state_manager import state_manager
+from mozaiks_platform.subscription_manager import subscription_manager
+from mozaiks_ai.runtime.auth.dependencies import get_current_user
 
 logger = logging.getLogger("mozaiks_core.routes.ai")
 

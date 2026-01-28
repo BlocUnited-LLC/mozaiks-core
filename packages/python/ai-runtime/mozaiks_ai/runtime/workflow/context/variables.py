@@ -341,7 +341,7 @@ def _load_workflow_plan(workflow_name: str) -> Tuple[ContextVariablesPlan, Dict[
 # ---------------------------------------------------------------------------
 
 async def _get_all_collections_first_docs(database_name: str) -> Dict[str, Any]:
-    from core.ai_runtime.core_config import get_mongo_client  # local import
+    from mozaiks_ai.runtime.core_config import get_mongo_client  # local import
 
     result: Dict[str, Any] = {}
     try:
@@ -371,7 +371,7 @@ async def _get_database_schema_async(database_name: str) -> Dict[str, Any]:
     schema_info: Dict[str, Any] = {}
 
     try:
-        from core.ai_runtime.core_config import get_mongo_client
+        from mozaiks_ai.runtime.core_config import get_mongo_client
 
         client = get_mongo_client()
         db = client[database_name]

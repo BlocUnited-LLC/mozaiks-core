@@ -3,8 +3,8 @@ import logging
 from datetime import datetime, timedelta
 import os
 
-from core.config.database import db
-from core.metrics.computation import (
+from mozaiks_infra.config.database import db
+from mozaiks_infra.metrics.computation import (
     cohort_retention,
     count_events_by_event,
     distinct_users_by_event,

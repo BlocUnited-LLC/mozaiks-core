@@ -55,7 +55,7 @@ async def init_db() -> int:
     print("🔧 Initializing Mozaiks database...\n")
 
     try:
-        from core.config.database import (
+        from mozaiks_infra.config.database import (
             initialize_database,
             verify_connection,
             db,
@@ -113,7 +113,7 @@ async def check_db() -> int:
     issues = []
 
     try:
-        from core.config.database import (
+        from mozaiks_infra.config.database import (
             db,
             verify_connection,
             entitlement_usage_collection,
@@ -204,7 +204,7 @@ async def seed_test_data() -> int:
     print("🌱 Seeding test data for development...\n")
 
     try:
-        from core.config.database import subscriptions_collection, entitlement_usage_collection
+        from mozaiks_infra.config.database import subscriptions_collection, entitlement_usage_collection
 
         now = datetime.now(timezone.utc)
 
@@ -322,7 +322,7 @@ async def list_plugins() -> int:
 
         # Try to check for entitlements
         try:
-            from core.entitlements.loader import has_entitlements_yaml
+            from mozaiks_platform.entitlements.loader import has_entitlements_yaml
             can_check_entitlements = True
         except ImportError:
             can_check_entitlements = False

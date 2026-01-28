@@ -26,18 +26,18 @@ This package handles THREE separate event systems, each with different purposes:
 Usage Examples:
 
     # Business events (monitoring/logging)
-    from core.ai_runtime.events import emit_business_event
+    from mozaiks_ai.runtime.events import emit_business_event
     await emit_business_event("WORKFLOW_STARTED", "Workflow initialized")
 
     # UI tool events (agent-UI interaction)
-    from core.ai_runtime.events import emit_ui_tool_event  
+    from mozaiks_ai.runtime.events import emit_ui_tool_event  
     await emit_ui_tool_event("api_key_input", {"service": "openai"}, "SomeWorkflow")
 
     # AG2 runtime events are handled automatically by the orchestration layer
     # via event_serialization.py - no direct API needed
 
     # Direct dispatcher access (advanced / internal)
-    from core.ai_runtime.events import get_event_dispatcher
+    from mozaiks_ai.runtime.events import get_event_dispatcher
     dispatcher = get_event_dispatcher()
     metrics = dispatcher.get_metrics()
 """

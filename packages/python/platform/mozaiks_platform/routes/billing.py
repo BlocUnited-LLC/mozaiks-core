@@ -16,8 +16,8 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
-from core.ai_runtime.auth.dependencies import require_internal_service
-from core.billing.sync import EntitlementSyncRequest, get_sync_handler
+from mozaiks_ai.runtime.auth.dependencies import require_internal_service
+from mozaiks_platform.billing.sync import EntitlementSyncRequest, get_sync_handler
 
 router = APIRouter(
     prefix="/api/v1/entitlements",

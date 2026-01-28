@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional
 import datetime as _dt
 
 from logs.logging_config import get_workflow_logger
-from core.ai_runtime.workflow.workflow_manager import workflow_manager
+from mozaiks_ai.runtime.workflow.workflow_manager import workflow_manager
 logger = logging.getLogger(__name__)
 
 
@@ -49,7 +49,7 @@ async def _emit_ui_tool_event_core(
     chat_logger = get_workflow_logger("ui_tools", chat_id=chat_id)
     
     try:
-        from core.ai_runtime.transport.simple_transport import SimpleTransport
+        from mozaiks_ai.runtime.transport.simple_transport import SimpleTransport
         transport = await SimpleTransport.get_instance()
     except Exception as e:
         wf_logger.error(f"❌ [UI_TOOLS] Transport unavailable: {e}")
@@ -84,7 +84,7 @@ async def _emit_ui_tool_event_core(
         raise UIToolError(f"Failed to emit UI tool event: {e}")
 
 async def _wait_for_ui_tool_response_internal(event_id: str, timeout: Optional[float] = None) -> Dict[str, Any]:
-    from core.ai_runtime.transport.simple_transport import SimpleTransport  # local import
+    from mozaiks_ai.runtime.transport.simple_transport import SimpleTransport  # local import
     transport = await SimpleTransport.get_instance()
     try:
         # Always wait indefinitely for user/UI response; ignore provided timeout to avoid premature cancellations.
@@ -155,8 +155,8 @@ async def use_ui_tool(
     # Persist UI tool metadata to enable state restoration on reconnect
     if chat_id:
         try:
-            from core.ai_runtime.data.persistence import persistence_manager as pm
-            from core.ai_runtime.core_config import get_app_id_from_chat_or_context
+            from mozaiks_ai.runtime.data.persistence import persistence_manager as pm
+            from mozaiks_ai.runtime.core_config import get_app_id_from_chat_or_context
             
             app_id = get_app_id_from_chat_or_context(chat_id=chat_id)
             if app_id:
@@ -206,7 +206,7 @@ async def use_ui_tool(
         # Auto-vanish inline components after completion
         if resolved_display == 'inline':
             try:
-                from core.ai_runtime.transport.simple_transport import SimpleTransport
+                from mozaiks_ai.runtime.transport.simple_transport import SimpleTransport
                 transport = await SimpleTransport.get_instance()
                 completion_event = {
                     "type": "chat.ui_tool_complete",
@@ -227,8 +227,8 @@ async def use_ui_tool(
             # Persist completion state to enable state restoration on reconnect
             if chat_id:
                 try:
-                    from core.ai_runtime.data.persistence import persistence_manager as pm
-                    from core.ai_runtime.core_config import get_app_id_from_chat_or_context
+                    from mozaiks_ai.runtime.data.persistence import persistence_manager as pm
+                    from mozaiks_ai.runtime.core_config import get_app_id_from_chat_or_context
                     
                     app_id = get_app_id_from_chat_or_context(chat_id=chat_id)
                     if app_id:
@@ -271,7 +271,7 @@ async def emit_tool_progress_event(
         correlation_id: Optional correlation ID linking to original tool call
     """
     try:
-        from core.ai_runtime.transport.simple_transport import SimpleTransport
+        from mozaiks_ai.runtime.transport.simple_transport import SimpleTransport
         transport = await SimpleTransport.get_instance()
         wf_logger = get_workflow_logger("tool_progress", chat_id=chat_id)
     except Exception as e:

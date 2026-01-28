@@ -50,7 +50,7 @@ def _iter_declared_extensions() -> Iterable[dict[str, Any]]:
     """
 
     try:
-        from core.ai_runtime.workflow.workflow_manager import get_workflow_manager
+        from mozaiks_ai.runtime.workflow.workflow_manager import get_workflow_manager
 
         mgr = get_workflow_manager()
     except Exception as exc:  # pragma: no cover
@@ -209,7 +209,7 @@ def get_workflow_lifecycle_hooks(workflow_name: str) -> dict[str, Any]:
         return empty_hooks
 
     try:
-        from core.ai_runtime.workflow.workflow_manager import get_workflow_manager
+        from mozaiks_ai.runtime.workflow.workflow_manager import get_workflow_manager
         mgr = get_workflow_manager()
         cfg = mgr.get_config(workflow_name) or {}
     except Exception as exc:

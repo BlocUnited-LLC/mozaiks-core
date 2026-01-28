@@ -11,7 +11,7 @@ Components:
 - broadcast.py: Admin broadcast service
 
 Usage:
-    from core.notifications import in_app_channel, email_channel
+    from mozaiks_platform.notifications import in_app_channel, email_channel
     
     # Send via specific channel
     await in_app_channel.send(
@@ -22,7 +22,7 @@ Usage:
     )
     
     # Broadcast to multiple users (admin only)
-    from core.notifications import broadcast_service
+    from mozaiks_platform.notifications import broadcast_service
     await broadcast_service.broadcast(
         notification_type="announcement",
         title="System Update",
@@ -32,7 +32,7 @@ Usage:
     )
     
     # Schedule a notification
-    from core.notifications import digest_scheduler
+    from mozaiks_platform.notifications import digest_scheduler
     await digest_scheduler.schedule_notification(
         user_id="user123",
         notification_type="reminder",

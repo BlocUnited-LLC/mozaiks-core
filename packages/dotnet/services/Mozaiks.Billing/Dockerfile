@@ -1,4 +1,4 @@
-#See https://aka.ms/customizecontainer to learn how to customize your debug container
+# Mozaiks Billing Service Dockerfile
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
@@ -7,18 +7,20 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["Services/Payment/Payment.API/Payment.API.csproj", "Services/Payment/Payment.API/"]
-COPY ["AspireAdmin/blocunited-microservice.ServiceDefaults/blocunited-microservice.ServiceDefaults.csproj", "AspireAdmin/blocunited-microservice.ServiceDefaults/"]
-RUN dotnet restore "Services/Payment/Payment.API/Payment.API.csproj"
+COPY ["services/Mozaiks.Billing/Mozaiks.Billing.csproj", "services/Mozaiks.Billing/"]
+COPY ["aspire/Mozaiks.ServiceDefaults/Mozaiks.ServiceDefaults.csproj", "aspire/Mozaiks.ServiceDefaults/"]
+COPY ["building-blocks/Mozaiks.EventBus/Mozaiks.EventBus.csproj", "building-blocks/Mozaiks.EventBus/"]
+COPY ["building-blocks/Mozaiks.Auditing/Mozaiks.Auditing.csproj", "building-blocks/Mozaiks.Auditing/"]
+COPY ["building-blocks/Mozaiks.Auth/Mozaiks.Auth.csproj", "building-blocks/Mozaiks.Auth/"]
+RUN dotnet restore "services/Mozaiks.Billing/Mozaiks.Billing.csproj"
 COPY . .
-WORKDIR "/src/Services/Payment/Payment.API"
-RUN dotnet build "Payment.API.csproj" -c Release -o /app/build
+WORKDIR "/src/services/Mozaiks.Billing"
+RUN dotnet build "Mozaiks.Billing.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Payment.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Mozaiks.Billing.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Payment.API.dll"]
-
+ENTRYPOINT ["dotnet", "Mozaiks.Billing.dll"]

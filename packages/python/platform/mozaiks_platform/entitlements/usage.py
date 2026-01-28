@@ -52,7 +52,7 @@ def get_usage_collection():
     global _usage_collection
     if _usage_collection is None:
         try:
-            from core.config.database import entitlement_usage_collection
+            from mozaiks_infra.config.database import entitlement_usage_collection
             _usage_collection = entitlement_usage_collection
         except ImportError:
             logger.warning("entitlement_usage_collection not available in database module")

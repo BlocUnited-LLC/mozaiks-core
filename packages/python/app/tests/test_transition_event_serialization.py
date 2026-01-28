@@ -16,7 +16,7 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
-from core.ai_runtime.events.event_serialization import (
+from mozaiks_ai.runtime.events.event_serialization import (
     EventBuildContext,
     build_ui_event_payload,
     _safe_agent_label,

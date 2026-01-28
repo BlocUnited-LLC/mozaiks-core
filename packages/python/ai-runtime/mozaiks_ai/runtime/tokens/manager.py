@@ -8,7 +8,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any, Dict, Optional
 
-from core.ai_runtime.events.unified_event_dispatcher import get_event_dispatcher
+from mozaiks_ai.runtime.events.unified_event_dispatcher import get_event_dispatcher
 from logs.logging_config import get_workflow_logger
 
 logger = get_workflow_logger("token_manager")

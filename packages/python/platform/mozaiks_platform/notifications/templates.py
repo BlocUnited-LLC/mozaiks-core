@@ -17,7 +17,7 @@ import json
 import logging
 import re
 from typing import Dict, Any, Optional
-from core.config.config_loader import get_config_path
+from mozaiks_infra.config.config_loader import get_config_path
 
 logger = logging.getLogger("mozaiks_core.notifications.templates")
 

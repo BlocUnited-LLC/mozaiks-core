@@ -16,12 +16,12 @@ from typing import Any, Awaitable, Callable, Dict, Optional
 
 from pydantic import ValidationError
 
-from core.ai_runtime.workflow.agents.tools import load_agent_tool_functions
-from core.ai_runtime.workflow.outputs.structured import get_structured_outputs_for_workflow
-from core.ai_runtime.events.event_serialization import serialize_event_content
-from core.ai_runtime.transport.simple_transport import SimpleTransport
-from core.ai_runtime.workflow.context.adapter import create_context_container
-from core.ai_runtime.workflow.workflow_manager import WORKFLOWS_ROOT
+from mozaiks_ai.runtime.workflow.agents.tools import load_agent_tool_functions
+from mozaiks_ai.runtime.workflow.outputs.structured import get_structured_outputs_for_workflow
+from mozaiks_ai.runtime.events.event_serialization import serialize_event_content
+from mozaiks_ai.runtime.transport.simple_transport import SimpleTransport
+from mozaiks_ai.runtime.workflow.context.adapter import create_context_container
+from mozaiks_ai.runtime.workflow.workflow_manager import WORKFLOWS_ROOT
 
 logger = logging.getLogger("auto_tool_handler")
 

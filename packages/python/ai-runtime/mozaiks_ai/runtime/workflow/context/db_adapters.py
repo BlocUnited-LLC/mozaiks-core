@@ -59,7 +59,7 @@ class MongoAdapter(DatabaseAdapter):
             return None
 
         try:
-            from core.ai_runtime.core_config import get_mongo_client
+            from mozaiks_ai.runtime.core_config import get_mongo_client
 
             client = get_mongo_client()
             logger.info(f"MongoAdapter querying {db_name}.{collection} with query={query}, projection={projection}")

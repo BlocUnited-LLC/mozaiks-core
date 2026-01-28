@@ -42,7 +42,7 @@ class _RuntimeContextVariables:
         if self._chat_id and self._app_id:
             try:
                 import asyncio
-                from core.ai_runtime.data.persistence.persistence_manager import AG2PersistenceManager
+                from mozaiks_ai.runtime.data.persistence.persistence_manager import AG2PersistenceManager
                 # Fire and forget persistence to avoid blocking
                 pm = AG2PersistenceManager()
                 asyncio.create_task(pm.persist_context_variables(

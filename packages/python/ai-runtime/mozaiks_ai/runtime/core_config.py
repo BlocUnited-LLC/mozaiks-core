@@ -111,7 +111,7 @@ def get_app_id_from_chat_or_context(chat_id: Optional[str] = None) -> Optional[s
         return None
 
     try:
-        from core.ai_runtime.transport.simple_transport import SimpleTransport
+        from mozaiks_ai.runtime.transport.simple_transport import SimpleTransport
 
         transport = getattr(SimpleTransport, "_instance", None)
         if not transport or not hasattr(transport, "connections"):

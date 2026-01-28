@@ -77,7 +77,7 @@ def check_docker() -> tuple[bool, str]:
 async def check_mongodb() -> tuple[bool, str]:
     """Check MongoDB connection."""
     try:
-        from core.config.database import verify_connection, db
+        from mozaiks_infra.config.database import verify_connection, db
         await verify_connection(force=True)
         return True, f"Connected ({db.name})"
     except ImportError:
@@ -137,7 +137,7 @@ def check_plugins_dir() -> tuple[bool, str]:
 def check_entitlements_module() -> tuple[bool, str]:
     """Check entitlements module is available."""
     try:
-        from core.entitlements import check_feature, check_limit
+        from mozaiks_platform.entitlements import check_feature, check_limit
         return True, "v1.0 loaded"
     except ImportError as e:
         return None, f"Not available: {e}"

@@ -8,7 +8,7 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
-from core.insights.payloads import (  # noqa: E402
+from mozaiks_platform.insights.payloads import (  # noqa: E402
     KPIValue,
     build_sdk_heartbeat_event,
     build_events_payload,

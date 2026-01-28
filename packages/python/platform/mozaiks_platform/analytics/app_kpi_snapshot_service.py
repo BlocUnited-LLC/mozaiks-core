@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from typing import Any, Dict, Optional, Tuple
 
-from core.config.database import db
-from core.metrics.computation import cohort_retention, count_events, distinct_users, safe_div
+from mozaiks_infra.config.database import db
+from mozaiks_infra.metrics.computation import cohort_retention, count_events, distinct_users, safe_div
 
 logger = logging.getLogger("mozaiks_core.analytics.app_kpi_snapshot")
 

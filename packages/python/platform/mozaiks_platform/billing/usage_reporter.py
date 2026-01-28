@@ -149,7 +149,7 @@ class UsageReporter:
             return
         
         self._running = True
-        from core.ai_runtime.auth.client_credentials import ClientCredentialsTokenProvider
+        from mozaiks_ai.runtime.auth.client_credentials import ClientCredentialsTokenProvider
 
         self._token_provider = ClientCredentialsTokenProvider(
             client_id=self._client_id or "",

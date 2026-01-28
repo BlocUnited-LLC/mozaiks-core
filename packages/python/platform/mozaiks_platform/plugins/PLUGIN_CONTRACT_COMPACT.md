@@ -30,11 +30,11 @@ async def execute(data: dict) -> dict:
 ## Core Imports
 
 ```python
-from core.config.database import db                        # MongoDB
-from core.event_bus import event_bus                       # Events
-from core.notifications_manager import notifications_manager
-from core.settings_manager import settings_manager
-from core.websocket_manager import websocket_manager
+from mozaiks_infra.config.database import db                        # MongoDB
+from mozaiks_infra.event_bus import event_bus                       # Events
+from mozaiks_platform.notifications_manager import notifications_manager
+from mozaiks_platform.settings_manager import settings_manager
+from mozaiks_infra.websocket_manager import websocket_manager
 from bson import ObjectId
 import logging
 logger = logging.getLogger("mozaiks_plugins.{plugin_name}")
@@ -119,7 +119,7 @@ await notifications_manager.create_notification(
 import logging
 from datetime import datetime
 from bson import ObjectId
-from core.config.database import db
+from mozaiks_infra.config.database import db
 
 logger = logging.getLogger("mozaiks_plugins.{name}")
 COLLECTION = "{name}_items"

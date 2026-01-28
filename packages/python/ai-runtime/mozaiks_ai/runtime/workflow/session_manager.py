@@ -6,7 +6,7 @@
 import time
 import uuid
 from typing import Optional, Dict, Any
-from core.ai_runtime.data.persistence.persistence_manager import AG2PersistenceManager
+from mozaiks_ai.runtime.data.persistence.persistence_manager import AG2PersistenceManager
 
 
 async def create_workflow_session(app_id: str, user_id: str, workflow_name: str) -> Dict[str, Any]:

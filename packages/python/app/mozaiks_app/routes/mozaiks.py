@@ -14,7 +14,7 @@ from app.connectors.base import (
     PaymentStatus,
 )
 from app.runtime.connector_loader import ConnectorBundle, load_connectors
-from core.ai_runtime.auth.dependencies import get_current_user
+from mozaiks_ai.runtime.auth.dependencies import get_current_user
 from security.rate_limit import RateLimitPolicy, enforce_rate_limit
 
 router = APIRouter()

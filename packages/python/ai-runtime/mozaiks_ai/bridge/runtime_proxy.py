@@ -36,8 +36,8 @@ class AIRuntimeProxy:
             
         try:
             # Import from the mozaiksai namespace
-            from core.ai_runtime.workflow.workflow_manager import workflow_manager
-            from core.ai_runtime.data.persistence import AG2PersistenceManager
+            from mozaiks_ai.runtime.workflow.workflow_manager import workflow_manager
+            from mozaiks_ai.runtime.data.persistence import AG2PersistenceManager
             
             self._workflow_manager = workflow_manager
             self._persistence_manager = AG2PersistenceManager()

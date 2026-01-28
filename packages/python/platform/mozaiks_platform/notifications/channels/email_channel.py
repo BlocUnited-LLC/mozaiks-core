@@ -139,7 +139,7 @@ class EmailChannel(NotificationChannel):
         
         # Look up from database
         try:
-            from core.config.database import db
+            from mozaiks_infra.config.database import db
             user = await db["users"].find_one({"_id": user_id})
             if user:
                 return user.get("email")

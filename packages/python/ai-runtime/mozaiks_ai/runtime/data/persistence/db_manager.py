@@ -10,8 +10,8 @@ from datetime import datetime, timezone
 from bson import ObjectId
 
 from logs.logging_config import get_workflow_logger
-from core.ai_runtime.core_config import get_mongo_client
-from core.ai_runtime.workflow.workflow_manager import workflow_manager
+from mozaiks_ai.runtime.core_config import get_mongo_client
+from mozaiks_ai.runtime.workflow.workflow_manager import workflow_manager
 
 class DatabaseManagerError(Exception):
     """Custom exception for database manager errors."""

@@ -5,8 +5,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from core.config.settings import settings
-from core.http_utils.middleware import CorrelationIdMiddleware, RequestSizeLimitMiddleware, SecurityHeadersMiddleware
+from mozaiks_infra.config.settings import settings
+from mozaiks_infra.http_utils.middleware import CorrelationIdMiddleware, RequestSizeLimitMiddleware, SecurityHeadersMiddleware
 
 
 def apply_http_hardening(app: FastAPI) -> None:

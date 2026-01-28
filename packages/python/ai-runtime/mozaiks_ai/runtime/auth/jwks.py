@@ -12,7 +12,7 @@ from dataclasses import dataclass
 
 import aiohttp
 
-from core.ai_runtime.auth.config import get_auth_config
+from mozaiks_ai.runtime.auth.config import get_auth_config
 from logs.logging_config import get_core_logger
 
 logger = get_core_logger("auth.jwks")
@@ -79,7 +79,7 @@ class JWKSClient:
             return self._explicit_jwks_url
 
         if self._use_discovery:
-            from core.ai_runtime.auth.discovery import get_discovery_client
+            from mozaiks_ai.runtime.auth.discovery import get_discovery_client
             discovery_client = get_discovery_client()
             return await discovery_client.get_jwks_uri()
 

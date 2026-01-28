@@ -13,7 +13,7 @@ if str(BACKEND_DIR) not in sys.path:
 
 def _fresh_ops_module():
     sys.modules.pop("core.ops.signals", None)
-    import core.ops.signals as ops  # noqa: E402
+    import mozaiks_infra.ops.signals as ops  # noqa: E402
 
     return importlib.reload(ops)
 

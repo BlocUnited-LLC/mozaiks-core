@@ -34,7 +34,7 @@ class WebSocketBridge:
         
         # Check if runtime is available
         try:
-            from core.ai_runtime.transport import SimpleTransport
+            from mozaiks_ai.runtime.transport import SimpleTransport
             self._runtime_available = True
             logger.info("WebSocket bridge: AI runtime transport available")
         except ImportError:
@@ -88,9 +88,9 @@ class WebSocketBridge:
             
         try:
             # Import runtime components
-            from core.ai_runtime.transport import SimpleTransport
-            from core.ai_runtime.data.persistence import AG2PersistenceManager
-            from core.ai_runtime.workflow.workflow_manager import workflow_manager
+            from mozaiks_ai.runtime.transport import SimpleTransport
+            from mozaiks_ai.runtime.data.persistence import AG2PersistenceManager
+            from mozaiks_ai.runtime.workflow.workflow_manager import workflow_manager
             
             # Validate workflow exists
             if not workflow_manager.get_workflow_info(workflow_name):

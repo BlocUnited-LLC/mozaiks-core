@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from typing import Any, Dict, Optional
 
-from core.config.database import db
+from mozaiks_infra.config.database import db
 
 logger = logging.getLogger("mozaiks_core.analytics.raw_events")
 

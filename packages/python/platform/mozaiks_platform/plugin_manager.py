@@ -17,7 +17,7 @@ from .config.config_loader import (
     get_config_path,
     reload_configs,
 )
-from core.utils.log_sanitizer import sanitize_for_log
+from mozaiks_infra.utils.log_sanitizer import sanitize_for_log
 
 logger = logging.getLogger("mozaiks_core.plugin_manager")
 
@@ -362,7 +362,7 @@ class PluginManager:
         """
         # Get timeout from settings
         try:
-            from core.config.settings import settings
+            from mozaiks_infra.config.settings import settings
             timeout_seconds = settings.plugin_exec_timeout_s
         except Exception:
             timeout_seconds = 30.0  # Contract v1.0.0 default

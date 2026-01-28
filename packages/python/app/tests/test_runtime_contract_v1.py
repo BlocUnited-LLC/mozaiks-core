@@ -15,9 +15,9 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
-from core.routes.ai import router as ai_router  # noqa: E402
+from mozaiks_ai.routes.ai import router as ai_router  # noqa: E402
 import core.routes.ai as routes_ai  # noqa: E402
-from core.runtime.manager import RuntimeUiConfig  # noqa: E402
+from mozaiks_ai.core_runtime.manager import RuntimeUiConfig  # noqa: E402
 import shared_app  # noqa: E402
 
 

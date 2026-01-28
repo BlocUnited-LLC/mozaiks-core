@@ -20,9 +20,9 @@
     <PackageReference Include="Azure.Identity" Version="1.13.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Notification.Application\Notification.Application.csproj" />
-    <ProjectReference Include="..\Notification.Infrastructure\Notification.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\BuildingBlocks\EventBus.Messages\EventBus.Messages.csproj" />
-    <ProjectReference Include="..\..\..\BuildingBlocks\Mozaiks.Auth\Mozaiks.Auth.csproj" />
+    <ProjectReference Include="..\Mozaiks.Notifications.Application\Mozaiks.Notifications.Application.csproj" />
+    <ProjectReference Include="..\Mozaiks.Notifications.Infrastructure\Mozaiks.Notifications.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\building-blocks\Mozaiks.EventBus\Mozaiks.EventBus.csproj" />
+    <ProjectReference Include="..\..\..\building-blocks\Mozaiks.Auth\Mozaiks.Auth.csproj" />
   </ItemGroup>
 </Project>

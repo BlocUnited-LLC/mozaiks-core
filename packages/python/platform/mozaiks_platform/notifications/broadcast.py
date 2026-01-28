@@ -17,7 +17,7 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 
-from core.config.database import db
+from mozaiks_infra.config.database import db
 from .channels import get_enabled_channels, CHANNELS
 
 logger = logging.getLogger("mozaiks_core.notifications.broadcast")

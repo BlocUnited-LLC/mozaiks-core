@@ -26,7 +26,7 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 
-from core.config.database import db
+from mozaiks_infra.config.database import db
 from .templates import template_renderer
 from .channels import email_channel
 
@@ -235,7 +235,7 @@ class DigestScheduler:
             for item in scheduled:
                 try:
                     # Import here to avoid circular imports
-                    from core.notifications_manager import notifications_manager
+                    from mozaiks_platform.notifications_manager import notifications_manager
                     
                     await notifications_manager.create_notification(
                         user_id=item["user_id"],

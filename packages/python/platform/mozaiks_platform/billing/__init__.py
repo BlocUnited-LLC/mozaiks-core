@@ -19,7 +19,7 @@ Core NEVER pulls from Platform. Push-only model ensures Core works
 100% standalone without any Platform dependency.
 
 Usage (v2 - Recommended):
-    from core.billing import get_entitlements
+    from mozaiks_platform.billing import get_entitlements
     
     ent = get_entitlements(app_id)
     if ent.has_feature("code_execution"):

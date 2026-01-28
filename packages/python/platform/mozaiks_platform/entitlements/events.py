@@ -39,7 +39,7 @@ def get_event_bus():
     global _event_bus
     if _event_bus is None:
         try:
-            from core.event_bus import event_bus
+            from mozaiks_infra.event_bus import event_bus
             _event_bus = event_bus
         except ImportError:
             logger.warning("Event bus not available")

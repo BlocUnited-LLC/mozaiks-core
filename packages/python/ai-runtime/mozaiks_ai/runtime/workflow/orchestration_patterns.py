@@ -38,9 +38,9 @@ from autogen.events.agent_events import (
     SelectSpeakerEvent,
     RunCompletionEvent,
 )
-from core.ai_runtime.workflow.outputs import get_structured_outputs_for_workflow
-from core.ai_runtime.data.persistence import AG2PersistenceManager as _PM
-from core.ai_runtime.events.event_serialization import (
+from mozaiks_ai.runtime.workflow.outputs import get_structured_outputs_for_workflow
+from mozaiks_ai.runtime.data.persistence import AG2PersistenceManager as _PM
+from mozaiks_ai.runtime.events.event_serialization import (
     build_ui_event_payload as unified_build_ui_event_payload,
     EventBuildContext as UnifiedEventBuildContext,
     build_structured_output_ready_event,
@@ -51,9 +51,9 @@ from ..data.persistence import AG2PersistenceManager
 from .execution import create_termination_handler, LifecycleTrigger
 from .context import DerivedContextManager
 from logs.logging_config import get_workflow_logger
-from core.ai_runtime.observability.ag2_runtime_logger import ag2_logging_session
-from core.ai_runtime.observability.performance_manager import get_performance_manager
-from core.ai_runtime.events.unified_event_dispatcher import get_event_dispatcher
+from mozaiks_ai.runtime.observability.ag2_runtime_logger import ag2_logging_session
+from mozaiks_ai.runtime.observability.performance_manager import get_performance_manager
+from mozaiks_ai.runtime.events.unified_event_dispatcher import get_event_dispatcher
 
 from .validation import SENTINEL_STATUS
 
@@ -792,7 +792,7 @@ async def _stream_events(
             event_class = ev.__class__.__name__
             if event_class == 'TextEvent':
                 try:
-                    from core.ai_runtime.events.event_serialization import extract_agent_name
+                    from mozaiks_ai.runtime.events.event_serialization import extract_agent_name
                     agent_name = extract_agent_name(ev)
                     content = getattr(ev, 'content', '')
                     content_preview = str(content)[:100] if content else 'None'
@@ -811,7 +811,7 @@ async def _stream_events(
 
                     # Forward TextEvent to UI via WebSocket (inner try isolates transport issues)
                     try:
-                        from core.ai_runtime.transport.simple_transport import SimpleTransport
+                        from mozaiks_ai.runtime.transport.simple_transport import SimpleTransport
                         transport = await SimpleTransport.get_instance()
                         if transport:
                             sender_name = _extract_agent_name(ev)
@@ -881,7 +881,7 @@ async def _stream_events(
                                 # Try to extract structured output from message content
                                 structured_blob = None
                                 try:
-                                    from core.ai_runtime.data.persistence.persistence_manager import AG2PersistenceManager as _PM
+                                    from mozaiks_ai.runtime.data.persistence.persistence_manager import AG2PersistenceManager as _PM
                                     if hasattr(_PM, '_extract_json_from_text'):
                                         structured_blob = _PM._extract_json_from_text(message_content)
                                         wf_logger.info(f" [{workflow_name_upper}] JSON extraction result for {sender_name}: {structured_blob is not None}")
@@ -963,7 +963,7 @@ async def _stream_events(
                                             else:
                                                 model_name = "UnknownModel"
                                             
-                                            from core.ai_runtime.events.event_serialization import build_structured_output_ready_event
+                                            from mozaiks_ai.runtime.events.event_serialization import build_structured_output_ready_event
                                             structured_event = build_structured_output_ready_event(
                                                 agent=sender_name,
                                                 model_name=model_name,
@@ -1084,7 +1084,7 @@ async def _stream_events(
                     next_agent = getattr(ev, "agent", None)
                     if next_agent:
                         next_agent_name = getattr(next_agent, "name", None) or str(next_agent)
-                        from core.ai_runtime.observability.realtime_token_logger import get_realtime_token_logger
+                        from mozaiks_ai.runtime.observability.realtime_token_logger import get_realtime_token_logger
                         realtime_logger = get_realtime_token_logger()
                         realtime_logger.set_active_agent(next_agent_name)
                         wf_logger.debug(f"[REALTIME_TOKENS] Context updated for agent: {next_agent_name}")
@@ -1609,7 +1609,7 @@ async def run_workflow_orchestration(
     # Persistence / transport / termination handler 
     persistence_manager = AG2PersistenceManager()
 
-    from core.ai_runtime.transport.simple_transport import SimpleTransport
+    from mozaiks_ai.runtime.transport.simple_transport import SimpleTransport
     transport = await SimpleTransport.get_instance()
     if not transport:
         raise RuntimeError(f"SimpleTransport instance not available for {workflow_name} workflow")
@@ -1648,7 +1648,7 @@ async def run_workflow_orchestration(
     with ag2_logging_session(chat_id, workflow_name, app_id):
         # Set up realtime token logger for immediate token tracking
         try:
-            from core.ai_runtime.observability.realtime_token_logger import get_realtime_token_logger
+            from mozaiks_ai.runtime.observability.realtime_token_logger import get_realtime_token_logger
             realtime_logger = get_realtime_token_logger()
             realtime_logger.set_user(user_id or "unknown")
             realtime_logger.set_active_agent(workflow_name)
@@ -1798,7 +1798,7 @@ async def run_workflow_orchestration(
             # Permanent runtime variable: does this workflow declare nested child chats?
             try:
                 if context is not None:
-                    from core.ai_runtime.workflow.pack.graph import workflow_has_nested_chats
+                    from mozaiks_ai.runtime.workflow.pack.graph import workflow_has_nested_chats
 
                     context.set("has_children", bool(workflow_has_nested_chats(workflow_name)))
             except Exception:
@@ -2039,7 +2039,7 @@ async def run_workflow_orchestration(
             # 10.5) Lifecycle Tools: before_chat trigger
             # -----------------------------------------------------------------
             try:
-                from core.ai_runtime.workflow.execution.lifecycle import get_lifecycle_manager
+                from mozaiks_ai.runtime.workflow.execution.lifecycle import get_lifecycle_manager
                 lifecycle_manager = get_lifecycle_manager(workflow_name)
                 await lifecycle_manager.trigger_before_chat(context_variables=ag2_context)
                 wf_logger.info(f" [{workflow_name_upper}] Lifecycle before_chat triggers completed")
@@ -2257,7 +2257,7 @@ async def run_workflow_orchestration(
                     }
 
                 if chat_id and app_id and workflow_name:
-                    from core.ai_runtime.tokens.manager import TokenManager
+                    from mozaiks_ai.runtime.tokens.manager import TokenManager
 
                     await TokenManager.emit_usage_summary(
                         chat_id=chat_id,
@@ -2308,7 +2308,7 @@ async def run_workflow_orchestration(
             # 12) Lifecycle Tools: after_chat trigger
             # -----------------------------------------------------------------
             try:
-                from core.ai_runtime.workflow.execution.lifecycle import get_lifecycle_manager
+                from mozaiks_ai.runtime.workflow.execution.lifecycle import get_lifecycle_manager
                 lifecycle_manager = get_lifecycle_manager(workflow_name)
                 await lifecycle_manager.trigger_after_chat(context_variables=ag2_context)
                 wf_logger.info(f" [{workflow_name_upper}] Lifecycle after_chat triggers completed")
@@ -2334,7 +2334,7 @@ async def run_workflow_orchestration(
                 logger.error(f" Termination handler error cleanup failed: {term_err}")
             raise
         finally:
-            from core.ai_runtime.data.models import WorkflowStatus
+            from mozaiks_ai.runtime.data.models import WorkflowStatus
             status = WorkflowStatus.COMPLETED
             try:
                 await perf_mgr.record_workflow_end(chat_id, int(status))
@@ -2456,7 +2456,7 @@ async def log_conversation_to_agent_chat_file(conversation_history, chat_id: str
                     message_role = message.get('role') if isinstance(message, dict) else None
                     if not (sender_name.lower() in ("user", "userproxy", "userproxyagent") or message_role == 'user'):
                         try:
-                            from core.ai_runtime.transport.simple_transport import SimpleTransport
+                            from mozaiks_ai.runtime.transport.simple_transport import SimpleTransport
                             transport = await SimpleTransport.get_instance()
                             if transport:
                                 await transport.send_chat_message(

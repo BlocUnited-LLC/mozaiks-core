@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import ValidationError
 
-from core.ai_runtime.data.themes.theme_manager import DEFAULT_THEME, ThemeConfig, ThemeUpdateRequest
+from mozaiks_ai.runtime.data.themes.theme_manager import DEFAULT_THEME, ThemeConfig, ThemeUpdateRequest
 
 
 @dataclass

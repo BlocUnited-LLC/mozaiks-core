@@ -29,8 +29,8 @@ import sqlite3
 
 from autogen.logger.base_logger import BaseLogger
 from logs.logging_config import get_workflow_logger
-from core.ai_runtime.data.persistence.persistence_manager import AG2PersistenceManager
-from core.ai_runtime.tokens.manager import TokenManager
+from mozaiks_ai.runtime.data.persistence.persistence_manager import AG2PersistenceManager
+from mozaiks_ai.runtime.tokens.manager import TokenManager
 
 import logging
 logger = logging.getLogger("core.observability.realtime_token_logger")

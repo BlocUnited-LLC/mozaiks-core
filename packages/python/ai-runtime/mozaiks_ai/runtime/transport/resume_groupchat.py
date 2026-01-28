@@ -41,7 +41,7 @@ class GroupChatResumer:
             return None
 
         try:
-            from core.ai_runtime.data.models import WorkflowStatus
+            from mozaiks_ai.runtime.data.models import WorkflowStatus
 
             status = doc.get("status", -1)
             if int(status) != int(WorkflowStatus.IN_PROGRESS):
@@ -310,7 +310,7 @@ class GroupChatResumer:
 
     async def _ensure_persistence_manager(self):
         if self._persistence_manager is None:
-            from core.ai_runtime.data.persistence.persistence_manager import AG2PersistenceManager
+            from mozaiks_ai.runtime.data.persistence.persistence_manager import AG2PersistenceManager
 
             self._persistence_manager = AG2PersistenceManager()
         return self._persistence_manager

@@ -19,10 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\AspireAdmin\blocunited-microservice.ServiceDefaults\blocunited-microservice.ServiceDefaults.csproj" />
-    <ProjectReference Include="..\..\..\BuildingBlocks\EventBus.Messages\EventBus.Messages.csproj" />
-    <ProjectReference Include="..\..\..\BuildingBlocks\Mozaiks.Auditing\Mozaiks.Auditing.csproj" />
-    <ProjectReference Include="..\..\..\BuildingBlocks\Mozaiks.Auth\Mozaiks.Auth.csproj" />
+    <ProjectReference Include="..\..\aspire\Mozaiks.ServiceDefaults\Mozaiks.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\building-blocks\Mozaiks.EventBus\Mozaiks.EventBus.csproj" />
+    <ProjectReference Include="..\..\building-blocks\Mozaiks.Auditing\Mozaiks.Auditing.csproj" />
+    <ProjectReference Include="..\..\building-blocks\Mozaiks.Auth\Mozaiks.Auth.csproj" />
   </ItemGroup>
 
 </Project>

@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from bson import ObjectId
 
-from core.config.database import db
+from mozaiks_infra.config.database import db
 
 logger = logging.getLogger("mozaiks_core.insights.state")
 

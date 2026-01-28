@@ -431,7 +431,7 @@ class LifecycleToolManager:
     ) -> None:
         """Emit lifecycle event for observability (integrates with existing event system)."""
         try:
-            from core.ai_runtime.events.unified_event_dispatcher import get_event_dispatcher
+            from mozaiks_ai.runtime.events.unified_event_dispatcher import get_event_dispatcher
             dispatcher = get_event_dispatcher()
             
             # Emit as business event for logging/observability

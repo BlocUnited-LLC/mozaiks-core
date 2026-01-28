@@ -161,7 +161,7 @@ class WebPushChannel(NotificationChannel):
     async def _get_user_subscriptions(self, user_id: str) -> List[Dict[str, Any]]:
         """Get all push subscriptions for a user."""
         try:
-            from core.config.database import db
+            from mozaiks_infra.config.database import db
             collection = db["push_subscriptions"]
             subscriptions = await collection.find({"user_id": user_id}).to_list(20)
             return [s["subscription"] for s in subscriptions if "subscription" in s]
@@ -180,7 +180,7 @@ class WebPushChannel(NotificationChannel):
             # Check if this is a permanent failure (subscription expired/invalid)
             error_str = str(error)
             if "410" in error_str or "404" in error_str:
-                from core.config.database import db
+                from mozaiks_infra.config.database import db
                 collection = db["push_subscriptions"]
                 await collection.delete_one({
                     "user_id": user_id,
@@ -210,7 +210,7 @@ class WebPushChannel(NotificationChannel):
             bool: True if saved successfully
         """
         try:
-            from core.config.database import db
+            from mozaiks_infra.config.database import db
             from datetime import datetime
             
             collection = db["push_subscriptions"]
@@ -242,7 +242,7 @@ class WebPushChannel(NotificationChannel):
     async def remove_subscription(self, user_id: str, endpoint: str) -> bool:
         """Remove a push subscription."""
         try:
-            from core.config.database import db
+            from mozaiks_infra.config.database import db
             collection = db["push_subscriptions"]
             result = await collection.delete_one({
                 "user_id": user_id,

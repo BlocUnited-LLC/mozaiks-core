@@ -13,8 +13,8 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 from bson import ObjectId
 
-from core.config.database import db
-from core.websocket_manager import websocket_manager
+from mozaiks_infra.config.database import db
+from mozaiks_infra.websocket_manager import websocket_manager
 from .base import NotificationChannel
 
 logger = logging.getLogger("mozaiks_core.notifications.channels.in_app")

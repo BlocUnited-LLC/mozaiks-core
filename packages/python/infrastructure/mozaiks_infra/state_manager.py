@@ -2,7 +2,7 @@
 import threading
 import logging
 import time
-from core.utils.log_sanitizer import sanitize_for_log
+from mozaiks_infra.utils.log_sanitizer import sanitize_for_log
 
 logger = logging.getLogger("mozaiks_core.state_manager")
 

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from core.event_bus import event_bus
+from mozaiks_infra.event_bus import event_bus
 
 
 def _utcnow() -> datetime:

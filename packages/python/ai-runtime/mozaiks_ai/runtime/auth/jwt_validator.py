@@ -18,8 +18,8 @@ import time
 import jwt
 from jwt import PyJWKClient, InvalidTokenError
 
-from core.ai_runtime.auth.config import get_auth_config, AuthConfig
-from core.ai_runtime.auth.jwks import get_jwks_client
+from mozaiks_ai.runtime.auth.config import get_auth_config, AuthConfig
+from mozaiks_ai.runtime.auth.jwks import get_jwks_client
 from logs.logging_config import get_core_logger
 
 logger = get_core_logger("auth.jwt_validator")
@@ -157,7 +157,7 @@ class JWTValidator:
 
         # Use OIDC discovery
         if self._config.use_discovery:
-            from core.ai_runtime.auth.discovery import get_discovery_client
+            from mozaiks_ai.runtime.auth.discovery import get_discovery_client
             discovery_client = get_discovery_client()
             return await discovery_client.get_issuer()
 

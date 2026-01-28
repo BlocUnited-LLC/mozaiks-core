@@ -177,7 +177,7 @@ from datetime import datetime
 from typing import Any, Dict
 
 from bson import ObjectId
-from core.config.database import db
+from mozaiks_infra.config.database import db
 
 logger = logging.getLogger("mozaiks_plugins.{plugin_name}")
 
@@ -371,7 +371,7 @@ def generate_settings_template(plugin_name: str, display_name: str) -> str:
 Handles user-specific settings for the {display_name} plugin.
 """
 import logging
-from core.settings_manager import settings_manager
+from mozaiks_platform.settings_manager import settings_manager
 
 logger = logging.getLogger("mozaiks_plugins.{plugin_name}.settings")
 

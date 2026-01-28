@@ -22,14 +22,14 @@ What This Module Does NOT Do (Authorization):
 
 Quick Start:
     # HTTP route protection
-    from core.ai_runtime.auth import require_user, UserPrincipal
+    from mozaiks_ai.runtime.auth import require_user, UserPrincipal
 
     @app.get("/api/me")
     async def get_me(user: UserPrincipal = Depends(require_user)):
         return {"user_id": user.user_id, "email": user.email}
 
     # WebSocket authentication
-    from core.ai_runtime.auth import authenticate_websocket
+    from mozaiks_ai.runtime.auth import authenticate_websocket
 
     @app.websocket("/ws/chat")
     async def chat_ws(websocket: WebSocket):
@@ -66,14 +66,14 @@ Configuration (environment variables):
 """
 
 # Configuration
-from core.ai_runtime.auth.config import (
+from mozaiks_ai.runtime.auth.config import (
     AuthConfig,
     get_auth_config,
     clear_auth_config_cache,
 )
 
 # OIDC Discovery
-from core.ai_runtime.auth.discovery import (
+from mozaiks_ai.runtime.auth.discovery import (
     OIDCDiscoveryClient,
     CachedDiscovery,
     get_discovery_client,
@@ -81,7 +81,7 @@ from core.ai_runtime.auth.discovery import (
 )
 
 # JWT validation
-from core.ai_runtime.auth.jwt_validator import (
+from mozaiks_ai.runtime.auth.jwt_validator import (
     JWTValidator,
     TokenClaims,
     AuthError,
@@ -90,14 +90,14 @@ from core.ai_runtime.auth.jwt_validator import (
 )
 
 # JWKS client
-from core.ai_runtime.auth.jwks import (
+from mozaiks_ai.runtime.auth.jwks import (
     JWKSClient,
     get_jwks_client,
     reset_jwks_client,
 )
 
 # HTTP dependencies
-from core.ai_runtime.auth.dependencies import (
+from mozaiks_ai.runtime.auth.dependencies import (
     UserPrincipal,
     ServicePrincipal,
     require_user,
@@ -113,7 +113,7 @@ from core.ai_runtime.auth.dependencies import (
 )
 
 # WebSocket authentication
-from core.ai_runtime.auth.websocket_auth import (
+from mozaiks_ai.runtime.auth.websocket_auth import (
     WebSocketUser,
     authenticate_websocket,
     authenticate_websocket_with_path_user,

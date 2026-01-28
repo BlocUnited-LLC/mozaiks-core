@@ -122,7 +122,7 @@ async def execute(data: dict) -> dict:
 ### Import
 
 ```python
-from core.config.database import db
+from mozaiks_infra.config.database import db
 from bson import ObjectId
 ```
 
@@ -137,7 +137,7 @@ from bson import ObjectId
 ### Collection Access
 
 ```python
-from core.config.database import db
+from mozaiks_infra.config.database import db
 from bson import ObjectId
 
 async def execute(data: dict) -> dict:
@@ -181,13 +181,13 @@ await collection.find({}).to_list(100)                     # ❌ WRONG - leaks d
 ### Import
 
 ```python
-from core.event_bus import event_bus
+from mozaiks_infra.event_bus import event_bus
 ```
 
 ### Publishing Events
 
 ```python
-from core.event_bus import event_bus
+from mozaiks_infra.event_bus import event_bus
 
 async def execute(data: dict) -> dict:
     user_id = data["user_id"]
@@ -219,7 +219,7 @@ Examples:
 
 ```python
 # In your logic.py module level
-from core.event_bus import event_bus
+from mozaiks_infra.event_bus import event_bus
 
 def handle_user_registered(data):
     """React to user registration."""
@@ -237,13 +237,13 @@ event_bus.subscribe("user:registered", handle_user_registered)
 ### Import
 
 ```python
-from core.notifications_manager import notifications_manager
+from mozaiks_platform.notifications_manager import notifications_manager
 ```
 
 ### Creating Notifications
 
 ```python
-from core.notifications_manager import notifications_manager
+from mozaiks_platform.notifications_manager import notifications_manager
 
 async def execute(data: dict) -> dict:
     user_id = data["user_id"]
@@ -293,13 +293,13 @@ Register in `config/notifications_config.json`:
 ### Import
 
 ```python
-from core.settings_manager import settings_manager
+from mozaiks_platform.settings_manager import settings_manager
 ```
 
 ### Getting Plugin Settings
 
 ```python
-from core.settings_manager import settings_manager
+from mozaiks_platform.settings_manager import settings_manager
 
 async def handle_get_settings(user_id: str, data: dict) -> dict:
     settings = await settings_manager.get_plugin_settings(user_id, "your_plugin")
@@ -341,13 +341,13 @@ async def handle_save_settings(user_id: str, data: dict) -> dict:
 ### Import
 
 ```python
-from core.websocket_manager import websocket_manager
+from mozaiks_infra.websocket_manager import websocket_manager
 ```
 
 ### Sending Real-time Updates
 
 ```python
-from core.websocket_manager import websocket_manager
+from mozaiks_infra.websocket_manager import websocket_manager
 
 async def execute(data: dict) -> dict:
     user_id = data["user_id"]
@@ -495,11 +495,11 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from bson import ObjectId
-from core.config.database import db
-from core.event_bus import event_bus
-from core.notifications_manager import notifications_manager
-from core.settings_manager import settings_manager
-from core.websocket_manager import websocket_manager
+from mozaiks_infra.config.database import db
+from mozaiks_infra.event_bus import event_bus
+from mozaiks_platform.notifications_manager import notifications_manager
+from mozaiks_platform.settings_manager import settings_manager
+from mozaiks_infra.websocket_manager import websocket_manager
 
 logger = logging.getLogger("mozaiks_plugins.your_plugin")
 

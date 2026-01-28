@@ -14,8 +14,8 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 
-from core.ai_runtime.auth.dependencies import get_current_user
-from core.notifications.channels.web_push import web_push_channel
+from mozaiks_ai.runtime.auth.dependencies import get_current_user
+from mozaiks_platform.notifications.channels.web_push import web_push_channel
 
 logger = logging.getLogger("mozaiks_core.routes.push_subscriptions")
 
@@ -111,7 +111,7 @@ async def get_push_status(current_user: dict = Depends(get_current_user)):
     
     Returns whether push is enabled and how many devices are subscribed.
     """
-    from core.config.database import db
+    from mozaiks_infra.config.database import db
     
     user_id = str(current_user.get("_id", current_user.get("user_id")))
     
@@ -131,7 +131,7 @@ async def remove_all_subscriptions(current_user: dict = Depends(get_current_user
     """
     Remove all push subscriptions for the current user (all devices).
     """
-    from core.config.database import db
+    from mozaiks_infra.config.database import db
     
     user_id = str(current_user.get("_id", current_user.get("user_id")))
     

@@ -3,8 +3,8 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field
 
-from core.subscription_manager import subscription_manager
-from core.ai_runtime.auth.dependencies import require_internal_service
+from mozaiks_platform.subscription_manager import subscription_manager
+from mozaiks_ai.runtime.auth.dependencies import require_internal_service
 
 router = APIRouter(prefix="/api/internal/subscription", tags=["internal-subscription"])
 

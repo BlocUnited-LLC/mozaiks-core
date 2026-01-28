@@ -3,9 +3,9 @@ import os
 
 from fastapi import APIRouter, Depends
 
-from core.config.settings import settings
-from core.ops.signals import snapshot as ops_snapshot
-from core.ai_runtime.auth.dependencies import require_admin_or_internal
+from mozaiks_infra.config.settings import settings
+from mozaiks_infra.ops.signals import snapshot as ops_snapshot
+from mozaiks_ai.runtime.auth.dependencies import require_admin_or_internal
 
 
 router = APIRouter()

@@ -1,6 +1,6 @@
 # backend/core/analytics/event_logger.py
 import logging
-from core.event_bus import event_bus
+from mozaiks_infra.event_bus import event_bus
 
 logger = logging.getLogger("mozaiks_core.analytics.event_logger")
 

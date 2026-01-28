@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from logs.logging_config import get_workflow_logger
 
 try:  # Local import with fallback for unit tests
-    from core.ai_runtime.core_config import get_mongo_client
+    from mozaiks_ai.runtime.core_config import get_mongo_client
 except Exception:  # pragma: no cover
     get_mongo_client = None  # type: ignore
 

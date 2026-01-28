@@ -7,11 +7,11 @@ from typing import Any, Dict, Optional
 
 from logs.logging_config import get_core_logger
 
-from core.ai_runtime.multitenant import build_app_scope_filter
-from core.ai_runtime.transport.session_registry import session_registry
-from core.ai_runtime.workflow.pack.config import get_journey, load_pack_config
-from core.ai_runtime.workflow.pack.gating import validate_pack_prereqs
-from core.ai_runtime.data.models import WorkflowStatus
+from mozaiks_ai.runtime.multitenant import build_app_scope_filter
+from mozaiks_ai.runtime.transport.session_registry import session_registry
+from mozaiks_ai.runtime.workflow.pack.config import get_journey, load_pack_config
+from mozaiks_ai.runtime.workflow.pack.gating import validate_pack_prereqs
+from mozaiks_ai.runtime.data.models import WorkflowStatus
 
 
 logger = get_core_logger("journey_orchestrator")
@@ -412,7 +412,7 @@ class JourneyOrchestrator:
     ) -> None:
         try:
             try:
-                from core.ai_runtime.workflow.workflow_manager import workflow_manager  # type: ignore
+                from mozaiks_ai.runtime.workflow.workflow_manager import workflow_manager  # type: ignore
             except Exception:
                 workflow_manager = None  # type: ignore
 

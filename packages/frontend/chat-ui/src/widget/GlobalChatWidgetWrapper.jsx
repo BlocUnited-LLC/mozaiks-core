@@ -19,8 +19,8 @@
  */
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { useChatUI } from '../../../context/ChatUIContext';
-import PersistentChatWidget from '../../../components/chat/PersistentChatWidget';
+import { useChatUI } from '../context/ChatUIContext';
+import PersistentChatWidget from '../components/chat/PersistentChatWidget';
 
 /**
  * GlobalChatWidgetWrapper

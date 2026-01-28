@@ -9,12 +9,12 @@ from typing import Any
 
 from bson import ObjectId
 
-from core.analytics.kpi_service import kpi_service
-from core.analytics.raw_events import user_events_collection
-from core.config.settings import settings
-from core.insights.client import InsightsClient, InsightsClientConfig, InsightsRequestError
-from core.insights.health import record_failure, record_heartbeat, record_success
-from core.insights.payloads import (
+from mozaiks_platform.analytics.kpi_service import kpi_service
+from mozaiks_platform.analytics.raw_events import user_events_collection
+from mozaiks_infra.config.settings import settings
+from mozaiks_platform.insights.client import InsightsClient, InsightsClientConfig, InsightsRequestError
+from mozaiks_platform.insights.health import record_failure, record_heartbeat, record_success
+from mozaiks_platform.insights.payloads import (
     KPIValue,
     build_sdk_heartbeat_event,
     build_events_payload,
@@ -25,7 +25,7 @@ from core.insights.payloads import (
     to_iso_z,
     utcnow,
 )
-from core.insights.state import get_checkpoint, init_insights_state_indexes, save_checkpoint
+from mozaiks_platform.insights.state import get_checkpoint, init_insights_state_indexes, save_checkpoint
 
 logger = logging.getLogger("mozaiks_core.insights.pusher")
 

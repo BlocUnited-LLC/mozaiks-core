@@ -2,9 +2,9 @@
 import json
 import logging
 from fastapi import HTTPException
-from core.config.database import settings_collection
-from core.config.config_loader import get_config_path
-from core.event_bus import event_bus
+from mozaiks_infra.config.database import settings_collection
+from mozaiks_infra.config.config_loader import get_config_path
+from mozaiks_infra.event_bus import event_bus
 
 logger = logging.getLogger("mozaiks_core.settings_manager")
 
@@ -212,7 +212,7 @@ class SettingsManager:
                         plugin_name = field.get("plugin")
                         if plugin_name:
                             # Import needed here to avoid circular imports
-                            from core.subscription_manager import subscription_manager
+                            from mozaiks_platform.subscription_manager import subscription_manager
                             has_access = await subscription_manager.is_plugin_accessible(user_id, plugin_name)
                             if has_access:
                                 filtered_fields.append(field)

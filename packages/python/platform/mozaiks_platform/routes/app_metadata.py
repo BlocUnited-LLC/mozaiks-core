@@ -4,9 +4,9 @@ from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
-from core.config.database import db
-from core.analytics.app_kpi_snapshot_service import app_kpi_snapshot_service
-from core.ai_runtime.auth.dependencies import require_admin_or_internal
+from mozaiks_infra.config.database import db
+from mozaiks_platform.analytics.app_kpi_snapshot_service import app_kpi_snapshot_service
+from mozaiks_ai.runtime.auth.dependencies import require_admin_or_internal
 
 
 router = APIRouter()

@@ -20,17 +20,17 @@ from bson.objectid import ObjectId
 from uuid import uuid4
 import autogen
 from pydantic import BaseModel, Field, ConfigDict, AliasChoices
-from core.ai_runtime.core_config import get_mongo_client
-from core.ai_runtime.transport.simple_transport import SimpleTransport
-from core.ai_runtime.workflow.workflow_manager import workflow_status_summary, get_workflow_transport, get_workflow_tools
-from core.ai_runtime.data.persistence.persistence_manager import AG2PersistenceManager
-from core.ai_runtime.data.themes.theme_manager import ThemeManager, ThemeResponse
-from core.ai_runtime.multitenant import build_app_scope_filter, coalesce_app_id
-from core.ai_runtime.artifacts.attachments import handle_chat_upload
-from core.ai_runtime.runtime.extensions import mount_declared_routers, start_declared_services, stop_services
+from mozaiks_ai.runtime.core_config import get_mongo_client
+from mozaiks_ai.runtime.transport.simple_transport import SimpleTransport
+from mozaiks_ai.runtime.workflow.workflow_manager import workflow_status_summary, get_workflow_transport, get_workflow_tools
+from mozaiks_ai.runtime.data.persistence.persistence_manager import AG2PersistenceManager
+from mozaiks_ai.runtime.data.themes.theme_manager import ThemeManager, ThemeResponse
+from mozaiks_ai.runtime.multitenant import build_app_scope_filter, coalesce_app_id
+from mozaiks_ai.runtime.artifacts.attachments import handle_chat_upload
+from mozaiks_ai.runtime.runtime.extensions import mount_declared_routers, start_declared_services, stop_services
 
 # JWT Authentication dependencies
-from core.ai_runtime.auth import (
+from mozaiks_ai.runtime.auth import (
     UserPrincipal,
     ServicePrincipal,
     require_user_scope,
@@ -43,7 +43,7 @@ from core.ai_runtime.auth import (
     get_auth_config,
     WS_CLOSE_POLICY_VIOLATION,
 )
-from core.ai_runtime.auth.dependencies import (
+from mozaiks_ai.runtime.auth.dependencies import (
     validate_path_app_id,
     validate_path_chat_id,
     require_execution_token,
@@ -187,12 +187,12 @@ def _patch_autogen_file_logger() -> None:
 _patch_autogen_file_logger()
 
 # Initialize unified event dispatcher
-from core.ai_runtime.events import get_event_dispatcher
+from mozaiks_ai.runtime.events import get_event_dispatcher
 event_dispatcher = get_event_dispatcher()
 wf_logger.info("🎯 Unified Event Dispatcher initialized")
 
-from core.ai_runtime.observability.performance_manager import get_performance_manager
-from core.ai_runtime.workflow.orchestration_patterns import get_run_registry_summary
+from mozaiks_ai.runtime.observability.performance_manager import get_performance_manager
+from mozaiks_ai.runtime.workflow.orchestration_patterns import get_run_registry_summary
 
 # FastAPI app
 app = FastAPI(
@@ -539,7 +539,7 @@ async def startup():
     try:
         clear_tools = _env_bool("CLEAR_TOOL_CACHE_ON_START", default=(env != "production"))
         if clear_tools:
-            from core.ai_runtime.workflow.agents.tools import clear_tool_cache
+            from mozaiks_ai.runtime.workflow.agents.tools import clear_tool_cache
             cleared = clear_tool_cache()  # clear all workflow tool modules
             wf_logger.info(f"🧹 TOOL_CACHE: Cleared {cleared} cached tool modules on startup")
         else:
@@ -550,7 +550,7 @@ async def startup():
     # Optional: clear LLM caches on startup (default OFF)
     try:
         if _env_bool("CLEAR_LLM_CACHES_ON_START", default=False):
-            from core.ai_runtime.workflow.validation.llm_config import clear_llm_caches
+            from mozaiks_ai.runtime.workflow.validation.llm_config import clear_llm_caches
             clear_llm_caches(raw=True, built=True)
             wf_logger.info("🧹 LLM_CACHE: Cleared raw and built llm_config caches on startup")
         # Log effective TTL to aid ops visibility
@@ -904,7 +904,7 @@ async def health_check(
 # ============================================================================
 
 async def _validate_pack_prereqs(*, app_id: str, user_id: str, workflow_name: str) -> Tuple[bool, Optional[str]]:
-    from core.ai_runtime.workflow.pack.gating import validate_pack_prereqs
+    from mozaiks_ai.runtime.workflow.pack.gating import validate_pack_prereqs
 
     ok, reason = await validate_pack_prereqs(
         app_id=app_id,
@@ -1096,7 +1096,7 @@ async def start_chat(
 
                 # Auto-attach a journey instance when starting the first step of a journey.
                 try:
-                    from core.ai_runtime.workflow.pack.config import load_pack_config, infer_auto_journey_for_start
+                    from mozaiks_ai.runtime.workflow.pack.config import load_pack_config, infer_auto_journey_for_start
 
                     pack = load_pack_config()
                     journey = infer_auto_journey_for_start(pack, workflow_name) if pack else None
@@ -1229,7 +1229,7 @@ async def list_user_sessions(
     user_id = _validate_user_id_against_principal(principal, path_user_id=user_id)
     
     try:
-        from core.ai_runtime.data.models import WorkflowStatus
+        from mozaiks_ai.runtime.data.models import WorkflowStatus
         coll = await _chat_coll()
         
         # Find all IN_PROGRESS sessions for this user
@@ -1276,7 +1276,7 @@ async def get_most_recent_workflow_session(
     user_id = _validate_user_id_against_principal(principal, path_user_id=user_id)
     
     try:
-        from core.ai_runtime.data.models import WorkflowStatus
+        from mozaiks_ai.runtime.data.models import WorkflowStatus
         coll = await _chat_coll()
 
         # Find all IN_PROGRESS sessions, sorted by last_updated_at descending (most recent first)
@@ -1437,7 +1437,7 @@ async def chat_meta(
     try:
         has_children = False
         try:
-            from core.ai_runtime.workflow.pack.graph import workflow_has_nested_chats
+            from mozaiks_ai.runtime.workflow.pack.graph import workflow_has_nested_chats
 
             has_children = workflow_has_nested_chats(workflow_name)
         except Exception:
@@ -1459,7 +1459,7 @@ async def chat_meta(
         artifact_instance_id = None
         artifact_state = None
         try:
-            from core.ai_runtime.workflow import session_manager
+            from mozaiks_ai.runtime.workflow import session_manager
             workflow_session = await session_manager.get_workflow_session(chat_id, app_id)
             if workflow_session and workflow_session.get("artifact_instance_id"):
                 artifact_instance_id = workflow_session["artifact_instance_id"]
@@ -1537,7 +1537,7 @@ async def websocket_endpoint(
         wf_logger.debug(f"WS_CHAT_OWNERSHIP_CHECK_SKIPPED: {ownership_err}")
 
     # Register this WebSocket connection in session registry
-    from core.ai_runtime.transport.session_registry import session_registry
+    from mozaiks_ai.runtime.transport.session_registry import session_registry
     ws_id = id(websocket)
 
     # Validate workflow prerequisites early (fail-closed) so we don't create/buffer state
@@ -1632,7 +1632,7 @@ async def websocket_endpoint(
     # Auto-start AgentDriven workflows once the socket is accepted and registered
     async def _auto_start_if_needed():
         try:
-            from core.ai_runtime.workflow.workflow_manager import workflow_manager
+            from mozaiks_ai.runtime.workflow.workflow_manager import workflow_manager
             cfg = workflow_manager.get_config(workflow_name)
             if cfg.get("startup_mode", "AgentDriven") == "AgentDriven":
                 local_transport = simple_transport
@@ -1665,7 +1665,7 @@ async def websocket_endpoint(
     try:
         has_children = False
         try:
-            from core.ai_runtime.workflow.pack.graph import workflow_has_nested_chats
+            from mozaiks_ai.runtime.workflow.pack.graph import workflow_has_nested_chats
 
             has_children = workflow_has_nested_chats(workflow_name)
         except Exception:
@@ -1924,7 +1924,7 @@ async def get_workflow_ui_tools_manifest(
 ):
     """Get UI tools manifest with schemas for frontend development."""
     try:
-        from core.ai_runtime.workflow.workflow_manager import workflow_manager
+        from mozaiks_ai.runtime.workflow.workflow_manager import workflow_manager
         ui_tools = workflow_manager.get_workflow_tools(workflow_name)
         manifest = []
         for rec in ui_tools:
@@ -1957,7 +1957,7 @@ async def get_workflows(
 ):
     """Get all workflows for frontend (alias for /api/workflows/config)"""
     try:
-        from core.ai_runtime.workflow.workflow_manager import workflow_manager
+        from mozaiks_ai.runtime.workflow.workflow_manager import workflow_manager
 
         workflow_names = list(workflow_manager.get_all_workflow_names())
 
@@ -1965,7 +1965,7 @@ async def get_workflows(
         # default workflow aligns with prerequisites (e.g., ValueEngine first).
         ordered_names: list[str] = []
         try:
-            from core.ai_runtime.workflow.pack.config import load_pack_config
+            from mozaiks_ai.runtime.workflow.pack.config import load_pack_config
 
             pack = load_pack_config()
             journeys = pack.get("journeys") if isinstance(pack, dict) else None
@@ -2012,13 +2012,13 @@ async def get_workflow_configs(
 ):
     """Get all workflow configurations for frontend"""
     try:
-        from core.ai_runtime.workflow.workflow_manager import workflow_manager
+        from mozaiks_ai.runtime.workflow.workflow_manager import workflow_manager
 
         workflow_names = list(workflow_manager.get_all_workflow_names())
 
         ordered_names: list[str] = []
         try:
-            from core.ai_runtime.workflow.pack.config import load_pack_config
+            from mozaiks_ai.runtime.workflow.pack.config import load_pack_config
 
             pack = load_pack_config()
             journeys = pack.get("journeys") if isinstance(pack, dict) else None
@@ -2078,7 +2078,7 @@ async def get_available_workflows(
         Dict with 'workflows' array containing workflow metadata and availability status
     """
     try:
-        from core.ai_runtime.workflow.pack.gating import list_workflow_availability
+        from mozaiks_ai.runtime.workflow.pack.gating import list_workflow_availability
 
         if principal.user_id == "anonymous":
             resolved_user_id = str(user_id or "").strip()
@@ -2245,7 +2245,7 @@ async def download_workflow_file(
         File content with proper download headers
     """
     from fastapi.responses import FileResponse
-    from core.ai_runtime.workflow.workflow_manager import get_workflow_manager
+    from mozaiks_ai.runtime.workflow.workflow_manager import get_workflow_manager
     import mimetypes
     
     try:

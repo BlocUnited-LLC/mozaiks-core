@@ -25,18 +25,18 @@ from enum import Enum
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 
-from core.ai_runtime.events.auto_tool_handler import AutoToolEventHandler
-from core.ai_runtime.events.usage_ingest import get_usage_ingest_client
-from core.ai_runtime.workflow.pack.workflow_pack_coordinator import WorkflowPackCoordinator
-from core.ai_runtime.workflow.pack.journey_orchestrator import JourneyOrchestrator
+from mozaiks_ai.runtime.events.auto_tool_handler import AutoToolEventHandler
+from mozaiks_ai.runtime.events.usage_ingest import get_usage_ingest_client
+from mozaiks_ai.runtime.workflow.pack.workflow_pack_coordinator import WorkflowPackCoordinator
+from mozaiks_ai.runtime.workflow.pack.journey_orchestrator import JourneyOrchestrator
 from logs.logging_config import get_core_logger, get_workflow_logger
-from core.ai_runtime.events.event_serialization import serialize_event_content
+from mozaiks_ai.runtime.events.event_serialization import serialize_event_content
 
 logger = get_core_logger("unified_event_dispatcher")
 wf_logger = get_workflow_logger("event_dispatcher")
 
 try:  # workflow config (optional in some minimal test contexts)
-    from core.ai_runtime.workflow.workflow_manager import workflow_manager  # type: ignore
+    from mozaiks_ai.runtime.workflow.workflow_manager import workflow_manager  # type: ignore
 except Exception:  # pragma: no cover
     workflow_manager = None  # type: ignore
 

@@ -22,28 +22,28 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List, Union
 
 from .plugin_manager import PLUGIN_DIR, plugin_manager
-from core.subscription_manager import subscription_manager
-from core.subscription_stub import SubscriptionStub
+from mozaiks_platform.subscription_manager import subscription_manager
+from mozaiks_platform.subscription_stub import SubscriptionStub
 from .event_bus import event_bus
 from .state_manager import state_manager
-from core.ai_runtime.auth.dependencies import get_current_user
+from mozaiks_ai.runtime.auth.dependencies import get_current_user
 
-from core.config.database import users_collection, db_cache, get_cached_document
-from core.config.config_loader import get_config_path
-from core.routes.notifications import router as notifications_router
-from core.routes.ai import router as ai_router
-from core.settings_manager import settings_manager
+from mozaiks_infra.config.database import users_collection, db_cache, get_cached_document
+from mozaiks_infra.config.config_loader import get_config_path
+from mozaiks_platform.routes.notifications import router as notifications_router
+from mozaiks_ai.routes.ai import router as ai_router
+from mozaiks_platform.settings_manager import settings_manager
 
 # Admin and internal routes (require Keycloak JWT: superadmin or internal_service)
-from core.routes.admin_users import router as admin_users_router
-from core.routes.notifications_admin import router as notifications_admin_router
-from core.routes.analytics import router as analytics_router
-from core.routes.status import router as status_router
-from core.routes.app_metadata import router as app_metadata_router
-from core.routes.push_subscriptions import router as push_subscriptions_router
-from core.routes.events import router as events_router
-from core.routes.subscription_sync import router as subscription_sync_router
-from core.routes.billing import router as billing_router
+from mozaiks_platform.routes.admin_users import router as admin_users_router
+from mozaiks_platform.routes.notifications_admin import router as notifications_admin_router
+from mozaiks_platform.routes.analytics import router as analytics_router
+from mozaiks_ai.routes.status import router as status_router
+from mozaiks_platform.routes.app_metadata import router as app_metadata_router
+from mozaiks_platform.routes.push_subscriptions import router as push_subscriptions_router
+from mozaiks_infra.routes.events import router as events_router
+from mozaiks_platform.routes.subscription_sync import router as subscription_sync_router
+from mozaiks_platform.routes.billing import router as billing_router
 
 logger = logging.getLogger("mozaiks_core")
 logging.basicConfig(level=logging.INFO)
@@ -105,7 +105,7 @@ MONETIZATION = os.getenv("MONETIZATION", "0") == "1"
 if MONETIZATION:
     try:
         # Use the core subscription_manager instead of the plugin version
-        from core.subscription_manager import subscription_manager
+        from mozaiks_platform.subscription_manager import subscription_manager
         logger.info("✅ Monetization enabled: Using SubscriptionManager")
     except ImportError:
         # If the module isn't available, use the stub
@@ -205,9 +205,9 @@ async def _build_entitlements_context(user: dict, plugin_name: str = None) -> di
 
     try:
         # Import entitlements module (lazy to avoid circular imports)
-        from core.entitlements.loader import load_plugin_entitlements, has_entitlements_yaml
-        from core.entitlements.usage import get_all_usage
-        from core.entitlements import build_entitlements_context
+        from mozaiks_platform.entitlements.loader import load_plugin_entitlements, has_entitlements_yaml
+        from mozaiks_platform.entitlements.usage import get_all_usage
+        from mozaiks_platform.entitlements import build_entitlements_context
 
         # Check if plugin has entitlements.yaml
         if not has_entitlements_yaml(plugin_name):
@@ -291,9 +291,9 @@ async def _auto_enforce_entitlements(
         return None
 
     try:
-        from core.entitlements.loader import load_plugin_entitlements
-        from core.entitlements import check_action
-        from core.entitlements.events import emit_feature_blocked_event, emit_limit_reached_event
+        from mozaiks_platform.entitlements.loader import load_plugin_entitlements
+        from mozaiks_platform.entitlements import check_action
+        from mozaiks_platform.entitlements.events import emit_feature_blocked_event, emit_limit_reached_event
 
         entitlements_config = load_plugin_entitlements(plugin_name)
         if not entitlements_config:
@@ -388,8 +388,8 @@ async def _auto_consume_entitlements(
         return
 
     try:
-        from core.entitlements.loader import load_plugin_entitlements
-        from core.entitlements.usage import consume_limit
+        from mozaiks_platform.entitlements.loader import load_plugin_entitlements
+        from mozaiks_platform.entitlements.usage import consume_limit
 
         entitlements_config = load_plugin_entitlements(plugin_name)
         if not entitlements_config:
@@ -412,7 +412,7 @@ async def _auto_consume_entitlements(
                 user["user_id"],
                 plugin_name
             )
-            from core.entitlements.loader import get_tier_config
+            from mozaiks_platform.entitlements.loader import get_tier_config
             tier_config = get_tier_config(entitlements_config, user_tier)
             tier_limits = tier_config.get("limits", {})
             limit_value = tier_limits.get(limit_key, 0)
@@ -1251,11 +1251,11 @@ async def startup_event():
     plugin_manager = await plugin_manager.init_async()
     
     # Register all websocket routes after plugins are loaded
-    from core.plugin_manager import register_websockets
+    from mozaiks_platform.plugin_manager import register_websockets
     await register_websockets(app)
     
     # Set up database
-    from core.config.database import verify_connection, initialize_database
+    from mozaiks_infra.config.database import verify_connection, initialize_database
     await verify_connection()
     await initialize_database()
     

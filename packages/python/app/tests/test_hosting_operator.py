@@ -10,7 +10,7 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 
-from core.hosting_operator import evaluate_snapshot, load_json  # noqa: E402
+from mozaiks_platform.hosting_operator import evaluate_snapshot, load_json  # noqa: E402
 
 
 class HostingOperatorTests(unittest.TestCase):

@@ -23,17 +23,17 @@ except Exception:  # pragma: no cover
 from autogen.events import BaseEvent
 
 # Import workflow configuration for agent visibility filtering
-from core.ai_runtime.workflow.workflow_manager import workflow_manager
+from mozaiks_ai.runtime.workflow.workflow_manager import workflow_manager
 
 # Enhanced logging setup
 from logs.logging_config import get_core_logger
 
 # Session manager for multi-workflow navigation
-from core.ai_runtime.workflow import session_manager
-from core.ai_runtime.transport.session_registry import session_registry
+from mozaiks_ai.runtime.workflow import session_manager
+from mozaiks_ai.runtime.transport.session_registry import session_registry
 
 # Runtime extensions (workflow-declared lifecycle hooks)
-from core.ai_runtime.runtime.extensions import get_workflow_lifecycle_hooks
+from mozaiks_ai.runtime.runtime.extensions import get_workflow_lifecycle_hooks
 
 # Get our enhanced loggers
 logger = get_core_logger("simple_transport")
@@ -70,7 +70,7 @@ def _load_general_agent_service():
 #   runtime_extensions:
 #     - kind: lifecycle_hooks
 #       entrypoint: workflows.MyWorkflow.tools.lifecycle:get_hooks
-# Use get_workflow_lifecycle_hooks(workflow_name) from core.runtime.extensions instead.
+# Use get_workflow_lifecycle_hooks(workflow_name) from mozaiks_ai.runtime.runtime.extensions instead.
 
 
 # Module-level content cleaner to allow reuse without constructing SimpleTransport
@@ -172,7 +172,7 @@ class SimpleTransport:
 
         # Usage emission fan-out (measurement only; no billing enforcement).
         try:
-            from core.ai_runtime.events.unified_event_dispatcher import get_event_dispatcher
+            from mozaiks_ai.runtime.events.unified_event_dispatcher import get_event_dispatcher
 
             dispatcher = get_event_dispatcher()
             dispatcher.register_handler("chat.usage_delta", self._handle_usage_delta_event)
@@ -379,7 +379,7 @@ class SimpleTransport:
             return
         index: Optional[int] = None
         try:
-            from core.ai_runtime.data.persistence.persistence_manager import AG2PersistenceManager
+            from mozaiks_ai.runtime.data.persistence.persistence_manager import AG2PersistenceManager
             pm = getattr(self, '_persistence_manager', None)
             if not pm:
                 pm = AG2PersistenceManager()
@@ -438,7 +438,7 @@ class SimpleTransport:
                         logger.debug(f"Context set failed for {k}: {ce}")
                 # Persist a lightweight snapshot of changed keys ONLY
                 try:
-                    from core.ai_runtime.data.persistence.persistence_manager import AG2PersistenceManager
+                    from mozaiks_ai.runtime.data.persistence.persistence_manager import AG2PersistenceManager
                     pm = getattr(self, '_persistence_manager', None) or AG2PersistenceManager()
                     self._persistence_manager = pm
                     coll = await pm._coll()  # type: ignore[attr-defined]
@@ -486,7 +486,7 @@ class SimpleTransport:
                 await self._broadcast_to_websockets(event, chat_id)
                 return
 
-            from core.ai_runtime.events.unified_event_dispatcher import get_event_dispatcher  # local import to avoid cycle
+            from mozaiks_ai.runtime.events.unified_event_dispatcher import get_event_dispatcher  # local import to avoid cycle
             dispatcher = get_event_dispatcher()
             workflow_name = None
             if chat_id and chat_id in self.connections:
@@ -587,7 +587,7 @@ class SimpleTransport:
                     tool_name = getattr(event, "tool_name", None)
                     if isinstance(tool_name, str) and tool_name.strip():
                         try:
-                            from core.ai_runtime.observability.performance_manager import get_performance_manager
+                            from mozaiks_ai.runtime.observability.performance_manager import get_performance_manager
                             perf = await get_performance_manager()
                             await perf.record_tool_call(chat_id or "unknown", tool_name.strip(), True)
                         except Exception:
@@ -828,7 +828,7 @@ class SimpleTransport:
             logger.info(f"🚀 Launching workflow {target_workflow} from chat {chat_id}")
             
         # Validate pack prerequisites before launching
-            from core.ai_runtime.workflow.pack.gating import validate_pack_prereqs
+            from mozaiks_ai.runtime.workflow.pack.gating import validate_pack_prereqs
 
             pm = self._get_or_create_persistence_manager()
             is_valid, error_msg = await validate_pack_prereqs(
@@ -946,7 +946,7 @@ class SimpleTransport:
 
             # Use the AG2-aligned resumer so visibility filtering and UI tool replay
             # semantics stay consistent with live events (no leaking hidden agents).
-            from core.ai_runtime.transport.resume_groupchat import GroupChatResumer
+            from mozaiks_ai.runtime.transport.resume_groupchat import GroupChatResumer
 
             resumer = GroupChatResumer()
             summary = await resumer.handle_resume_request(
@@ -1379,7 +1379,7 @@ class SimpleTransport:
                             raise ValueError("Missing connection metadata")
 
                         # Enforce pack prerequisites before starting/spawning.
-                        from core.ai_runtime.workflow.pack.gating import validate_pack_prereqs
+                        from mozaiks_ai.runtime.workflow.pack.gating import validate_pack_prereqs
                         pm = self._get_or_create_persistence_manager()
                         ok, prereq_error = await validate_pack_prereqs(
                             app_id=str(ent_id),
@@ -1483,7 +1483,7 @@ class SimpleTransport:
                             raise ValueError("runs must be a non-empty list")
 
                         pm = self._get_or_create_persistence_manager()
-                        from core.ai_runtime.workflow.pack.gating import validate_pack_prereqs
+                        from mozaiks_ai.runtime.workflow.pack.gating import validate_pack_prereqs
 
                         started: List[Dict[str, Any]] = []
                         blocked: List[Dict[str, Any]] = []
@@ -1717,7 +1717,7 @@ class SimpleTransport:
             logger.info(f"🚀 [SMART_ROUTING] Starting new workflow for chat {chat_id}")
             starting_new_workflow = True
 
-            from core.ai_runtime.workflow.orchestration_patterns import run_workflow_orchestration
+            from mozaiks_ai.runtime.workflow.orchestration_patterns import run_workflow_orchestration
 
             # Only persist and echo user message when starting NEW workflows
             # For existing sessions, the message goes directly to AG2 via callback
@@ -1824,7 +1824,7 @@ class SimpleTransport:
                     )
                     # Emit run_complete success asynchronously to dispatcher
                     try:
-                        from core.ai_runtime.events.unified_event_dispatcher import get_event_dispatcher
+                        from mozaiks_ai.runtime.events.unified_event_dispatcher import get_event_dispatcher
 
                         dispatcher = get_event_dispatcher()
                         asyncio.create_task(
@@ -1844,7 +1844,7 @@ class SimpleTransport:
                 except Exception:
                     # Emit failed run_complete before re-raising so listeners can react
                     try:
-                        from core.ai_runtime.events.unified_event_dispatcher import get_event_dispatcher
+                        from mozaiks_ai.runtime.events.unified_event_dispatcher import get_event_dispatcher
 
                         dispatcher = get_event_dispatcher()
                         asyncio.create_task(
@@ -1927,7 +1927,7 @@ class SimpleTransport:
 
         # Emit a lightweight runtime event for observability.
         try:
-            from core.ai_runtime.events.unified_event_dispatcher import get_event_dispatcher
+            from mozaiks_ai.runtime.events.unified_event_dispatcher import get_event_dispatcher
 
             dispatcher = get_event_dispatcher()
             if dispatcher:
@@ -1977,7 +1977,7 @@ class SimpleTransport:
         """Return cached AG2PersistenceManager instance (lazy import)."""
         pm = getattr(self, "_persistence_manager", None)
         if pm is None:
-            from core.ai_runtime.data.persistence.persistence_manager import AG2PersistenceManager
+            from mozaiks_ai.runtime.data.persistence.persistence_manager import AG2PersistenceManager
             pm = AG2PersistenceManager()
             self._persistence_manager = pm
         return pm
@@ -2144,7 +2144,7 @@ class SimpleTransport:
                 session_type="general",
             )
             try:
-                from core.ai_runtime.tokens.manager import TokenManager
+                from mozaiks_ai.runtime.tokens.manager import TokenManager
 
                 await TokenManager.emit_usage_delta(
                     chat_id=str(general_chat_id),
@@ -2646,7 +2646,7 @@ class SimpleTransport:
                         logger.warning(f"[AUTO_RESUME] Failed to get workflow config: {cfg_err}")
 
             # Use GroupChatResumer for proper message replay with filtering
-            from core.ai_runtime.transport.resume_groupchat import GroupChatResumer
+            from mozaiks_ai.runtime.transport.resume_groupchat import GroupChatResumer
             resumer = GroupChatResumer()
             
             async def send_event_wrapper(event_dict: Dict[str, Any], target_chat_id: Optional[str]) -> None:

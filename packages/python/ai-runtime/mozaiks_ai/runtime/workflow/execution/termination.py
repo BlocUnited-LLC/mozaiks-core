@@ -10,11 +10,11 @@ from typing import Optional, Dict, Any, Callable, TYPE_CHECKING
 from dataclasses import dataclass
 
 from logs.logging_config import get_workflow_logger
-from core.ai_runtime.data.persistence.persistence_manager import AG2PersistenceManager
-from core.ai_runtime.events import get_event_dispatcher
+from mozaiks_ai.runtime.data.persistence.persistence_manager import AG2PersistenceManager
+from mozaiks_ai.runtime.events import get_event_dispatcher
 # Avoid circular import: only import for typing
 if TYPE_CHECKING:
-    from core.ai_runtime.transport.simple_transport import SimpleTransport
+    from mozaiks_ai.runtime.transport.simple_transport import SimpleTransport
 
 wf_logger = get_workflow_logger("termination_handler")
 

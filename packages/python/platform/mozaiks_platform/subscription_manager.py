@@ -26,12 +26,12 @@ import logging
 from fastapi import HTTPException
 from datetime import datetime, timezone, timedelta
 from dateutil.relativedelta import relativedelta  # Ensure you have this installed
-from core.config.database import (
+from mozaiks_infra.config.database import (
     subscriptions_collection,
     subscription_history_collection,
     billing_history_collection,
 )
-from core.utils.log_sanitizer import sanitize_for_log, sanitize_dict_for_log
+from mozaiks_infra.utils.log_sanitizer import sanitize_for_log, sanitize_dict_for_log
 
 logger = logging.getLogger("mozaiks_core.subscription_manager")
 

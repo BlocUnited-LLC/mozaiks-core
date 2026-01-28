@@ -10,8 +10,8 @@ from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List, Union
 
 from logs.logging_config import get_workflow_logger
-from core.ai_runtime.data.persistence.persistence_manager import AG2PersistenceManager
-from core.ai_runtime.data.models import WorkflowStatus
+from mozaiks_ai.runtime.data.persistence.persistence_manager import AG2PersistenceManager
+from mozaiks_ai.runtime.data.models import WorkflowStatus
 
 logger = get_workflow_logger("performance_manager")
 perf_logger = get_workflow_logger("performance")
@@ -322,7 +322,7 @@ class PerformanceManager:
         # Best-effort workflow summary refresh (does not block)
         if status_enum == WorkflowStatus.COMPLETED:
             try:  # pragma: no cover
-                from core.ai_runtime.data.models import refresh_workflow_rollup_by_id
+                from mozaiks_ai.runtime.data.models import refresh_workflow_rollup_by_id
                 summary_id = f"mon_{st.app_id}_{st.workflow_name}"
                 asyncio.create_task(refresh_workflow_rollup_by_id(summary_id))
             except Exception:

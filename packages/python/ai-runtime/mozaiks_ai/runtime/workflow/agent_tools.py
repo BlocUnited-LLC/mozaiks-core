@@ -110,7 +110,7 @@ def load_agent_tool_functions(workflow_name: str) -> Dict[str, List[Callable]]:
         return mapping
     # Discover which agents have structured outputs for schema enforcement
     try:
-        from core.ai_runtime.workflow.outputs.structured import get_structured_outputs_for_workflow
+        from mozaiks_ai.runtime.workflow.outputs.structured import get_structured_outputs_for_workflow
 
         structured_registry = get_structured_outputs_for_workflow(workflow_name)
     except Exception as reg_err:  # pragma: no cover - introspection only

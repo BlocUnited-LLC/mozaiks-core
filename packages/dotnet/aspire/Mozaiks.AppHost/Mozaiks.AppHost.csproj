@@ -13,12 +13,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Services\AuthServer\AuthServer.Api\AuthServer.Api.csproj" />
-    <ProjectReference Include="..\..\Services\App\App.API\App.API.csproj" />
-    <ProjectReference Include="..\..\Services\Notification\Notification.API\Notification.API.csproj" />
-    <ProjectReference Include="..\..\Services\Payment\Payment.API\Payment.API.csproj" />
-    <ProjectReference Include="..\..\Services\User\User.API\User.API.csproj" />
-    <ProjectReference Include="..\blocunited-microservice.ServiceDefaults\blocunited-microservice.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\services\Mozaiks.Billing\Mozaiks.Billing.csproj" />
+    <ProjectReference Include="..\..\services\Mozaiks.Insights\Mozaiks.Insights.csproj" />
+    <ProjectReference Include="..\..\services\Mozaiks.Notifications\Mozaiks.Notifications.API\Mozaiks.Notifications.API.csproj" />
+    <ProjectReference Include="..\..\services\Mozaiks.Plugins\Mozaiks.Plugins.csproj" />
+    <ProjectReference Include="..\Mozaiks.ServiceDefaults\Mozaiks.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

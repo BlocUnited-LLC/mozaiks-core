@@ -35,7 +35,7 @@ from pydantic import BaseModel
 
 # Reuse existing secret + Mongo helpers (keeps KeyVault logic centralized)
 try:  # pragma: no cover - defensive import
-    from core.ai_runtime.core_config import get_secret, get_mongo_client  # type: ignore
+    from mozaiks_ai.runtime.core_config import get_secret, get_mongo_client  # type: ignore
 except Exception:  # pragma: no cover
     get_secret = None  # type: ignore
     get_mongo_client = None  # type: ignore

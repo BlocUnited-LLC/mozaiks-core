@@ -145,7 +145,7 @@ class WorkflowPackCoordinator:
             if isinstance(cfg_resume, str) and cfg_resume.strip():
                 resume_agent = cfg_resume.strip()
 
-        from core.ai_runtime.transport.simple_transport import SimpleTransport
+        from mozaiks_ai.runtime.transport.simple_transport import SimpleTransport
 
         transport = await SimpleTransport.get_instance()
         # MONOLITH ASSUMPTION: transport + orchestration are process-local.
@@ -256,7 +256,7 @@ class WorkflowPackCoordinator:
             # Add to session registry if we have a ws_id.
             try:
                 if ws_id is not None:
-                    from core.ai_runtime.transport.session_registry import session_registry
+                    from mozaiks_ai.runtime.transport.session_registry import session_registry
 
                     session_registry.add_workflow(
                         ws_id=ws_id,
@@ -368,7 +368,7 @@ class WorkflowPackCoordinator:
         for child_id in list(active.child_chat_ids):
             # If there's still an active background task, it isn't done.
             # We treat missing task handle as done (task cleaned up).
-            from core.ai_runtime.transport.simple_transport import SimpleTransport
+            from mozaiks_ai.runtime.transport.simple_transport import SimpleTransport
 
             transport = await SimpleTransport.get_instance()
             if not transport:
@@ -383,7 +383,7 @@ class WorkflowPackCoordinator:
         if not all_done:
             return
 
-        from core.ai_runtime.transport.simple_transport import SimpleTransport
+        from mozaiks_ai.runtime.transport.simple_transport import SimpleTransport
 
         transport = await SimpleTransport.get_instance()
         if not transport:

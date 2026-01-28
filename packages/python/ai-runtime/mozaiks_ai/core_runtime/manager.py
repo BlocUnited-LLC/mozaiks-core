@@ -8,7 +8,7 @@ from typing import Any
 
 import httpx
 
-from core.config.settings import settings
+from mozaiks_infra.config.settings import settings
 
 logger = logging.getLogger("mozaiks_core.runtime.manager")
 

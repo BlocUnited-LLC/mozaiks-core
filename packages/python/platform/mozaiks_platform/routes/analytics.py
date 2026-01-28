@@ -2,9 +2,9 @@
 from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from core.ai_runtime.auth.dependencies import get_current_admin_user, require_admin_or_internal
-from core.analytics.kpi_service import kpi_service
-from core.analytics.app_kpi_snapshot_service import app_kpi_snapshot_service
+from mozaiks_ai.runtime.auth.dependencies import get_current_admin_user, require_admin_or_internal
+from mozaiks_platform.analytics.kpi_service import kpi_service
+from mozaiks_platform.analytics.app_kpi_snapshot_service import app_kpi_snapshot_service
 import logging
 
 router = APIRouter()

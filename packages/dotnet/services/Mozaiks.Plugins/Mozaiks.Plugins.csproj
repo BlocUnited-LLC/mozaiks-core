@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Plugins.API</RootNamespace>
+    <RootNamespace>Mozaiks.Plugins</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,9 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\AspireAdmin\blocunited-microservice.ServiceDefaults\blocunited-microservice.ServiceDefaults.csproj" />
-    <ProjectReference Include="..\..\BuildingBlocks\Mozaiks.Auditing\Mozaiks.Auditing.csproj" />
-    <ProjectReference Include="..\..\BuildingBlocks\Mozaiks.Auth\Mozaiks.Auth.csproj" />
+    <ProjectReference Include="..\..\aspire\Mozaiks.ServiceDefaults\Mozaiks.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\building-blocks\Mozaiks.Auditing\Mozaiks.Auditing.csproj" />
+    <ProjectReference Include="..\..\building-blocks\Mozaiks.Auth\Mozaiks.Auth.csproj" />
   </ItemGroup>
 
 </Project>

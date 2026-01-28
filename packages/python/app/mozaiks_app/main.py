@@ -16,20 +16,20 @@ import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from core.director import app as director_app, load_config, APP_ID
-from core.config.database import (
+from mozaiks_platform.director import app as director_app, load_config, APP_ID
+from mozaiks_infra.config.database import (
     verify_connection,
     create_enterprise_index,
     ensure_enterprise_exists,
     users_collection
 )
-from core.http_utils.websocket_auth import get_ws_auth, WS_SUBPROTOCOL
+from mozaiks_infra.http_utils.websocket_auth import get_ws_auth, WS_SUBPROTOCOL
 import logging
 import asyncio
-from core.plugin_manager import plugin_manager, register_websockets
-from core.websocket_manager import websocket_manager
-from core.ai_runtime.auth.config import get_auth_config
-from core.ai_runtime.auth.jwt_validator import get_jwt_validator, AuthError
+from mozaiks_platform.plugin_manager import plugin_manager, register_websockets
+from mozaiks_infra.websocket_manager import websocket_manager
+from mozaiks_ai.runtime.auth.config import get_auth_config
+from mozaiks_ai.runtime.auth.jwt_validator import get_jwt_validator, AuthError
 import os
 
 # ============================================================================

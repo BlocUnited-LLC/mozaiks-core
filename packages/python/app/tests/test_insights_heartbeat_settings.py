@@ -10,7 +10,7 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 
-from core.config.settings import load_settings  # noqa: E402
+from mozaiks_infra.config.settings import load_settings  # noqa: E402
 
 
 class InsightsHeartbeatSettingsTests(unittest.TestCase):

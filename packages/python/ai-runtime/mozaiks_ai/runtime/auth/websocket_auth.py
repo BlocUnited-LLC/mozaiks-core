@@ -4,7 +4,7 @@ WebSocket authentication helper.
 Validates access token at connection time and binds user context to websocket.state.
 
 Usage:
-    from core.ai_runtime.auth.websocket_auth import authenticate_websocket, WebSocketUser
+    from mozaiks_ai.runtime.auth.websocket_auth import authenticate_websocket, WebSocketUser
 
     @app.websocket("/ws/chat/{chat_id}")
     async def websocket_endpoint(websocket: WebSocket, chat_id: str):
@@ -31,8 +31,8 @@ from dataclasses import dataclass
 
 from fastapi import WebSocket, Query
 
-from core.ai_runtime.auth.config import get_auth_config
-from core.ai_runtime.auth.jwt_validator import get_jwt_validator, TokenClaims, AuthError
+from mozaiks_ai.runtime.auth.config import get_auth_config
+from mozaiks_ai.runtime.auth.jwt_validator import get_jwt_validator, TokenClaims, AuthError
 from logs.logging_config import get_core_logger
 
 logger = get_core_logger("auth.websocket")

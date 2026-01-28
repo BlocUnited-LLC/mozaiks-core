@@ -105,7 +105,7 @@ class PlatformPaymentProvider(IPaymentProvider):
     async def _get_service_token(self) -> str:
         """Get a client-credentials access token for service-to-service requests."""
         if self._token_provider is None:
-            from core.ai_runtime.auth.client_credentials import ClientCredentialsTokenProvider
+            from mozaiks_ai.runtime.auth.client_credentials import ClientCredentialsTokenProvider
 
             self._token_provider = ClientCredentialsTokenProvider(
                 client_id=self._client_id or "",

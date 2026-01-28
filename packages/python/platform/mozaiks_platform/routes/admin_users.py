@@ -14,8 +14,8 @@ from bson import ObjectId
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
-from core.config.database import users_collection
-from core.config.settings import settings
+from mozaiks_infra.config.database import users_collection
+from mozaiks_infra.config.settings import settings
 
 logger = logging.getLogger("mozaiks_core.admin_users")
 

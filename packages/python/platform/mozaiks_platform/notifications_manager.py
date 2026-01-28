@@ -6,16 +6,16 @@ import uuid
 import aiohttp
 import asyncio
 from datetime import datetime, timedelta
-from core.config.database import users_collection, get_cached_document, with_retry
-from core.event_bus import event_bus
+from mozaiks_infra.config.database import users_collection, get_cached_document, with_retry
+from mozaiks_infra.event_bus import event_bus
 from bson import ObjectId
 from fastapi import HTTPException
 from pymongo import UpdateOne, ASCENDING, IndexModel
 import time
 import functools
 import traceback
-from core.websocket_manager import websocket_manager
-from core.config.config_loader import get_config_path
+from mozaiks_infra.websocket_manager import websocket_manager
+from mozaiks_infra.config.config_loader import get_config_path
 
 logger = logging.getLogger("mozaiks_core.notifications_manager")
 
@@ -223,7 +223,7 @@ class NotificationsManager:
             )
             
             # Invalidate cache
-            from core.config.database import db_cache
+            from mozaiks_infra.config.database import db_cache
             db_cache.invalidate(f"user_notif_prefs:{user_id}")
             
             if result.modified_count == 0:
@@ -283,7 +283,7 @@ class NotificationsManager:
                     plugin_groups[plugin_name].append(field)
             
             # Check access for each plugin
-            from core.subscription_manager import subscription_manager
+            from mozaiks_platform.subscription_manager import subscription_manager
             for plugin_name, fields in plugin_groups.items():
                 has_access = await subscription_manager.is_plugin_accessible(user_id, plugin_name)
                 if has_access:
