@@ -46,7 +46,9 @@ class PlatformPaymentProvider(IPaymentProvider):
     
     Configuration via environment:
         MOZAIKS_PLATFORM_URL: Platform API base URL
-        MOZAIKS_PLATFORM_API_KEY: Service API key (sk_c2p_live_xxx)
+        MOZAIKS_PLATFORM_CLIENT_ID: Service client ID
+        MOZAIKS_PLATFORM_CLIENT_SECRET: Service client secret
+        MOZAIKS_PLATFORM_TOKEN_SCOPE: Optional OAuth2 scope string
     
     Example:
         provider = PlatformPaymentProvider()
@@ -56,7 +58,9 @@ class PlatformPaymentProvider(IPaymentProvider):
     def __init__(
         self,
         platform_url: Optional[str] = None,
-        api_key: Optional[str] = None,
+        client_id: Optional[str] = None,
+        client_secret: Optional[str] = None,
+        token_scope: Optional[str] = None,
         timeout: float = 30.0,
     ):
         """
@@ -64,7 +68,9 @@ class PlatformPaymentProvider(IPaymentProvider):
         
         Args:
             platform_url: Platform API base URL (or from env)
-            api_key: Service API key (or from env)
+            client_id: Service client id (or from env)
+            client_secret: Service client secret (or from env)
+            token_scope: Optional OAuth2 scope (or from env)
             timeout: HTTP request timeout in seconds
         """
         self._platform_url = (
@@ -72,9 +78,13 @@ class PlatformPaymentProvider(IPaymentProvider):
             or os.getenv("MOZAIKS_PLATFORM_URL") 
             or DEFAULT_PLATFORM_URL
         ).rstrip("/")
-        
-        self._api_key = api_key or os.getenv("MOZAIKS_PLATFORM_API_KEY")
+
+        self._client_id = client_id or os.getenv("MOZAIKS_PLATFORM_CLIENT_ID")
+        self._client_secret = client_secret or os.getenv("MOZAIKS_PLATFORM_CLIENT_SECRET")
+        self._token_scope = token_scope or os.getenv("MOZAIKS_PLATFORM_TOKEN_SCOPE")
         self._timeout = timeout
+
+        self._token_provider = None
         
         # HTTP client (lazy init)
         self._client: Optional[httpx.AsyncClient] = None
@@ -91,6 +101,19 @@ class PlatformPaymentProvider(IPaymentProvider):
                 timeout=self._timeout,
             )
         return self._client
+
+    async def _get_service_token(self) -> str:
+        """Get a client-credentials access token for service-to-service requests."""
+        if self._token_provider is None:
+            from core.ai_runtime.auth.client_credentials import ClientCredentialsTokenProvider
+
+            self._token_provider = ClientCredentialsTokenProvider(
+                client_id=self._client_id or "",
+                client_secret=self._client_secret or "",
+                scope=self._token_scope,
+            )
+
+        return await self._token_provider.get_access_token()
     
     async def _request(
         self,
@@ -108,13 +131,10 @@ class PlatformPaymentProvider(IPaymentProvider):
         if user_token:
             # Use user's token for user-scoped operations
             headers["Authorization"] = f"Bearer {user_token}"
-        elif self._api_key:
-            # Use service API key for service-to-service calls
-            headers["Authorization"] = f"Bearer {self._api_key}"
         else:
-            raise ValueError(
-                "Platform API key not configured. Set MOZAIKS_PLATFORM_API_KEY."
-            )
+            # Service-to-service call: use client-credentials JWT
+            access_token = await self._get_service_token()
+            headers["Authorization"] = f"Bearer {access_token}"
         
         headers["X-Mozaiks-Service"] = "core"
         if correlation_id:

@@ -59,7 +59,9 @@ class UsageReporter:
     
     Configuration:
         MOZAIKS_PLATFORM_URL: Platform API base URL
-        MOZAIKS_PLATFORM_API_KEY: Service API key (sk_c2p_*)
+        MOZAIKS_PLATFORM_CLIENT_ID: Keycloak client_id for Core service account
+        MOZAIKS_PLATFORM_CLIENT_SECRET: Keycloak client_secret for Core service account
+        MOZAIKS_PLATFORM_TOKEN_SCOPE: Optional OAuth2 scope string (rarely needed for Keycloak)
         MOZAIKS_USAGE_BATCH_SIZE: Max events per batch (default: 100)
         MOZAIKS_USAGE_FLUSH_INTERVAL: Seconds between flushes (default: 60)
     
@@ -83,7 +85,9 @@ class UsageReporter:
     def __init__(
         self,
         platform_url: Optional[str] = None,
-        api_key: Optional[str] = None,
+        client_id: Optional[str] = None,
+        client_secret: Optional[str] = None,
+        token_scope: Optional[str] = None,
         batch_size: int = 100,
         flush_interval: float = 60.0,
         enabled: bool = True,
@@ -93,7 +97,9 @@ class UsageReporter:
         
         Args:
             platform_url: Platform API base URL
-            api_key: Service API key (sk_c2p_*)
+            client_id: Keycloak client_id for Core service account
+            client_secret: Keycloak client_secret for Core service account
+            token_scope: Optional OAuth2 scope (provider-specific)
             batch_size: Max events per batch before auto-flush
             flush_interval: Seconds between automatic flushes
             enabled: Whether to actually send events (False for self-hosted)
@@ -103,10 +109,19 @@ class UsageReporter:
             or os.getenv("MOZAIKS_PLATFORM_URL", "")
         ).rstrip("/")
         
-        self._api_key = api_key or os.getenv("MOZAIKS_PLATFORM_API_KEY")
+        self._client_id = client_id or os.getenv("MOZAIKS_PLATFORM_CLIENT_ID")
+        self._client_secret = client_secret or os.getenv("MOZAIKS_PLATFORM_CLIENT_SECRET")
+        self._token_scope = token_scope or os.getenv("MOZAIKS_PLATFORM_TOKEN_SCOPE")
         self._batch_size = int(os.getenv("MOZAIKS_USAGE_BATCH_SIZE", str(batch_size)))
         self._flush_interval = float(os.getenv("MOZAIKS_USAGE_FLUSH_INTERVAL", str(flush_interval)))
-        self._enabled = enabled and bool(self._platform_url) and bool(self._api_key)
+        self._enabled = (
+            enabled
+            and bool(self._platform_url)
+            and bool((self._client_id or "").strip())
+            and bool((self._client_secret or "").strip())
+        )
+
+        self._token_provider = None
         
         # Buffer for events
         self._buffer: List[UsageEvent] = []
@@ -134,6 +149,13 @@ class UsageReporter:
             return
         
         self._running = True
+        from core.ai_runtime.auth.client_credentials import ClientCredentialsTokenProvider
+
+        self._token_provider = ClientCredentialsTokenProvider(
+            client_id=self._client_id or "",
+            client_secret=self._client_secret or "",
+            scope=self._token_scope,
+        )
         self._client = httpx.AsyncClient(
             base_url=self._platform_url,
             timeout=30.0,
@@ -267,12 +289,14 @@ class UsageReporter:
                 logger.debug("Re-queued %d events for retry", min(len(events), remaining_capacity))
     
     async def _send_events(self, events: List[UsageEvent]) -> None:
-        """Send events to Platform using API key auth."""
+        """Send events to Platform using Keycloak client-credentials JWT."""
         if not self._client:
             raise RuntimeError("Reporter not started")
-        
-        if not self._api_key:
-            raise RuntimeError("No API key configured")
+
+        if not self._token_provider or not self._token_provider.is_configured():
+            raise RuntimeError("No client credentials configured")
+
+        access_token = await self._token_provider.get_access_token()
         
         payload = {
             "events": [e.to_dict() for e in events],
@@ -282,7 +306,7 @@ class UsageReporter:
             "/api/billing/usage-events",
             json=payload,
             headers={
-                "Authorization": f"Bearer {self._api_key}",
+                "Authorization": f"Bearer {access_token}",
                 "X-Mozaiks-Service": "core",
             },
         )

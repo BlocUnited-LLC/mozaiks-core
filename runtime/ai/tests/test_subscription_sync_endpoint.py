@@ -14,6 +14,8 @@ if str(BACKEND_DIR) not in sys.path:
 
 from core.routes.subscription_sync import router as subscription_sync_router  # noqa: E402
 import core.routes.subscription_sync as sync_routes  # noqa: E402
+import core.ai_runtime.auth.dependencies as auth_deps  # noqa: E402
+from core.ai_runtime.auth.jwt_validator import TokenClaims  # noqa: E402
 
 
 class StubSubscriptionManager:
@@ -36,12 +38,32 @@ class StubSubscriptionManager:
 
 class SubscriptionSyncEndpointTests(unittest.TestCase):
     def setUp(self) -> None:
-        self._original_key = os.environ.get("INTERNAL_API_KEY")
-        os.environ["INTERNAL_API_KEY"] = "test-key"
+        self._original_auth_enabled = os.environ.get("AUTH_ENABLED")
+        os.environ["AUTH_ENABLED"] = "true"
 
         self.stub = StubSubscriptionManager()
         self._original_manager = sync_routes.subscription_manager
         sync_routes.subscription_manager = self.stub
+
+        # Stub JWT validator so tests don't depend on a live Keycloak.
+        self._original_get_jwt_validator = auth_deps.get_jwt_validator
+
+        class _StubValidator:
+            def __init__(self, roles):
+                self._roles = roles
+
+            async def validate_token(self, token: str, require_scope: bool = True):
+                return TokenClaims(
+                    user_id="service",
+                    email=None,
+                    roles=list(self._roles),
+                    scopes=[],
+                    raw_claims={"azp": "platform-service"},
+                )
+
+        self._validator_with_role = _StubValidator(["internal_service"])
+        self._validator_without_role = _StubValidator([])
+        auth_deps.get_jwt_validator = lambda: self._validator_with_role
 
         app = FastAPI()
         app.include_router(subscription_sync_router)
@@ -49,10 +71,11 @@ class SubscriptionSyncEndpointTests(unittest.TestCase):
 
     def tearDown(self) -> None:
         sync_routes.subscription_manager = self._original_manager
-        if self._original_key is None:
-            os.environ.pop("INTERNAL_API_KEY", None)
+        auth_deps.get_jwt_validator = self._original_get_jwt_validator
+        if self._original_auth_enabled is None:
+            os.environ.pop("AUTH_ENABLED", None)
         else:
-            os.environ["INTERNAL_API_KEY"] = self._original_key
+            os.environ["AUTH_ENABLED"] = self._original_auth_enabled
 
     def _payload(self) -> dict:
         return {
@@ -61,17 +84,18 @@ class SubscriptionSyncEndpointTests(unittest.TestCase):
             "status": "active",
         }
 
-    def test_requires_internal_key(self) -> None:
+    def test_requires_auth(self) -> None:
         resp = self.client.post("/api/internal/subscription/sync", json=self._payload())
         self.assertEqual(resp.status_code, 401)
 
-    def test_rejects_invalid_key(self) -> None:
-        headers = {"X-Internal-API-Key": "wrong-key"}
+    def test_rejects_missing_role(self) -> None:
+        auth_deps.get_jwt_validator = lambda: self._validator_without_role
+        headers = {"Authorization": "Bearer test-token"}
         resp = self.client.post("/api/internal/subscription/sync", headers=headers, json=self._payload())
         self.assertEqual(resp.status_code, 403)
 
     def test_sync_calls_manager(self) -> None:
-        headers = {"X-Internal-API-Key": "test-key"}
+        headers = {"Authorization": "Bearer test-token"}
         payload = {
             "user_id": "user_1",
             "plan": "premium",

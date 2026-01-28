@@ -1,0 +1,191 @@
+{
+  "realm": "mozaiks",
+  "enabled": true,
+  "displayName": "Mozaiks",
+  "displayNameHtml": "<strong>Mozaiks</strong>",
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 300,
+  "accessTokenLifespanForImplicitFlow": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionIdleTimeout": 2592000,
+  "accessCodeLifespan": 60,
+  "accessCodeLifespanUserAction": 300,
+  "accessCodeLifespanLogin": 1800,
+  "roles": {
+    "realm": [
+      {
+        "name": "superadmin",
+        "description": "Full administrative access to the platform",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "platform_admin",
+        "description": "Platform administration capabilities",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "internal_service",
+        "description": "Service-to-service authentication role",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "developer",
+        "description": "Developer access role",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "user",
+        "description": "Standard user role",
+        "composite": false,
+        "clientRole": false
+      }
+    ]
+  },
+  "defaultRoles": ["user"],
+  "clients": [
+    {
+      "clientId": "mozaiks-shell",
+      "name": "Mozaiks Shell (SPA)",
+      "description": "Frontend shell application for Mozaiks",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "redirectUris": [
+        "http://localhost:5173/*",
+        "http://localhost:3000/*",
+        "http://127.0.0.1:5173/*",
+        "http://127.0.0.1:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000"
+      ],
+      "protocol": "openid-connect",
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:5173/*##http://localhost:3000/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "mozaiks-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "realm-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "mozaiks-api",
+      "name": "Mozaiks API (Resource Server)",
+      "description": "Backend API services for Mozaiks",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "mozaiks-core",
+      "name": "Mozaiks Core Runtime",
+      "description": "Core runtime service for internal operations",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "secret": "REPLACE_WITH_SECURE_SECRET",
+      "protocol": "openid-connect",
+      "attributes": {
+        "use.refresh.tokens": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "service-account-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "mozaiks-scope",
+      "description": "Mozaiks platform scope",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "app_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "userinfo.token.claim": "true",
+            "user.attribute": "app_id",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "app_id",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    }
+  ],
+  "smtpServer": {},
+  "eventsEnabled": false,
+  "eventsListeners": ["jboss-logging"],
+  "adminEventsEnabled": false,
+  "internationalizationEnabled": false
+}

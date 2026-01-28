@@ -1,7 +1,7 @@
 # backend/core/routes/notifications.py
 from fastapi import APIRouter, Depends, HTTPException, Request
 from core.notifications_manager import notifications_manager
-from security.authentication import get_current_user
+from core.ai_runtime.auth.dependencies import get_current_user
 from core.event_bus import event_bus
 import os
 import logging

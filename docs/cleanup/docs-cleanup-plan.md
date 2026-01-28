@@ -67,7 +67,7 @@ Every doc should clearly belong to one of:
 ## Known Inconsistencies (to fix in Phase 1)
 
 - Plugin directory references vary (plugins/ vs runtime/ai/plugins).
-- Quickstart references runtime/backend paths that may be legacy.
+- Quickstart + deployment paths updated to runtime/ai (resolved 2026-01-27).
 - CLI docs and contract docs show different output paths.
 
 ## Output

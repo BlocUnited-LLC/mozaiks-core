@@ -14,7 +14,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 
-from security.auth import get_current_user
+from core.ai_runtime.auth.dependencies import get_current_user
 from core.notifications.channels.web_push import web_push_channel
 
 logger = logging.getLogger("mozaiks_core.routes.push_subscriptions")

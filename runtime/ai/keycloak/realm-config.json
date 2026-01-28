@@ -1,0 +1,166 @@
+﻿{
+    "id":  "5a156bd2-5e77-479a-b7fc-a42f87f3698c",
+    "realm":  "mozaiks",
+    "displayName":  "Mozaiks",
+    "displayNameHtml":  "\u003cstrong\u003eMozaiks\u003c/strong\u003e",
+    "notBefore":  0,
+    "defaultSignatureAlgorithm":  "RS256",
+    "revokeRefreshToken":  false,
+    "refreshTokenMaxReuse":  0,
+    "accessTokenLifespan":  300,
+    "accessTokenLifespanForImplicitFlow":  900,
+    "ssoSessionIdleTimeout":  1800,
+    "ssoSessionMaxLifespan":  36000,
+    "ssoSessionIdleTimeoutRememberMe":  0,
+    "ssoSessionMaxLifespanRememberMe":  0,
+    "offlineSessionIdleTimeout":  2592000,
+    "offlineSessionMaxLifespanEnabled":  false,
+    "offlineSessionMaxLifespan":  5184000,
+    "clientSessionIdleTimeout":  0,
+    "clientSessionMaxLifespan":  0,
+    "clientOfflineSessionIdleTimeout":  0,
+    "clientOfflineSessionMaxLifespan":  0,
+    "accessCodeLifespan":  60,
+    "accessCodeLifespanUserAction":  300,
+    "accessCodeLifespanLogin":  1800,
+    "actionTokenGeneratedByAdminLifespan":  43200,
+    "actionTokenGeneratedByUserLifespan":  300,
+    "oauth2DeviceCodeLifespan":  600,
+    "oauth2DevicePollingInterval":  5,
+    "enabled":  true,
+    "sslRequired":  "external",
+    "registrationAllowed":  false,
+    "registrationEmailAsUsername":  false,
+    "rememberMe":  false,
+    "verifyEmail":  false,
+    "loginWithEmailAllowed":  true,
+    "duplicateEmailsAllowed":  false,
+    "resetPasswordAllowed":  true,
+    "editUsernameAllowed":  false,
+    "bruteForceProtected":  true,
+    "permanentLockout":  false,
+    "maxTemporaryLockouts":  0,
+    "maxFailureWaitSeconds":  900,
+    "minimumQuickLoginWaitSeconds":  60,
+    "waitIncrementSeconds":  60,
+    "quickLoginCheckMilliSeconds":  1000,
+    "maxDeltaTimeSeconds":  43200,
+    "failureFactor":  30,
+    "defaultRole":  {
+                        "id":  "d65f77ac-1ecd-4405-a27c-b8b9ca1cd98b",
+                        "name":  "default-roles-mozaiks",
+                        "description":  "${role_default-roles}",
+                        "composite":  true,
+                        "clientRole":  false,
+                        "containerId":  "5a156bd2-5e77-479a-b7fc-a42f87f3698c"
+                    },
+    "requiredCredentials":  [
+                                "password"
+                            ],
+    "otpPolicyType":  "totp",
+    "otpPolicyAlgorithm":  "HmacSHA1",
+    "otpPolicyInitialCounter":  0,
+    "otpPolicyDigits":  6,
+    "otpPolicyLookAheadWindow":  1,
+    "otpPolicyPeriod":  30,
+    "otpPolicyCodeReusable":  false,
+    "otpSupportedApplications":  [
+                                     "totpAppFreeOTPName",
+                                     "totpAppGoogleName",
+                                     "totpAppMicrosoftAuthenticatorName"
+                                 ],
+    "webAuthnPolicyRpEntityName":  "keycloak",
+    "webAuthnPolicySignatureAlgorithms":  [
+                                              "ES256"
+                                          ],
+    "webAuthnPolicyRpId":  "",
+    "webAuthnPolicyAttestationConveyancePreference":  "not specified",
+    "webAuthnPolicyAuthenticatorAttachment":  "not specified",
+    "webAuthnPolicyRequireResidentKey":  "not specified",
+    "webAuthnPolicyUserVerificationRequirement":  "not specified",
+    "webAuthnPolicyCreateTimeout":  0,
+    "webAuthnPolicyAvoidSameAuthenticatorRegister":  false,
+    "webAuthnPolicyAcceptableAaguids":  [
+
+                                        ],
+    "webAuthnPolicyExtraOrigins":  [
+
+                                   ],
+    "webAuthnPolicyPasswordlessRpEntityName":  "keycloak",
+    "webAuthnPolicyPasswordlessSignatureAlgorithms":  [
+                                                          "ES256"
+                                                      ],
+    "webAuthnPolicyPasswordlessRpId":  "",
+    "webAuthnPolicyPasswordlessAttestationConveyancePreference":  "not specified",
+    "webAuthnPolicyPasswordlessAuthenticatorAttachment":  "not specified",
+    "webAuthnPolicyPasswordlessRequireResidentKey":  "not specified",
+    "webAuthnPolicyPasswordlessUserVerificationRequirement":  "not specified",
+    "webAuthnPolicyPasswordlessCreateTimeout":  0,
+    "webAuthnPolicyPasswordlessAvoidSameAuthenticatorRegister":  false,
+    "webAuthnPolicyPasswordlessAcceptableAaguids":  [
+
+                                                    ],
+    "webAuthnPolicyPasswordlessExtraOrigins":  [
+
+                                               ],
+    "browserSecurityHeaders":  {
+                                   "contentSecurityPolicyReportOnly":  "",
+                                   "xContentTypeOptions":  "nosniff",
+                                   "referrerPolicy":  "no-referrer",
+                                   "xRobotsTag":  "none",
+                                   "xFrameOptions":  "SAMEORIGIN",
+                                   "contentSecurityPolicy":  "frame-src \u0027self\u0027; frame-ancestors \u0027self\u0027; object-src \u0027none\u0027;",
+                                   "xXSSProtection":  "1; mode=block",
+                                   "strictTransportSecurity":  "max-age=31536000; includeSubDomains"
+                               },
+    "smtpServer":  {
+
+                   },
+    "eventsEnabled":  false,
+    "eventsListeners":  [
+                            "jboss-logging"
+                        ],
+    "enabledEventTypes":  [
+
+                          ],
+    "adminEventsEnabled":  false,
+    "adminEventsDetailsEnabled":  false,
+    "identityProviders":  [
+
+                          ],
+    "identityProviderMappers":  [
+
+                                ],
+    "internationalizationEnabled":  false,
+    "supportedLocales":  [
+
+                         ],
+    "browserFlow":  "browser",
+    "registrationFlow":  "registration",
+    "directGrantFlow":  "direct grant",
+    "resetCredentialsFlow":  "reset credentials",
+    "clientAuthenticationFlow":  "clients",
+    "dockerAuthenticationFlow":  "docker auth",
+    "firstBrokerLoginFlow":  "first broker login",
+    "attributes":  {
+                       "cibaBackchannelTokenDeliveryMode":  "poll",
+                       "cibaExpiresIn":  "120",
+                       "cibaAuthRequestedUserHint":  "login_hint",
+                       "oauth2DeviceCodeLifespan":  "600",
+                       "oauth2DevicePollingInterval":  "5",
+                       "parRequestUriLifespan":  "60",
+                       "cibaInterval":  "5",
+                       "realmReusableOtpCode":  "false"
+                   },
+    "userManagedAccessAllowed":  false,
+    "clientProfiles":  {
+                           "profiles":  [
+
+                                        ]
+                       },
+    "clientPolicies":  {
+                           "policies":  [
+
+                                        ]
+                       }
+}

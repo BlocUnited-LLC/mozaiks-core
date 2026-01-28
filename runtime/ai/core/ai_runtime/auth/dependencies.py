@@ -29,6 +29,38 @@ logger = get_core_logger("auth.dependencies")
 bearer_scheme = HTTPBearer(auto_error=False)
 
 
+def _principal_username(principal: UserPrincipal) -> str:
+    if principal.email and "@" in principal.email:
+        return principal.email.split("@", 1)[0]
+    return principal.user_id
+
+
+def _is_superadmin_roles(roles: List[str]) -> bool:
+    # Canonical role names (Keycloak realm roles recommended).
+    # Keep this intentionally minimal and explicit.
+    return any(r in {"superadmin", "admin"} for r in roles)
+
+
+def _is_internal_service_roles(roles: List[str]) -> bool:
+    return any(r in {"internal_service", "service"} for r in roles)
+
+
+def _principal_to_legacy_user(principal: UserPrincipal) -> dict:
+    return {
+        "username": _principal_username(principal),
+        "user_id": principal.user_id,
+        "email": principal.email or "",
+        "auth_mode": "oidc",
+        "identity_user_id": principal.user_id,
+        "roles": principal.roles,
+        "is_superadmin": _is_superadmin_roles(principal.roles),
+        "mozaiks_token_use": principal.mozaiks_token_use,
+        "mozaiks_app_id": principal.mozaiks_app_id,
+        "mozaiks_chat_id": principal.mozaiks_chat_id,
+        "mozaiks_capability_id": principal.mozaiks_capability_id,
+    }
+
+
 @dataclass
 class UserPrincipal:
     """
@@ -192,6 +224,67 @@ async def require_any_auth(
         raise HTTPException(status_code=401, detail="Missing authorization token")
 
     return await _validate_and_attach(request, token, require_scope=False)
+
+
+# ---------------------------------------------------------------------------
+# Legacy compatibility (runtime/ai/security/authentication.py replacement)
+# ---------------------------------------------------------------------------
+
+
+async def get_current_user(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+) -> dict:
+    """Legacy-compatible dependency returning a dict-shaped user object."""
+    principal = await require_user(request, credentials)
+    return _principal_to_legacy_user(principal)
+
+
+async def get_current_active_user(current_user: dict = Depends(get_current_user)) -> dict:
+    """Legacy alias; current implementation relies on JWT-only identity."""
+    return current_user
+
+
+async def get_current_admin_user(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+) -> dict:
+    current_user = await get_current_user(request, credentials)
+    if not bool(current_user.get("is_superadmin")):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+
+async def require_admin_or_internal(
+    request: Request,
+    x_internal_api_key: Optional[str] = None,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+) -> dict:
+    """Allow access via JWT role (superadmin or internal_service).
+
+    Note: X-Internal-API-Key is intentionally not supported in the canonical
+    Keycloak-only auth model.
+    """
+    if x_internal_api_key:
+        raise HTTPException(
+            status_code=401,
+            detail="X-Internal-API-Key is not supported; use a JWT with role internal_service or superadmin",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    current_user = await get_current_user(request, credentials)
+    roles = current_user.get("roles") or []
+    if _is_superadmin_roles(roles) or _is_internal_service_roles(roles):
+        # Treat internal_service as effectively admin for these endpoints.
+        if _is_internal_service_roles(roles):
+            current_user["is_superadmin"] = True
+            current_user["is_internal_service"] = True
+        return current_user
+
+    raise HTTPException(
+        status_code=403,
+        detail="Admin access required (superadmin or internal_service role)",
+    )
 
 
 def require_role(role: str) -> Callable:
@@ -425,10 +518,9 @@ async def _validate_internal_token(
     client_id = claims.raw_claims.get("azp") or claims.raw_claims.get("appid") or claims.raw_claims.get("client_id")
     tenant_id = claims.raw_claims.get("tid")
     
-    # App roles typically in 'roles' claim for app-only tokens
-    app_roles = claims.raw_claims.get("roles", [])
-    if isinstance(app_roles, str):
-        app_roles = [app_roles]
+    # Use normalized role extraction from the canonical validator.
+    # This supports Keycloak claim shapes (realm_access/resource_access).
+    app_roles = claims.roles
     
     principal = ServicePrincipal(
         client_id=client_id or "unknown",
@@ -480,3 +572,35 @@ async def require_internal(
         raise HTTPException(status_code=401, detail="Missing authorization token")
     
     return await _validate_internal_token(request, token)
+
+
+async def require_internal_service(
+    request: Request,
+    authorization: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+) -> ServicePrincipal:
+    """Require an app-only token with the internal_service role.
+
+    Canonical dependency for Platform↔Core S2S calls.
+    """
+    config = get_auth_config()
+
+    # Auth bypass for local development
+    if not config.enabled:
+        principal = ServicePrincipal(
+            client_id="internal-dev",
+            tenant_id=None,
+            roles=["internal_service"],
+            raw_claims={},
+        )
+        request.state.service = principal
+        request.state.client_id = principal.client_id
+        return principal
+
+    principal = await require_internal(request, authorization)
+    if principal.has_role("internal_service"):
+        return principal
+
+    raise HTTPException(
+        status_code=403,
+        detail="Internal endpoint requires role internal_service",
+    )

@@ -54,7 +54,7 @@ C:\...\mozaiks-core\runtime\ai\core\entitlements\
 
 #### 1. YAML Loader (`loader.py`)
 
-- ✅ Loads `plugins/{name}/entitlements.yaml`
+- ✅ Loads `runtime/ai/plugins/{name}/entitlements.yaml`
 - ✅ Schema validation (returns errors for invalid YAML)
 - ✅ Tier inheritance via `inherits` keyword
 - ✅ Circular inheritance detection
@@ -249,7 +249,7 @@ $ python -m cli.setup --check-db
 ## Example entitlements.yaml for Testing
 
 ```yaml
-# plugins/test_plugin/entitlements.yaml
+# runtime/ai/plugins/test_plugin/entitlements.yaml
 schema_version: "1.0"
 plugin: "test_plugin"
 

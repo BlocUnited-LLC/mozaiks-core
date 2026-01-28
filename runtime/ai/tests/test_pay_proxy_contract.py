@@ -14,7 +14,7 @@ if str(BACKEND_DIR) not in sys.path:
 
 from app.routes.mozaiks import router as mozaiks_router  # noqa: E402
 from app.connectors.base import CheckoutResponse  # noqa: E402
-from security.authentication import get_current_user  # noqa: E402
+from core.ai_runtime.auth.dependencies import get_current_user  # noqa: E402
 
 
 class PayProxyContractTests(unittest.TestCase):

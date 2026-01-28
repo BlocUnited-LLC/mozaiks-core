@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from security.authentication import get_current_active_user
+from core.ai_runtime.auth.dependencies import get_current_active_user
 from core.analytics import raw_events
 
 logger = logging.getLogger("mozaiks_core.routes.events")

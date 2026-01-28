@@ -5,49 +5,15 @@ Entitlement Sync Handler - Receives manifest updates from Platform.
 This module handles the POST /api/v1/entitlements/{app_id}/sync endpoint
 that Platform calls when subscriptions change.
 
-Auth: Platform must send Bearer token matching MOZAIKS_ALLOWED_SERVICE_KEYS
+Auth is enforced at the API routing layer via Keycloak app-only JWTs with role internal_service.
 """
 
 import logging
-import os
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Dict, Any, List, Set
 
 logger = logging.getLogger("mozaiks_core.billing.sync")
-
-
-def validate_service_key(auth_header: Optional[str]) -> bool:
-    """
-    Validate the service key from Authorization header.
-    
-    Args:
-        auth_header: The Authorization header value (e.g., "Bearer sk_p2c_live_xxx")
-        
-    Returns:
-        True if valid, False otherwise
-    """
-    allowed_keys_str = os.getenv("MOZAIKS_ALLOWED_SERVICE_KEYS", "")
-    if not allowed_keys_str:
-        # No keys configured = allow all (dev mode)
-        logger.warning("No MOZAIKS_ALLOWED_SERVICE_KEYS configured, allowing request")
-        return True
-    
-    if not auth_header:
-        return False
-    
-    # Parse "Bearer <token>"
-    parts = auth_header.split(" ", 1)
-    if len(parts) != 2 or parts[0].lower() != "bearer":
-        return False
-    
-    token = parts[1]
-    
-    # Check against allowed keys (comma-separated)
-    allowed_keys: Set[str] = {k.strip() for k in allowed_keys_str.split(",") if k.strip()}
-    
-    return token in allowed_keys
-
 
 @dataclass
 class EntitlementSyncRequest:

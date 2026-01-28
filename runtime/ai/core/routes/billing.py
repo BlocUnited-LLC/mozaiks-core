@@ -6,26 +6,24 @@ These endpoints handle:
 - POST /api/v1/entitlements/{app_id}/sync - Receive entitlement updates from Platform
 - GET /api/v1/entitlements/{app_id} - Get current entitlements for an app (internal)
 
-Auth: Platform calls use service keys (MOZAIKS_ALLOWED_SERVICE_KEYS)
+Auth: Platform calls use Keycloak app-only JWTs with role internal_service.
 """
 
 from __future__ import annotations
 
-import logging
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, HTTPException, Header, Request
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
-from core.billing.sync import (
-    validate_service_key,
-    EntitlementSyncRequest,
-    get_sync_handler,
+from core.ai_runtime.auth.dependencies import require_internal_service
+from core.billing.sync import EntitlementSyncRequest, get_sync_handler
+
+router = APIRouter(
+    prefix="/api/v1/entitlements",
+    tags=["billing"],
+    dependencies=[Depends(require_internal_service)],
 )
-
-logger = logging.getLogger("mozaiks_core.routes.billing")
-
-router = APIRouter(prefix="/api/v1/entitlements", tags=["billing"])
 
 
 # ---------------------------------------------------------------------------
@@ -104,27 +102,6 @@ class EntitlementResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Auth Dependency
-# ---------------------------------------------------------------------------
-
-
-def require_platform_auth(authorization: Optional[str] = Header(default=None)):
-    """
-    Require valid Platform service key.
-    
-    Validates Authorization header against MOZAIKS_ALLOWED_SERVICE_KEYS.
-    """
-    if not validate_service_key(authorization):
-        logger.warning("Billing auth failed: invalid or missing service key")
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or missing service key",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return True
-
-
-# ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
 
@@ -141,7 +118,6 @@ def require_platform_auth(authorization: Optional[str] = Header(default=None)):
 async def sync_entitlements(
     app_id: str,
     payload: EntitlementSyncPayload,
-    authorization: Optional[str] = Header(default=None),
 ):
     """
     Receive entitlement sync from Platform.
@@ -152,8 +128,7 @@ async def sync_entitlements(
     - Subscription expires or is cancelled
     - Usage resets at billing period start
     """
-    # Validate auth
-    require_platform_auth(authorization)
+    # Auth enforced via APIRouter dependency.
     
     # Validate app_id consistency
     if payload.app_id != app_id:
@@ -188,7 +163,6 @@ async def sync_entitlements(
 )
 async def get_entitlements(
     app_id: str,
-    authorization: Optional[str] = Header(default=None),
 ):
     """
     Get current entitlements for an app.
@@ -196,8 +170,7 @@ async def get_entitlements(
     Returns cached entitlements from last sync.
     Returns defaults if app has never been synced (OSS mode).
     """
-    # Validate auth
-    require_platform_auth(authorization)
+    # Auth enforced via APIRouter dependency.
     
     handler = get_sync_handler()
     ent = handler.get_entitlements(app_id)
@@ -232,10 +205,9 @@ async def get_entitlements(
     description="Get list of all app_ids that have synced entitlements.",
 )
 async def list_apps(
-    authorization: Optional[str] = Header(default=None),
 ):
     """List all apps with cached entitlements."""
-    require_platform_auth(authorization)
+    # Auth enforced via APIRouter dependency.
     
     handler = get_sync_handler()
     apps = handler.list_apps()

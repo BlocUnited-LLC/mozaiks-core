@@ -123,25 +123,11 @@ nav:
         - Tool Pipeline: guides/workflows/ui-tool-pipeline.md
     - Patterns: guides/patterns/readme.md
 
-  - Platform Integration:
-    - Overview: platform-integration/overview.md
-    - Connector Contract: platform-integration/connector-contract.md
-    - Billing API: platform-integration/billing-api.md
-    - Identity API: platform-integration/identity-api.md
-
-  - Architecture Specs:
-    - System Overview: architecture/specs/00-system-overview.md
-    - Repo Boundaries: architecture/specs/01-repo-boundaries.md
-    - Auth Boundary: architecture/specs/04-auth-boundary.md
-    - Runtime Contract: architecture/specs/05-runtime-boundary-contract.md
-  
   - Future Roadmap:
-    - MCP Integration: roadmap/mcp-integration.md
-    - App Generator Spec: roadmap/appgenerator-specification.md
     - Validation Engine: roadmap/validationengine-specification.md
-    - Artifacts Plan: roadmap/interactive-artifacts-implementation-plan.md
-    - UI .NET Integration: roadmap/moz-ui-dotnet-integration-plan.md
-    - Token Manager Plan: roadmap/token-manager-plan.md
+  
+  - Archive:
+    - Index: archive/README.md
 
   - Reference:
     - API: reference/api.md

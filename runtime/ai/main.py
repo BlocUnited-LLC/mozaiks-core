@@ -28,8 +28,8 @@ import logging
 import asyncio
 from core.plugin_manager import plugin_manager, register_websockets
 from core.websocket_manager import websocket_manager
-from jose import jwt, JWTError
-from security.constants import SECRET_KEY, ALGORITHM
+from core.ai_runtime.auth.config import get_auth_config
+from core.ai_runtime.auth.jwt_validator import get_jwt_validator, AuthError
 import os
 
 # ============================================================================
@@ -177,35 +177,23 @@ async def validate_ws_token(token: str) -> dict:
     if not token:
         raise HTTPException(status_code=401, detail="No token provided")
     
+    config = get_auth_config()
+    if not config.enabled:
+        # Local/dev mode: accept any token (identity derived later by caller).
+        return {"user_id": "anonymous", "username": "anonymous"}
+
+    validator = get_jwt_validator()
     try:
-        # Determine auth mode
-        auth_mode = os.getenv("MOZAIKS_AUTH_MODE", "external").strip().lower()
-        
-        if auth_mode == "local":
-            # Local mode: HS256 validation
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            user_id = payload.get("user_id") or payload.get("sub")
-            username = payload.get("sub") or payload.get("username")
-        else:
-            # External/platform mode: need JWKS validation
-            # For now, fall back to HS256 for app-scoped tokens
-            try:
-                payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-                user_id = payload.get("user_id") or payload.get("sub")
-                username = payload.get("sub") or payload.get("username")
-            except JWTError:
-                # Token might be external OIDC - reject for now
-                # In production, this should validate against JWKS
-                raise HTTPException(status_code=401, detail="Invalid token")
-        
-        if not user_id:
-            raise HTTPException(status_code=401, detail="Token missing user_id")
-        
-        return {"user_id": user_id, "username": username}
-    
-    except JWTError as e:
-        logger.warning(f"WebSocket JWT validation failed: {e}")
-        raise HTTPException(status_code=401, detail="Invalid token")
+        claims = await validator.validate_token(token, require_scope=False)
+    except AuthError as e:
+        logger.warning(f"WebSocket JWT validation failed: {e.message}")
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+    user_id = claims.user_id
+    username = (claims.email.split("@", 1)[0] if claims.email and "@" in claims.email else claims.user_id)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Token missing user_id")
+    return {"user_id": user_id, "username": username}
 
 
 # Core WebSocket route with proper auth

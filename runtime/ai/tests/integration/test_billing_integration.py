@@ -7,8 +7,8 @@ This script tests both directions:
 2. Core -> Platform: POST /api/billing/usage-events (simulate usage reporting)
 
 Prerequisites:
-- Set MOZAIKS_ALLOWED_SERVICE_KEYS in .env for Platform->Core auth
-- Set MOZAIKS_PLATFORM_API_KEY in .env for Core->Platform auth
+- Set PLATFORM_TO_CORE_JWT in .env for Platform->Core auth (client-credentials token w/ internal_service)
+- Set CORE_TO_PLATFORM_JWT in .env for Core->Platform auth (client-credentials token w/ internal_service)
 - Start Core runtime on port 8000
 - Start Platform on port 5000
 
@@ -36,9 +36,9 @@ load_dotenv(env_path)
 CORE_URL = os.getenv("CORE_URL", "http://localhost:8000")
 PLATFORM_URL = os.getenv("MOZAIKS_PLATFORM_URL", "http://localhost:5000")
 
-# Service keys (from .env)
-PLATFORM_TO_CORE_KEY = os.getenv("MOZAIKS_ALLOWED_SERVICE_KEYS", "").split(",")[0].strip()
-CORE_TO_PLATFORM_KEY = os.getenv("MOZAIKS_PLATFORM_API_KEY", "")
+# Service JWTs (from .env)
+PLATFORM_TO_CORE_JWT = os.getenv("PLATFORM_TO_CORE_JWT", "").strip()
+CORE_TO_PLATFORM_JWT = os.getenv("CORE_TO_PLATFORM_JWT", "").strip()
 
 TEST_APP_ID = "test-app-12345"
 
@@ -49,12 +49,12 @@ async def test_platform_to_core_sync():
     print("TEST 1: Platform -> Core Entitlement Sync")
     print("=" * 60)
     
-    if not PLATFORM_TO_CORE_KEY:
-        print("⚠️  MOZAIKS_ALLOWED_SERVICE_KEYS not set, skipping auth")
+    if not PLATFORM_TO_CORE_JWT:
+        print("⚠️  PLATFORM_TO_CORE_JWT not set, skipping auth")
         auth_header = None
     else:
-        auth_header = f"Bearer {PLATFORM_TO_CORE_KEY}"
-        print(f"✓ Using service key: {PLATFORM_TO_CORE_KEY[:20]}...")
+        auth_header = f"Bearer {PLATFORM_TO_CORE_JWT}"
+        print("✓ Using Platform->Core JWT")
     
     # Sync request payload
     payload = {
@@ -124,8 +124,8 @@ async def test_get_entitlements():
     print(f"\n→ GET {url}")
     
     headers = {}
-    if PLATFORM_TO_CORE_KEY:
-        headers["Authorization"] = f"Bearer {PLATFORM_TO_CORE_KEY}"
+    if PLATFORM_TO_CORE_JWT:
+        headers["Authorization"] = f"Bearer {PLATFORM_TO_CORE_JWT}"
     
     async with httpx.AsyncClient() as client:
         try:
@@ -155,11 +155,11 @@ async def test_core_to_platform_usage():
     print("TEST 3: Core -> Platform Usage Reporting")
     print("=" * 60)
     
-    if not CORE_TO_PLATFORM_KEY:
-        print("⚠️  MOZAIKS_PLATFORM_API_KEY not set, cannot test Platform connection")
+    if not CORE_TO_PLATFORM_JWT:
+        print("⚠️  CORE_TO_PLATFORM_JWT not set, cannot test Platform connection")
         return None
-    
-    print(f"✓ Using API key: {CORE_TO_PLATFORM_KEY[:20]}...")
+
+    print("✓ Using Core->Platform JWT")
     
     # Usage event batch
     payload = {
@@ -195,7 +195,7 @@ async def test_core_to_platform_usage():
     
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {CORE_TO_PLATFORM_KEY}"
+        "Authorization": f"Bearer {CORE_TO_PLATFORM_JWT}"
     }
     
     async with httpx.AsyncClient() as client:
@@ -229,8 +229,8 @@ async def run_tests():
     print("=" * 60)
     print(f"Core URL: {CORE_URL}")
     print(f"Platform URL: {PLATFORM_URL}")
-    print(f"Platform->Core Key: {'✓ Set' if PLATFORM_TO_CORE_KEY else '✗ Not set'}")
-    print(f"Core->Platform Key: {'✓ Set' if CORE_TO_PLATFORM_KEY else '✗ Not set'}")
+    print(f"Platform->Core JWT: {'✓ Set' if PLATFORM_TO_CORE_JWT else '✗ Not set'}")
+    print(f"Core->Platform JWT: {'✓ Set' if CORE_TO_PLATFORM_JWT else '✗ Not set'}")
     
     results = []
     

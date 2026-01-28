@@ -24,20 +24,20 @@ git clone https://github.com/your-org/mozaiks-core.git
 cd mozaiks-core
 
 # Backend setup
-cd runtime/backend
+cd runtime/ai
 python -m venv venv
 venv\Scripts\activate  # Windows
 # source venv/bin/activate  # macOS/Linux
 pip install -r requirements.txt
 
 # Frontend setup
-cd ../..
+cd ../packages/shell
 npm install
 ```
 
 ### 2️⃣ Configure Environment
 
-Create `runtime/backend/.env`:
+Create `runtime/ai/.env`:
 
 ```env
 # Database
@@ -58,19 +58,20 @@ MOZAIKS_MANAGED=false
 
 **Terminal 1 - Backend:**
 ```bash
-cd runtime/backend
+cd runtime/ai
 venv\Scripts\activate
-uvicorn main:app --reload --port 8080
+uvicorn main:app --reload --port 8000
 ```
 
 **Terminal 2 - Frontend:**
 ```bash
-npm run dev
+cd runtime/packages/shell
+npm start
 ```
 
 ### 4️⃣ Access App
 
-Open: **http://localhost:5173**
+Open: **http://localhost:3000**
 
 ---
 
@@ -106,18 +107,18 @@ AUTH_AUDIENCE=api://mozaiks-auth
 ```
 mozaiks-core/
 ├── runtime/
-│   ├── backend/           # Python FastAPI backend
+│   ├── ai/                # AI Runtime (FastAPI)
 │   │   ├── main.py        # Entry point
 │   │   ├── core/          # Core systems
-│   └── ai/                # AI Runtime
-│       ├── plugins/       # Backend plugins
-│       └── ...
-├── packages/
-│   └── shell/             # React frontend
-│       └── src/
-│           ├── core/      # Core components
-│           ├── plugins/   # Frontend plugins
-│           └── chat/      # ChatUI
+│   │   ├── plugins/       # Backend plugins
+│   │   └── workflows/     # AI workflows
+│   ├── plugin-host/       # Plugin execution host (optional)
+│   └── packages/
+│       └── shell/         # React frontend
+│           └── src/
+│               ├── core/      # Core components
+│               ├── plugins/   # Frontend plugins (create as needed)
+│               └── chat/      # ChatUI
 └── docs/                  # This documentation
 ```
 
@@ -128,7 +129,7 @@ mozaiks-core/
 ### Check Backend
 
 ```bash
-curl http://localhost:8080/health
+curl http://localhost:8000/health
 ```
 
 Expected:

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 
 from core.config.settings import settings
 from core.ops.signals import snapshot as ops_snapshot
-from security.authentication import require_admin_or_internal
+from core.ai_runtime.auth.dependencies import require_admin_or_internal
 
 
 router = APIRouter()

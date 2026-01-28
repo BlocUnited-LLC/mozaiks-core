@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from core.config.database import db
 from core.analytics.app_kpi_snapshot_service import app_kpi_snapshot_service
-from security.authentication import require_admin_or_internal
+from core.ai_runtime.auth.dependencies import require_admin_or_internal
 
 
 router = APIRouter()

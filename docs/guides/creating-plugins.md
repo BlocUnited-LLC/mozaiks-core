@@ -272,7 +272,7 @@ async def save_settings(user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
 ### Create Plugin Directory
 
 ```
-packages/shell/src/plugins/
+runtime/packages/shell/src/plugins/
 └── task_manager/
     ├── register.js        # Plugin metadata
     ├── index.jsx          # Main component

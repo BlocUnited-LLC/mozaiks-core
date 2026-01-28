@@ -1,0 +1,540 @@
+﻿[
+    {
+        "id":  "3a8f3b3d-f1a8-4c54-b663-2c5698aab90c",
+        "clientId":  "account",
+        "name":  "${client_account}",
+        "rootUrl":  "${authBaseUrl}",
+        "baseUrl":  "/realms/mozaiks/account/",
+        "surrogateAuthRequired":  false,
+        "enabled":  true,
+        "alwaysDisplayInConsole":  false,
+        "clientAuthenticatorType":  "client-secret",
+        "redirectUris":  [
+                             "/realms/mozaiks/account/*"
+                         ],
+        "webOrigins":  [
+
+                       ],
+        "notBefore":  0,
+        "bearerOnly":  false,
+        "consentRequired":  false,
+        "standardFlowEnabled":  true,
+        "implicitFlowEnabled":  false,
+        "directAccessGrantsEnabled":  false,
+        "serviceAccountsEnabled":  false,
+        "publicClient":  true,
+        "frontchannelLogout":  false,
+        "protocol":  "openid-connect",
+        "attributes":  {
+                           "post.logout.redirect.uris":  "+"
+                       },
+        "authenticationFlowBindingOverrides":  {
+
+                                               },
+        "fullScopeAllowed":  false,
+        "nodeReRegistrationTimeout":  0,
+        "defaultClientScopes":  [
+
+                                ],
+        "optionalClientScopes":  [
+
+                                 ],
+        "access":  {
+                       "view":  true,
+                       "configure":  true,
+                       "manage":  true
+                   }
+    },
+    {
+        "id":  "09890550-a1f5-4484-9662-8a4467877074",
+        "clientId":  "account-console",
+        "name":  "${client_account-console}",
+        "rootUrl":  "${authBaseUrl}",
+        "baseUrl":  "/realms/mozaiks/account/",
+        "surrogateAuthRequired":  false,
+        "enabled":  true,
+        "alwaysDisplayInConsole":  false,
+        "clientAuthenticatorType":  "client-secret",
+        "redirectUris":  [
+                             "/realms/mozaiks/account/*"
+                         ],
+        "webOrigins":  [
+
+                       ],
+        "notBefore":  0,
+        "bearerOnly":  false,
+        "consentRequired":  false,
+        "standardFlowEnabled":  true,
+        "implicitFlowEnabled":  false,
+        "directAccessGrantsEnabled":  false,
+        "serviceAccountsEnabled":  false,
+        "publicClient":  true,
+        "frontchannelLogout":  false,
+        "protocol":  "openid-connect",
+        "attributes":  {
+                           "post.logout.redirect.uris":  "+",
+                           "pkce.code.challenge.method":  "S256"
+                       },
+        "authenticationFlowBindingOverrides":  {
+
+                                               },
+        "fullScopeAllowed":  false,
+        "nodeReRegistrationTimeout":  0,
+        "protocolMappers":  [
+                                {
+                                    "id":  "769e137b-1d31-431a-8f00-30cf1f5e7b41",
+                                    "name":  "audience resolve",
+                                    "protocol":  "openid-connect",
+                                    "protocolMapper":  "oidc-audience-resolve-mapper",
+                                    "consentRequired":  false,
+                                    "config":  {
+
+                                               }
+                                }
+                            ],
+        "defaultClientScopes":  [
+
+                                ],
+        "optionalClientScopes":  [
+
+                                 ],
+        "access":  {
+                       "view":  true,
+                       "configure":  true,
+                       "manage":  true
+                   }
+    },
+    {
+        "id":  "cab96789-f800-4a13-b3d3-017d557a4526",
+        "clientId":  "admin-cli",
+        "name":  "${client_admin-cli}",
+        "surrogateAuthRequired":  false,
+        "enabled":  true,
+        "alwaysDisplayInConsole":  false,
+        "clientAuthenticatorType":  "client-secret",
+        "redirectUris":  [
+
+                         ],
+        "webOrigins":  [
+
+                       ],
+        "notBefore":  0,
+        "bearerOnly":  false,
+        "consentRequired":  false,
+        "standardFlowEnabled":  false,
+        "implicitFlowEnabled":  false,
+        "directAccessGrantsEnabled":  true,
+        "serviceAccountsEnabled":  false,
+        "publicClient":  true,
+        "frontchannelLogout":  false,
+        "protocol":  "openid-connect",
+        "attributes":  {
+
+                       },
+        "authenticationFlowBindingOverrides":  {
+
+                                               },
+        "fullScopeAllowed":  false,
+        "nodeReRegistrationTimeout":  0,
+        "defaultClientScopes":  [
+
+                                ],
+        "optionalClientScopes":  [
+
+                                 ],
+        "access":  {
+                       "view":  true,
+                       "configure":  true,
+                       "manage":  true
+                   }
+    },
+    {
+        "id":  "2f5acb72-e643-4d11-96f9-cbad89bd06b6",
+        "clientId":  "broker",
+        "name":  "${client_broker}",
+        "surrogateAuthRequired":  false,
+        "enabled":  true,
+        "alwaysDisplayInConsole":  false,
+        "clientAuthenticatorType":  "client-secret",
+        "redirectUris":  [
+
+                         ],
+        "webOrigins":  [
+
+                       ],
+        "notBefore":  0,
+        "bearerOnly":  true,
+        "consentRequired":  false,
+        "standardFlowEnabled":  true,
+        "implicitFlowEnabled":  false,
+        "directAccessGrantsEnabled":  false,
+        "serviceAccountsEnabled":  false,
+        "publicClient":  false,
+        "frontchannelLogout":  false,
+        "protocol":  "openid-connect",
+        "attributes":  {
+
+                       },
+        "authenticationFlowBindingOverrides":  {
+
+                                               },
+        "fullScopeAllowed":  false,
+        "nodeReRegistrationTimeout":  0,
+        "defaultClientScopes":  [
+
+                                ],
+        "optionalClientScopes":  [
+
+                                 ],
+        "access":  {
+                       "view":  true,
+                       "configure":  true,
+                       "manage":  true
+                   }
+    },
+    {
+        "id":  "8778f28a-ebc2-442c-88d7-09bad6627de9",
+        "clientId":  "mozaiks-api",
+        "name":  "Mozaiks API (Resource Server)",
+        "description":  "Backend API services for Mozaiks",
+        "surrogateAuthRequired":  false,
+        "enabled":  true,
+        "alwaysDisplayInConsole":  false,
+        "clientAuthenticatorType":  "client-secret",
+        "redirectUris":  [
+
+                         ],
+        "webOrigins":  [
+
+                       ],
+        "notBefore":  0,
+        "bearerOnly":  true,
+        "consentRequired":  false,
+        "standardFlowEnabled":  false,
+        "implicitFlowEnabled":  false,
+        "directAccessGrantsEnabled":  false,
+        "serviceAccountsEnabled":  false,
+        "publicClient":  false,
+        "frontchannelLogout":  false,
+        "protocol":  "openid-connect",
+        "attributes":  {
+                           "post.logout.redirect.uris":  "+"
+                       },
+        "authenticationFlowBindingOverrides":  {
+
+                                               },
+        "fullScopeAllowed":  true,
+        "nodeReRegistrationTimeout":  -1,
+        "defaultClientScopes":  [
+
+                                ],
+        "optionalClientScopes":  [
+                                     "offline_access"
+                                 ],
+        "access":  {
+                       "view":  true,
+                       "configure":  true,
+                       "manage":  true
+                   }
+    },
+    {
+        "id":  "1cc75268-b6e1-4451-88e3-bcdbbc74e733",
+        "clientId":  "mozaiks-core",
+        "name":  "Mozaiks Core Runtime",
+        "description":  "Core runtime service for internal operations",
+        "surrogateAuthRequired":  false,
+        "enabled":  true,
+        "alwaysDisplayInConsole":  false,
+        "clientAuthenticatorType":  "client-secret",
+        "secret":  "REPLACE_WITH_SECURE_SECRET",
+        "redirectUris":  [
+
+                         ],
+        "webOrigins":  [
+
+                       ],
+        "notBefore":  0,
+        "bearerOnly":  false,
+        "consentRequired":  false,
+        "standardFlowEnabled":  false,
+        "implicitFlowEnabled":  false,
+        "directAccessGrantsEnabled":  false,
+        "serviceAccountsEnabled":  true,
+        "publicClient":  false,
+        "frontchannelLogout":  false,
+        "protocol":  "openid-connect",
+        "attributes":  {
+                           "post.logout.redirect.uris":  "+",
+                           "use.refresh.tokens":  "false"
+                       },
+        "authenticationFlowBindingOverrides":  {
+
+                                               },
+        "fullScopeAllowed":  true,
+        "nodeReRegistrationTimeout":  -1,
+        "protocolMappers":  [
+                                {
+                                    "id":  "dfcf0753-c762-4e48-a09d-f16e477c36e5",
+                                    "name":  "service-account-roles",
+                                    "protocol":  "openid-connect",
+                                    "protocolMapper":  "oidc-usermodel-realm-role-mapper",
+                                    "consentRequired":  false,
+                                    "config":  {
+                                                   "multivalued":  "true",
+                                                   "userinfo.token.claim":  "true",
+                                                   "id.token.claim":  "true",
+                                                   "access.token.claim":  "true",
+                                                   "claim.name":  "roles",
+                                                   "jsonType.label":  "String"
+                                               }
+                                },
+                                {
+                                    "id":  "08579874-22c9-48ec-bcf7-694f3f3e4ae6",
+                                    "name":  "Client Host",
+                                    "protocol":  "openid-connect",
+                                    "protocolMapper":  "oidc-usersessionmodel-note-mapper",
+                                    "consentRequired":  false,
+                                    "config":  {
+                                                   "user.session.note":  "clientHost",
+                                                   "introspection.token.claim":  "true",
+                                                   "id.token.claim":  "true",
+                                                   "access.token.claim":  "true",
+                                                   "claim.name":  "clientHost",
+                                                   "jsonType.label":  "String"
+                                               }
+                                },
+                                {
+                                    "id":  "beefcb21-7601-4283-97df-e4351488da2f",
+                                    "name":  "Client ID",
+                                    "protocol":  "openid-connect",
+                                    "protocolMapper":  "oidc-usersessionmodel-note-mapper",
+                                    "consentRequired":  false,
+                                    "config":  {
+                                                   "user.session.note":  "client_id",
+                                                   "introspection.token.claim":  "true",
+                                                   "id.token.claim":  "true",
+                                                   "access.token.claim":  "true",
+                                                   "claim.name":  "client_id",
+                                                   "jsonType.label":  "String"
+                                               }
+                                },
+                                {
+                                    "id":  "df189451-48ab-4198-8b69-2423fbba6b34",
+                                    "name":  "Client IP Address",
+                                    "protocol":  "openid-connect",
+                                    "protocolMapper":  "oidc-usersessionmodel-note-mapper",
+                                    "consentRequired":  false,
+                                    "config":  {
+                                                   "user.session.note":  "clientAddress",
+                                                   "introspection.token.claim":  "true",
+                                                   "id.token.claim":  "true",
+                                                   "access.token.claim":  "true",
+                                                   "claim.name":  "clientAddress",
+                                                   "jsonType.label":  "String"
+                                               }
+                                }
+                            ],
+        "defaultClientScopes":  [
+
+                                ],
+        "optionalClientScopes":  [
+                                     "offline_access"
+                                 ],
+        "access":  {
+                       "view":  true,
+                       "configure":  true,
+                       "manage":  true
+                   }
+    },
+    {
+        "id":  "e6f90f47-6f17-4801-899d-b56baca30378",
+        "clientId":  "mozaiks-shell",
+        "name":  "Mozaiks Shell (SPA)",
+        "description":  "Frontend shell application for Mozaiks",
+        "surrogateAuthRequired":  false,
+        "enabled":  true,
+        "alwaysDisplayInConsole":  false,
+        "clientAuthenticatorType":  "client-secret",
+        "redirectUris":  [
+                             "http://127.0.0.1:3000/*",
+                             "http://localhost:3000/*",
+                             "http://localhost:5173/*",
+                             "http://127.0.0.1:5173/*"
+                         ],
+        "webOrigins":  [
+                           "http://127.0.0.1:3000",
+                           "http://localhost:3000",
+                           "http://localhost:5173",
+                           "http://127.0.0.1:5173"
+                       ],
+        "notBefore":  0,
+        "bearerOnly":  false,
+        "consentRequired":  false,
+        "standardFlowEnabled":  true,
+        "implicitFlowEnabled":  false,
+        "directAccessGrantsEnabled":  true,
+        "serviceAccountsEnabled":  false,
+        "publicClient":  true,
+        "frontchannelLogout":  false,
+        "protocol":  "openid-connect",
+        "attributes":  {
+                           "post.logout.redirect.uris":  "http://localhost:5173/*##http://localhost:3000/*",
+                           "pkce.code.challenge.method":  "S256"
+                       },
+        "authenticationFlowBindingOverrides":  {
+
+                                               },
+        "fullScopeAllowed":  true,
+        "nodeReRegistrationTimeout":  -1,
+        "protocolMappers":  [
+                                {
+                                    "id":  "84106358-a15b-4e8a-b772-1983b86e0096",
+                                    "name":  "audience-mapper",
+                                    "protocol":  "openid-connect",
+                                    "protocolMapper":  "oidc-audience-mapper",
+                                    "consentRequired":  false,
+                                    "config":  {
+                                                   "included.client.audience":  "mozaiks-api",
+                                                   "id.token.claim":  "false",
+                                                   "access.token.claim":  "true",
+                                                   "userinfo.token.claim":  "false"
+                                               }
+                                },
+                                {
+                                    "id":  "8d8a3085-6385-4060-8d2f-750461cd5d09",
+                                    "name":  "realm-roles",
+                                    "protocol":  "openid-connect",
+                                    "protocolMapper":  "oidc-usermodel-realm-role-mapper",
+                                    "consentRequired":  false,
+                                    "config":  {
+                                                   "multivalued":  "true",
+                                                   "userinfo.token.claim":  "true",
+                                                   "id.token.claim":  "true",
+                                                   "access.token.claim":  "true",
+                                                   "claim.name":  "roles",
+                                                   "jsonType.label":  "String"
+                                               }
+                                }
+                            ],
+        "defaultClientScopes":  [
+
+                                ],
+        "optionalClientScopes":  [
+                                     "offline_access"
+                                 ],
+        "access":  {
+                       "view":  true,
+                       "configure":  true,
+                       "manage":  true
+                   }
+    },
+    {
+        "id":  "cee403a3-9adb-4b36-a394-0cd7f225dc2e",
+        "clientId":  "realm-management",
+        "name":  "${client_realm-management}",
+        "surrogateAuthRequired":  false,
+        "enabled":  true,
+        "alwaysDisplayInConsole":  false,
+        "clientAuthenticatorType":  "client-secret",
+        "redirectUris":  [
+
+                         ],
+        "webOrigins":  [
+
+                       ],
+        "notBefore":  0,
+        "bearerOnly":  true,
+        "consentRequired":  false,
+        "standardFlowEnabled":  true,
+        "implicitFlowEnabled":  false,
+        "directAccessGrantsEnabled":  false,
+        "serviceAccountsEnabled":  false,
+        "publicClient":  false,
+        "frontchannelLogout":  false,
+        "protocol":  "openid-connect",
+        "attributes":  {
+
+                       },
+        "authenticationFlowBindingOverrides":  {
+
+                                               },
+        "fullScopeAllowed":  false,
+        "nodeReRegistrationTimeout":  0,
+        "defaultClientScopes":  [
+
+                                ],
+        "optionalClientScopes":  [
+
+                                 ],
+        "access":  {
+                       "view":  true,
+                       "configure":  true,
+                       "manage":  true
+                   }
+    },
+    {
+        "id":  "475ec0fa-5018-4d19-9a8c-bdbd3590f09b",
+        "clientId":  "security-admin-console",
+        "name":  "${client_security-admin-console}",
+        "rootUrl":  "${authAdminUrl}",
+        "baseUrl":  "/admin/mozaiks/console/",
+        "surrogateAuthRequired":  false,
+        "enabled":  true,
+        "alwaysDisplayInConsole":  false,
+        "clientAuthenticatorType":  "client-secret",
+        "redirectUris":  [
+                             "/admin/mozaiks/console/*"
+                         ],
+        "webOrigins":  [
+                           "+"
+                       ],
+        "notBefore":  0,
+        "bearerOnly":  false,
+        "consentRequired":  false,
+        "standardFlowEnabled":  true,
+        "implicitFlowEnabled":  false,
+        "directAccessGrantsEnabled":  false,
+        "serviceAccountsEnabled":  false,
+        "publicClient":  true,
+        "frontchannelLogout":  false,
+        "protocol":  "openid-connect",
+        "attributes":  {
+                           "post.logout.redirect.uris":  "+",
+                           "pkce.code.challenge.method":  "S256"
+                       },
+        "authenticationFlowBindingOverrides":  {
+
+                                               },
+        "fullScopeAllowed":  false,
+        "nodeReRegistrationTimeout":  0,
+        "protocolMappers":  [
+                                {
+                                    "id":  "8d60ad42-6ede-46c2-a65b-91f3bbdf1b84",
+                                    "name":  "locale",
+                                    "protocol":  "openid-connect",
+                                    "protocolMapper":  "oidc-usermodel-attribute-mapper",
+                                    "consentRequired":  false,
+                                    "config":  {
+                                                   "introspection.token.claim":  "true",
+                                                   "userinfo.token.claim":  "true",
+                                                   "user.attribute":  "locale",
+                                                   "id.token.claim":  "true",
+                                                   "access.token.claim":  "true",
+                                                   "claim.name":  "locale",
+                                                   "jsonType.label":  "String"
+                                               }
+                                }
+                            ],
+        "defaultClientScopes":  [
+
+                                ],
+        "optionalClientScopes":  [
+
+                                 ],
+        "access":  {
+                       "view":  true,
+                       "configure":  true,
+                       "manage":  true
+                   }
+    }
+]

@@ -14,7 +14,7 @@ services:
       - REACT_APP_API_BASE_URL=http://localhost:8000
       - REACT_APP_WS_URL=ws://localhost:8000
     depends_on:
-      - identity-api
+      - ai-runtime
 
   # ============================================
   # AI RUNTIME (Python)
@@ -31,6 +31,9 @@ services:
       - MONGODB_URI=mongodb://mongodb:27017/MozaiksDB
       - KEYCLOAK_URL=http://keycloak:8080
       - FRONTEND_URL=http://localhost:3000
+      - MOZAIKS_OIDC_DISCOVERY_URL=http://keycloak:8080/realms/mozaiks/.well-known/openid-configuration
+      - AUTH_AUDIENCE=mozaiks-api
+      - AUTH_ENABLED=true
     depends_on:
       - mongodb
 
@@ -47,41 +50,19 @@ services:
       - ${PLUGINS_MOUNT_PATH:-../mozaiks-platform/plugins}:/plugins:ro
     environment:
       - PLUGINS_DIR=/plugins
-      - JWT_ISSUER=https://mozaiks.io
-      - JWT_AUDIENCE=mozaiks-api
-      - JWKS_URL=http://identity-api:8080/.well-known/jwks.json
+      - AUTH_ISSUER=http://keycloak:8080/realms/mozaiks
+      - AUTH_JWKS_URL=http://keycloak:8080/realms/mozaiks/protocol/openid-connect/certs
+      - AUTH_AUDIENCE=mozaiks-api
       - LOG_LEVEL=INFO
-      - SKIP_AUTH=true  # Dev only - remove in production
       - MONGODB_URI=mongodb://mongodb:27017
       - PLUGINS_DB_NAME=MozaiksPlugins
     depends_on:
-      - identity-api
       - mongodb
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8090/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-
-  # ============================================
-  # BACKEND SERVICES (.NET)
-  # ============================================
-  identity-api:
-    build:
-      context: ./backend
-      dockerfile: src/Identity.API/AuthServer.Api/Dockerfile
-    ports:
-      - "8020:8080"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - MongoDB__ConnectionString=mongodb://mongodb:27017
-      - MongoDB__DatabaseName=MozaiksDB
-      - Jwt__Issuer=https://mozaiks.io
-      - Jwt__Audience=mozaiks-api
-      - Redis__ConnectionString=redis:6379
-    depends_on:
-      - mongodb
-      - redis
 
   billing-api:
     build:
@@ -160,14 +141,16 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
 
   keycloak:
-    image: quay.io/keycloak/keycloak:23.0
+    build:
+      context: ./runtime/ai/keycloak
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin
       - KC_DB=dev-mem
-    command: start-dev
+    command: start-dev --import-realm
     volumes:
       - keycloak_data:/opt/keycloak/data
 

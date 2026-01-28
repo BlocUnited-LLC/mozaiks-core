@@ -9,7 +9,18 @@
       "Bash(gh release view:*)",
       "Bash(dir \"c:\\\\Users\\\\mbari\\\\OneDrive\\\\Desktop\\\\BlocUnited\\\\BlocUnited Code\\\\mozaiks-core\\\\docs\\\\assets\\\\widgetAction.mp4\")",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\mbari\\\\OneDrive\\\\Desktop\\\\BlocUnited\\\\BlocUnited Code\\\\mozaiks-platform\" -Force)",
-      "Bash(Select-Object Name, PSIsContainer)"
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Read(//c/Users/mbari/OneDrive/Desktop/BlocUnited/BlocUnited Code/mozaiks-platform/**)",
+      "Read(//c/Users/mbari/OneDrive/Desktop/BlocUnited/BlocUnited Code/mozaiks-platform/src/ApiGateways/MozaiksRestApi/**)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet build:*)",
+      "Bash(curl:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker logs:*)",
+      "Bash(__NEW_LINE_a5b666dce5727d92__ echo \"\")",
+      "Bash(curl.exe:*)",
+      "Bash(powershell.exe -Command \"$token=\\(Invoke-RestMethod -Uri ''http://localhost:8080/realms/master/protocol/openid-connect/token'' -Method Post -ContentType ''application/x-www-form-urlencoded'' -Body ''username=admin&password=admin&grant_type=password&client_id=admin-cli''\\).access_token; \\(Invoke-RestMethod -Uri ''http://localhost:8080/admin/realms/mozaiks/clients'' -Headers @{Authorization=\"\"Bearer $token\"\"}\\) | ForEach-Object { $_clientId }\")"
     ]
   }
 }

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field
 
 from core.subscription_manager import subscription_manager
-from security.authentication import require_internal_api_key
+from core.ai_runtime.auth.dependencies import require_internal_service
 
 router = APIRouter(prefix="/api/internal/subscription", tags=["internal-subscription"])
 
@@ -25,7 +25,7 @@ class SubscriptionSyncRequest(BaseModel):
 @router.post("/sync")
 async def sync_subscription(
     payload: SubscriptionSyncRequest,
-    _internal: dict = Depends(require_internal_api_key),
+    _internal: object = Depends(require_internal_service),
 ):
     subscription_data = payload.model_dump(exclude={"user_id"}, exclude_none=True, by_alias=False)
     return await subscription_manager.sync_subscription_from_control_plane(

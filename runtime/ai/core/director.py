@@ -26,8 +26,7 @@ from core.subscription_manager import subscription_manager
 from core.subscription_stub import SubscriptionStub
 from .event_bus import event_bus
 from .state_manager import state_manager
-from security.auth import router as auth_router
-from security.authentication import get_current_user
+from core.ai_runtime.auth.dependencies import get_current_user
 
 from core.config.database import users_collection, db_cache, get_cached_document
 from core.config.config_loader import get_config_path
@@ -35,7 +34,7 @@ from core.routes.notifications import router as notifications_router
 from core.routes.ai import router as ai_router
 from core.settings_manager import settings_manager
 
-# Admin and internal routes (require X-Internal-API-Key or superadmin JWT)
+# Admin and internal routes (require Keycloak JWT: superadmin or internal_service)
 from core.routes.admin_users import router as admin_users_router
 from core.routes.notifications_admin import router as notifications_admin_router
 from core.routes.analytics import router as analytics_router
@@ -84,11 +83,10 @@ app.add_middleware(
 )
 
 # Register API Routers
-app.include_router(auth_router, prefix="/api/auth")
 app.include_router(notifications_router, prefix="/api/notifications")
 app.include_router(ai_router)
 
-# Admin and internal routes (require X-Internal-API-Key or superadmin JWT)
+# Admin and internal routes (require Keycloak JWT: superadmin or internal_service)
 # These are Control Plane integration points for MozaiksAI
 app.include_router(admin_users_router)  # Has prefix /__mozaiks/admin/users
 app.include_router(notifications_admin_router)  # Has prefix /__mozaiks/admin/notifications

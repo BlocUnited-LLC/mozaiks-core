@@ -37,12 +37,13 @@ services:
   # Backend API
   backend:
     build:
-      context: ./runtime/backend
+      context: ./runtime/ai
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8000:8000"
     environment:
+      - PORT=8000
       - MONGODB_URI=mongodb://admin:${MONGO_PASSWORD}@mongodb:27017/mozaikscore?authSource=admin
       - JWT_SECRET=${JWT_SECRET}
       - ENV=production
@@ -56,13 +57,14 @@ services:
   # Frontend
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.frontend
+      context: ./runtime/packages/shell
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
       - "3000:80"
     environment:
-      - VITE_API_URL=http://backend:8080
+      - REACT_APP_API_BASE_URL=http://backend:8000
+      - REACT_APP_WS_URL=ws://backend:8000
     depends_on:
       - backend
     networks:
@@ -95,39 +97,45 @@ networks:
 ### Backend Dockerfile
 
 ```dockerfile
-# runtime/backend/Dockerfile
+# runtime/ai/Dockerfile
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install dependencies
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source
 COPY . .
 
-# Run
-EXPOSE 8080
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+EXPOSE 8000
+CMD ["python", "run_server.py"]
 ```
 
 ### Frontend Dockerfile
 
 ```dockerfile
-# Dockerfile.frontend
-FROM node:18-alpine AS builder
+# runtime/packages/shell/Dockerfile
+FROM node:20-alpine AS builder
 
-WORKDIR /app
+WORKDIR /build
 COPY package*.json ./
 RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx-frontend.conf /etc/nginx/conf.d/default.conf
+FROM nginx:alpine AS runtime
+COPY --from=builder /build/build /usr/share/nginx/html
+COPY nginx.con[f] /etc/nginx/conf.d/default.conf
 EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
 ```
 
 ### Deploy
@@ -209,7 +217,7 @@ spec:
         - name: backend
           image: your-registry/mozaiks-backend:latest
           ports:
-            - containerPort: 8080
+            - containerPort: 8000
           envFrom:
             - configMapRef:
                 name: mozaiks-config
@@ -225,13 +233,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /health
-              port: 8080
+              port: 8000
             initialDelaySeconds: 10
             periodSeconds: 30
           readinessProbe:
             httpGet:
               path: /health
-              port: 8080
+              port: 8000
             initialDelaySeconds: 5
             periodSeconds: 10
 ---
@@ -245,7 +253,7 @@ spec:
     app: mozaiks-backend
   ports:
     - port: 80
-      targetPort: 8080
+      targetPort: 8000
 ```
 
 ### Ingress
@@ -397,12 +405,12 @@ jobs:
       - name: Build Backend
         run: |
           docker build -t ${{ secrets.REGISTRY }}/mozaiks-backend:${{ github.sha }} \
-            -f runtime/backend/Dockerfile runtime/backend
+            -f runtime/ai/Dockerfile runtime/ai
       
       - name: Build Frontend
         run: |
           docker build -t ${{ secrets.REGISTRY }}/mozaiks-frontend:${{ github.sha }} \
-            -f Dockerfile.frontend .
+            -f runtime/packages/shell/Dockerfile runtime/packages/shell
       
       - name: Push Images
         run: |

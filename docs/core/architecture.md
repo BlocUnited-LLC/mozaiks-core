@@ -86,7 +86,7 @@ data = {
 
 ## 🧱 Core Components
 
-### 1️⃣ Director (`core/director.py`)
+### 1️⃣ Director (`runtime/ai/core/director.py`)
 
 The **orchestration hub** — routes requests, enforces auth, manages plugins.
 
@@ -111,14 +111,14 @@ graph LR
 - Check subscription access (when MONETIZATION=1)
 - Refresh plugins automatically
 
-### 2️⃣ Plugin Manager (`core/plugin_manager.py`)
+### 2️⃣ Plugin Manager (`runtime/ai/core/plugin_manager.py`)
 
 The **plugin lifecycle manager** — discovers, loads, executes plugins.
 
 ```mermaid
 graph TB
     subgraph "Plugin Discovery"
-        SCAN[Scan plugins/] --> FIND[Find logic.py]
+        SCAN[Scan runtime/ai/plugins/] --> FIND[Find logic.py]
         FIND --> REG[Update Registry]
     end
     
@@ -134,12 +134,12 @@ graph TB
 ```
 
 **Key Features:**
-- Auto-discovery of plugins in `plugins/` directory
+- Auto-discovery of plugins in `runtime/ai/plugins/` directory
 - Hot-reload in development mode
 - Async execution support
 - Registry caching (5-minute refresh)
 
-### 3️⃣ Event Bus (`core/event_bus.py`)
+### 3️⃣ Event Bus (`runtime/ai/core/event_bus.py`)
 
 The **pub/sub system** — decoupled communication between components.
 
@@ -186,7 +186,7 @@ def handle_new_user(data):
     pass
 ```
 
-### 4️⃣ WebSocket Manager (`core/websocket_manager.py`)
+### 4️⃣ WebSocket Manager (`runtime/ai/core/websocket_manager.py`)
 
 **Real-time updates** to connected clients.
 
@@ -222,7 +222,7 @@ await websocket_manager.broadcast({
 })
 ```
 
-### 5️⃣ Settings Manager (`core/settings_manager.py`)
+### 5️⃣ Settings Manager (`runtime/ai/core/settings_manager.py`)
 
 **Per-user plugin settings** storage.
 
@@ -239,7 +239,7 @@ await settings_manager.save_plugin_settings(user_id, "my_plugin", {
 })
 ```
 
-### 6️⃣ Notifications Manager (`core/notifications_manager.py`)
+### 6️⃣ Notifications Manager (`runtime/ai/core/notifications_manager.py`)
 
 **Multi-channel notifications** — in-app, email, SMS, push.
 
@@ -280,7 +280,7 @@ await notifications_manager.create_notification(
 ```
 mozaiks-core/
 ├── runtime/
-│   ├── ai/                      # AI Runtime (this folder)
+│   ├── ai/                      # AI Runtime (FastAPI)
 │   │   ├── main.py              # FastAPI entry point
 │   │   ├── core/                # Core system modules
 │   │   │   ├── director.py      # Request orchestration
@@ -299,17 +299,18 @@ mozaiks-core/
 │   │   │   └── connectors/      # HTTP clients for external APIs
 │   │   └── security/
 │   │       └── auth.py          # JWT validation
-│   └── backend/                 # (Legacy alias)
+│   ├── plugin-host/             # Plugin execution host (optional)
+│   └── packages/
+│       └── shell/               # React frontend
 ├── backend/                     # .NET services (Billing, Identity)
-├── docs/                        # Documentation (you are here)
-└── src/                         # React frontend
+└── docs/                        # Documentation (you are here)
 ```
 
 ---
 
 ## 🔧 Configuration Files
 
-All configs live in `MOZAIKS_CONFIGS_PATH` (defaults to `core/config/`):
+All configs live in `MOZAIKS_CONFIGS_PATH` (defaults to `runtime/ai/core/config/`):
 
 | File | Purpose |
 |------|---------|

@@ -25,6 +25,60 @@ from logs.logging_config import get_core_logger
 logger = get_core_logger("auth.jwt_validator")
 
 
+def _get_nested_claim(raw_claims: Dict[str, Any], path: str) -> Any:
+    """Get a nested claim value using dot notation (e.g., 'realm_access.roles')."""
+    if not path:
+        return None
+
+    current: Any = raw_claims
+    for part in path.split("."):
+        if not isinstance(current, dict):
+            return None
+        if part not in current:
+            return None
+        current = current[part]
+    return current
+
+
+def _coerce_roles(value: Any) -> List[str]:
+    if isinstance(value, list):
+        return [str(v).strip() for v in value if isinstance(v, (str, int)) and str(v).strip()]
+    if isinstance(value, str) and value.strip():
+        raw = value.strip()
+        if "," in raw:
+            return [v.strip() for v in raw.split(",") if v.strip()]
+        if " " in raw:
+            return [v.strip() for v in raw.split(" ") if v.strip()]
+        return [raw]
+    return []
+
+
+def _extract_keycloak_roles(raw_claims: Dict[str, Any]) -> List[str]:
+    """Extract roles from common Keycloak claim shapes."""
+    roles: List[str] = []
+
+    # realm_access.roles
+    realm_access = raw_claims.get("realm_access")
+    if isinstance(realm_access, dict):
+        roles.extend(_coerce_roles(realm_access.get("roles")))
+
+    # resource_access.<client>.roles (flatten all clients)
+    resource_access = raw_claims.get("resource_access")
+    if isinstance(resource_access, dict):
+        for _, entry in resource_access.items():
+            if isinstance(entry, dict):
+                roles.extend(_coerce_roles(entry.get("roles")))
+
+    # Deduplicate while preserving order
+    seen: set[str] = set()
+    unique: List[str] = []
+    for r in roles:
+        if r not in seen:
+            seen.add(r)
+            unique.append(r)
+    return unique
+
+
 @dataclass
 class TokenClaims:
     """Validated token claims."""
@@ -215,12 +269,16 @@ class JWTValidator:
 
         email = claims.get(self._config.email_claim)
         
-        # Roles can be a list or missing
-        roles_raw = claims.get(self._config.roles_claim, [])
-        roles = roles_raw if isinstance(roles_raw, list) else []
+        # Roles: provider-agnostic with Keycloak-friendly fallbacks
+        roles_raw = _get_nested_claim(claims, self._config.roles_claim) if "." in self._config.roles_claim else claims.get(self._config.roles_claim)
+        roles = _coerce_roles(roles_raw)
+        if not roles:
+            roles = _extract_keycloak_roles(claims)
 
-        # Scopes: Azure uses "scp" as space-separated string
-        scopes_raw = claims.get("scp", "")
+        # Scopes: Azure uses "scp"; Keycloak commonly uses "scope"
+        scopes_raw = claims.get("scp")
+        if scopes_raw is None:
+            scopes_raw = claims.get("scope", "")
         if isinstance(scopes_raw, str):
             scopes = [s.strip() for s in scopes_raw.split() if s.strip()]
         elif isinstance(scopes_raw, list):

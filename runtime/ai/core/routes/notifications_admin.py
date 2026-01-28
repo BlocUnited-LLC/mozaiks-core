@@ -24,7 +24,7 @@ from core.notifications.broadcast import broadcast_service
 from core.notifications.scheduler import digest_scheduler
 from core.notifications.templates import template_renderer
 from core.notifications.channels import get_all_channels_config
-from security.authentication import require_admin_or_internal
+from core.ai_runtime.auth.dependencies import require_admin_or_internal
 
 logger = logging.getLogger("mozaiks_core.routes.notifications_admin")
 

@@ -14,7 +14,7 @@ from core.runtime.manager import runtime_manager
 from core.runtime.execution_tokens import mint_execution_token
 from core.state_manager import state_manager
 from core.subscription_manager import subscription_manager
-from security.authentication import get_current_user
+from core.ai_runtime.auth.dependencies import get_current_user
 
 logger = logging.getLogger("mozaiks_core.routes.ai")
 

@@ -48,7 +48,12 @@ If any of these paths move, notify platform immediately.
 
 ## Archive (historical)
 
-- `[archive]` docs/archive/
+- `[archive]` docs/archive/ (root)
+- `[archive]` docs/archive/architecture/
+- `[archive]` docs/archive/architecture-specs/
+- `[archive]` docs/archive/roadmap/
+- `[archive]` docs/archive/platform-integration/
+- `[archive]` docs/archive/guides/
 
 ## Cleanup Plan
 

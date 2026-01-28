@@ -283,7 +283,7 @@ async def execute(data: dict) -> dict:
 ## 📋 Complete Template
 
 ```python
-# plugins/my_plugin/logic.py
+# runtime/ai/plugins/my_plugin/logic.py
 """
 My Plugin - Description of what this plugin does.
 

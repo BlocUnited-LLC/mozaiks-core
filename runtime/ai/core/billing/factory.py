@@ -89,10 +89,11 @@ def _auto_detect_provider() -> IPaymentProvider:
     
     # Check for Platform configuration
     platform_url = os.getenv("MOZAIKS_PLATFORM_URL")
-    platform_api_key = os.getenv("MOZAIKS_PLATFORM_API_KEY")
+    platform_client_id = os.getenv("MOZAIKS_PLATFORM_CLIENT_ID")
+    platform_client_secret = os.getenv("MOZAIKS_PLATFORM_CLIENT_SECRET")
     
-    if platform_url and platform_api_key:
-        logger.debug("Auto-detected Platform provider (URL and API key present)")
+    if platform_url and platform_client_id and platform_client_secret:
+        logger.debug("Auto-detected Platform provider (URL and client credentials present)")
         return _create_platform_provider()
     
     # Check for manual entitlements file
@@ -122,7 +123,9 @@ def _create_platform_provider() -> PlatformPaymentProvider:
     """Create Platform provider with environment config."""
     return PlatformPaymentProvider(
         platform_url=os.getenv("MOZAIKS_PLATFORM_URL"),
-        api_key=os.getenv("MOZAIKS_PLATFORM_API_KEY"),
+        client_id=os.getenv("MOZAIKS_PLATFORM_CLIENT_ID"),
+        client_secret=os.getenv("MOZAIKS_PLATFORM_CLIENT_SECRET"),
+        token_scope=os.getenv("MOZAIKS_PLATFORM_TOKEN_SCOPE"),
     )
 
 
