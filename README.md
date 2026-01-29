@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/BlocUnited-LLC/mozaiks-core/main/runtime/packages/shell/public/mozaik_logo.svg" alt="MozaiksCore Logo" width="180"/>
+<img src="./packages/frontend/shell/public/mozaik_logo.svg" alt="MozaiksCore Logo" width="180"/>
 
 **Open-source multi-tenant runtime for AI-powered applications**
 
@@ -13,6 +13,8 @@
 [![AG2](https://img.shields.io/badge/AG2-Autogen-green)](https://github.com/ag2ai/ag2)
 
 </div>
+
+> **Note**: This is the open-source core. BlocUnited offers a managed platform with app generation tools at [mozaiks.ai](https://mozaiks.ai), but you're welcome to self-host and build everything yourself.
 
 ---
 
@@ -44,8 +46,6 @@ Mozaiks Core follows a config-first, stub-driven development model:
 | JS stubs | Frontend behaviors and widgets (when needed) |
 
 This approach enables complex agentic applications with minimal boilerplate while remaining fully extensible.
-
-> **Note**: This is the open-source core. BlocUnited offers a managed platform with app generation tools at [mozaiks.ai](https://mozaiks.ai), but you're welcome to self-host and build everything yourself.
 
 ## ⚠️ OSS Project Status
 
