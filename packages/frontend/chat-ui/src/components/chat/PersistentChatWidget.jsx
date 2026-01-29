@@ -1,5 +1,5 @@
 import React from 'react';
-import { useChatUI } from '../../../context/ChatUIContext';
+import { useChatUI } from '../../context/ChatUIContext';
 
 /**
  * PersistentChatWidget - Minimized chat window in bottom-left corner (20% of screen height)

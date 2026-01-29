@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@mozaiks/chat-ui": "*",
     "dompurify": "^3.2.6",
     "lucide-react": "^0.542.0",
     "marked": "^16.1.2",

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://mozaiks.io/schemas/navigation.v1.json",
+  "version": "1.0.0",
+  "routes": [
+    {
+      "path": "/",
+      "component": "ChatPage",
+      "exact": true,
+      "meta": {
+        "title": "Chat",
+        "requiresAuth": false
+      }
+    },
+    {
+      "path": "/workflows",
+      "component": "MyWorkflowsPage",
+      "meta": {
+        "title": "My Workflows",
+        "requiresAuth": false
+      }
+    },
+    {
+      "path": "/my-workflows",
+      "component": "MyWorkflowsPage",
+      "meta": {
+        "title": "My Workflows",
+        "requiresAuth": false
+      }
+    },
+    {
+      "path": "/artifacts/:artifactId",
+      "component": "ArtifactPage",
+      "meta": {
+        "title": "Artifact",
+        "requiresAuth": false
+      }
+    }
+  ],
+  "sidebar": {
+    "items": [
+      {
+        "id": "chat",
+        "label": "Chat",
+        "icon": "MessageSquare",
+        "path": "/",
+        "order": 1
+      },
+      {
+        "id": "workflows",
+        "label": "My Workflows",
+        "icon": "Workflow",
+        "path": "/workflows",
+        "order": 2
+      }
+    ]
+  },
+  "topNav": {
+    "items": []
+  }
+}

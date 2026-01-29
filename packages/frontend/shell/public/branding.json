@@ -1,0 +1,29 @@
+{
+  "$schema": "https://mozaiks.io/schemas/branding.v1.json",
+  "version": "1.0.0",
+  "app": {
+    "name": "Mozaiks",
+    "tagline": "AI-Powered Workflows",
+    "logo": "/mozaik_logo.svg",
+    "favicon": "/mozaikloadingicon.png"
+  },
+  "theme": {
+    "mode": "system",
+    "colors": {
+      "primary": "#3B82F6",
+      "secondary": "#6366F1",
+      "accent": "#8B5CF6"
+    }
+  },
+  "layout": {
+    "sidebar": {
+      "position": "left",
+      "collapsible": true,
+      "defaultCollapsed": false
+    },
+    "header": {
+      "visible": true,
+      "sticky": true
+    }
+  }
+}

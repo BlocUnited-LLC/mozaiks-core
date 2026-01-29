@@ -1,39 +1,73 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ChatUIProvider } from './context/ChatUIContext';
-import ChatPage from './pages/ChatPage';
-import MyWorkflowsPage from './pages/MyWorkflowsPage';
-import ArtifactPage from './pages/ArtifactPage';
-import GlobalChatWidgetWrapper from './chat/components/layout/GlobalChatWidgetWrapper';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { ChatUIProvider, useChatUI } from './context/ChatUIContext';
+import { NavigationProvider } from './providers/NavigationProvider';
+import { BrandingProvider } from './providers/BrandingProvider';
+import RouteRenderer from './components/RouteRenderer';
+import { GlobalChatWidgetWrapper } from '@mozaiks/chat-ui';
 import './styles/TransportAwareChat.css';
 
+// Import core component registration
+import './registry/coreComponents';
+
 /**
- * AppContent - Inner component that has access to context and location
+ * AppContent - Inner component that has access to context and renders routes
  */
 const AppContent = () => {
+  const { user } = useChatUI();
+
+  // Handle auth required events
+  const handleAuthRequired = (path) => {
+    console.log(`[App] Auth required for path: ${path}`);
+    // Could trigger login modal, redirect, etc.
+  };
+
   return (
-    <Routes>
-      <Route path="/artifacts/:artifactId" element={<ArtifactPage />} />
-      <Route path="/workflows" element={<MyWorkflowsPage />} />
-      <Route path="/my-workflows" element={<MyWorkflowsPage />} />
-      <Route path="*" element={<ChatPage />} />
-    </Routes>
+    <RouteRenderer
+      isAuthenticated={!!user}
+      onAuthRequired={handleAuthRequired}
+    />
   );
 };
 
-// Unified ChatUI App - Transport-agnostic chat with Simple Events integration
+/**
+ * Unified ChatUI App - Declarative, data-driven shell
+ *
+ * The Shell is now configured via:
+ * - navigation.json: Routes and navigation structure
+ * - branding.json: App branding, theme, and layout
+ *
+ * Components are registered via the component registry.
+ * Platform generators produce the JSON configs, Shell renders them.
+ */
 function App() {
   const handleChatUIReady = () => {
     console.log('ChatUI is ready!');
   };
 
+  const handleNavigationLoad = (config) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[App] Navigation config loaded:', config.version);
+    }
+  };
+
+  const handleBrandingLoad = (config) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[App] Branding config loaded:', config.version);
+    }
+  };
+
   return (
-    <ChatUIProvider onReady={handleChatUIReady}>
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <GlobalChatWidgetWrapper />
-        <AppContent />
-      </Router>
-    </ChatUIProvider>
+    <BrandingProvider onLoad={handleBrandingLoad}>
+      <NavigationProvider onLoad={handleNavigationLoad}>
+        <ChatUIProvider onReady={handleChatUIReady}>
+          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <GlobalChatWidgetWrapper />
+            <AppContent />
+          </Router>
+        </ChatUIProvider>
+      </NavigationProvider>
+    </BrandingProvider>
   );
 }
 

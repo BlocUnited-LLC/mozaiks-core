@@ -216,7 +216,11 @@ const ModernChatInterface = ({
   const onSubmitClick = (event) => {
     event.preventDefault();
     if (buttonText === 'NEXT') {
-      const currentAppId = appId || process.env.REACT_APP_DEFAULT_APP_ID || process.env.REACT_APP_DEFAULT_app_id;
+      const envDefaultAppId =
+        (typeof process !== 'undefined' && process.env && (process.env.REACT_APP_DEFAULT_APP_ID || process.env.REACT_APP_DEFAULT_app_id))
+          ? (process.env.REACT_APP_DEFAULT_APP_ID || process.env.REACT_APP_DEFAULT_app_id)
+          : undefined;
+      const currentAppId = appId || envDefaultAppId;
       navigate("/chat/blueprint/" + currentAppId);
       return;
     }

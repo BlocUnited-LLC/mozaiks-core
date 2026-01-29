@@ -93,7 +93,7 @@ function ConnectionStatus({
             <span className="error-icon">⚠️</span>
             <span className="error-text">{error.message}</span>
           </div>
-          {error.stack && process.env.NODE_ENV === 'development' && (
+          {error.stack && (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') && (
             <details className="error-stack">
               <summary>Technical Details</summary>
               <pre>{error.stack}</pre>

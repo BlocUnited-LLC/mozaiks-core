@@ -1,8 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import services from '../services';
-import config from '../config';
-// Import workflow registry for UI tool registration
-import { initializeWorkflows } from '@chat-workflows';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 const ChatUIContext = createContext(null);
 
@@ -18,14 +14,17 @@ export const ChatUIProvider = ({
   children,
   authAdapter = null,
   apiAdapter = null,
+  uiConfig = null,
+  workflowInitializer = null,
+  uiToolRenderer = null,
   onReady = () => {},
   agents = []
 }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
-  const [authAdapterInstance, setAuthAdapterInstance] = useState(null);
-  const [apiAdapterInstance, setApiAdapterInstance] = useState(null);
+  const [authAdapterInstance, setAuthAdapterInstance] = useState(authAdapter);
+  const [apiAdapterInstance, setApiAdapterInstance] = useState(apiAdapter);
   const [agentSystemInitialized, setAgentSystemInitialized] = useState(false);
   const [workflowsInitialized, setWorkflowsInitialized] = useState(false);
   const WORKFLOW_INIT_TIMEOUT_MS = 8000; // guard against endless spinner
@@ -74,60 +73,59 @@ export const ChatUIProvider = ({
   useEffect(() => {
     const initializeServices = async () => {
       try {
-        // Initialize workflow registry first (UI tools need to be registered)
-        console.log('🔧 Initializing workflow registry...');
-        try {
-          await Promise.race([
-            initializeWorkflows(),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('workflow_init_timeout')), WORKFLOW_INIT_TIMEOUT_MS))
-          ]);
-          setWorkflowsInitialized(true);
-          console.log('✅ Workflow registry initialized');
-        } catch (wfErr) {
-          if (wfErr.message === 'workflow_init_timeout') {
-            console.warn('⚠️ Workflow initialization timed out – continuing with partial UI.');
-          } else {
-            console.warn('⚠️ Workflow registry init failed:', wfErr);
+        // Optional: allow host to initialize workflow/tool registry without bundling
+        // any workflow implementation into this package.
+        if (typeof workflowInitializer === 'function') {
+          console.log('🔧 Initializing workflow registry (host-provided)...');
+          try {
+            await Promise.race([
+              Promise.resolve(workflowInitializer()),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('workflow_init_timeout')), WORKFLOW_INIT_TIMEOUT_MS))
+            ]);
+            setWorkflowsInitialized(true);
+            console.log('✅ Workflow registry initialized');
+          } catch (wfErr) {
+            if (wfErr?.message === 'workflow_init_timeout') {
+              console.warn('⚠️ Workflow initialization timed out – continuing with partial UI.');
+            } else {
+              console.warn('⚠️ Workflow registry init failed:', wfErr);
+            }
           }
         }
 
-        // Initialize services with custom adapters
-        services.initialize({ authAdapter, apiAdapter });
+        // Adapters are host-injected; keep local state to avoid undefined access.
+        setAuthAdapterInstance(authAdapter);
+        setApiAdapterInstance(apiAdapter);
 
-        // Get the adapter instances
-        const authAdapterInst = services.getAuthAdapter();
-        const apiAdapterInst = services.getApiAdapter();
-        
-        setAuthAdapterInstance(authAdapterInst);
-        setApiAdapterInstance(apiAdapterInst);
+        // Get initial user (optional)
+        try {
+          const currentUser = await authAdapter?.getCurrentUser?.();
+          setUser(currentUser || null);
+        } catch (_) {
+          setUser(null);
+        }
 
-        // Get initial user
-        const currentUser = await authAdapterInst?.getCurrentUser();
-        setUser(currentUser);
-
-        // Listen for auth state changes
-        if (authAdapterInst?.onAuthStateChange) {
-          authAdapterInst.onAuthStateChange((newUser) => {
-            setUser(newUser);
+        // Listen for auth state changes (optional)
+        if (authAdapter?.onAuthStateChange) {
+          authAdapter.onAuthStateChange((newUser) => {
+            setUser(newUser || null);
           });
         }
 
-  // Agent system functionality now piggybacks on workflow registry status
-  setAgentSystemInitialized(true);
-  console.log('✅ Workflow-based agent system ready');
-
+        // Agent system functionality piggybacks on workflow readiness where applicable.
+        setAgentSystemInitialized(true);
         setInitialized(true);
-  setLoading(false);
+        setLoading(false);
         onReady();
 
       } catch (error) {
-  console.error('Failed to initialize ChatUI:', error);
-  setLoading(false);
+        console.error('Failed to initialize ChatUI:', error);
+        setLoading(false);
       }
     };
 
     initializeServices();
-  }, [authAdapter, apiAdapter, onReady]);
+  }, [authAdapter, apiAdapter, workflowInitializer, onReady]);
 
   useEffect(() => {
     // Agents are auto-discovered through the workflow system
@@ -135,6 +133,11 @@ export const ChatUIProvider = ({
       console.warn('Custom agent registration via props is not supported. Agents are defined in the agents.json file.');
     }
   }, [agents]);
+
+  const resolvedConfig = useMemo(() => {
+    if (uiConfig && typeof uiConfig === 'object') return uiConfig;
+    return {};
+  }, [uiConfig]);
 
   const contextValue = {
     // User state
@@ -181,12 +184,15 @@ export const ChatUIProvider = ({
     workflowSessions,
     setWorkflowSessions,
 
-    // Configuration
-    config: config.getConfig(),
+    // Configuration (host-provided)
+    config: resolvedConfig,
 
     // Services (use state instances to avoid initialization errors)
     auth: authAdapterInstance,
     api: apiAdapterInstance,
+
+    // UI tool rendering (host-provided)
+    uiToolRenderer: (typeof uiToolRenderer === 'function') ? uiToolRenderer : null,
 
     // Actions
     logout: async () => {
