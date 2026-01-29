@@ -16,17 +16,40 @@
 
 ---
 
-## What is MozaiksCore?
+## Mozaiks Core
 
-MozaiksCore is a **self-hostable application runtime** that provides:
+Mozaiks Core is a self-hostable application runtime for building AI-driven, multi-tenant web applications with native real-time interfaces, authentication, and optional billing.
 
-- 🔌 **Plugin System** — Add features via isolated Python plugins
-- 🤖 **AI Workflows** — Build AI agents with AG2 (Microsoft Autogen)
-- 🔐 **Auth & Billing** — JWT auth, Stripe subscriptions out of the box
-- 💬 **Real-time Chat** — WebSocket streaming for AI conversations
-- 📦 **Production Ready** — Docker, MongoDB, structured logging
+Instead of wiring together UI, auth, subscriptions, and agent infrastructure from scratch, Mozaiks Core provides these primitives out of the box — so teams can focus on application logic and agentic workflows.
+
+Applications are designed through a config-first, stub-driven model: declare behavior in YAML/JSON where supported, then implement tools and integrations in lightweight Python/JavaScript stubs.
+
+## 🚀 What Mozaiks Core Provides Natively
+
+- Multi-tenant runtime with tenant isolation (app_id namespaces)
+- Real-time web interfaces (chat + streaming UI)
+- Authentication and authorization (JWT, OIDC)
+- Subscription billing integrations (Stripe, optional)
+- AI runtime and orchestration layer (AG2 / Autogen)
+- Plugin system for isolated Python extensions
+
+## 🧠 How You Build Applications
+
+Mozaiks Core follows a config-first, stub-driven development model:
+
+| Layer | Purpose |
+|---|---|
+| YAML / JSON | Define agents, workflows, permissions, UI wiring (where supported) |
+| Python stubs | Tools, actions, backend integrations |
+| JS stubs | Frontend behaviors and widgets (when needed) |
+
+This approach enables complex agentic applications with minimal boilerplate while remaining fully extensible.
 
 > **Note**: This is the open-source core. BlocUnited offers a managed platform with app generation tools at [mozaiks.ai](https://mozaiks.ai), but you're welcome to self-host and build everything yourself.
+
+## ⚠️ OSS Project Status
+
+Mozaiks Core is early-stage and under active development. I’m building it as a solo developer, and open sourcing the core felt like the right way to invite feedback, collaboration, and collective improvement as it grows.
 
 ---
 
