@@ -41,6 +41,7 @@ If any of these paths move, notify platform immediately.
 - `[guide]` docs/guides/deployment.md
 - `[guide]` docs/guides/troubleshooting.md
 - `[guide]` docs/guides/operations-runbook.md
+- `[guide]` docs/contracts/agui-migration-guide.md
 
 ## Roadmap
 

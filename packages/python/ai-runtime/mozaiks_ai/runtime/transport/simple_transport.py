@@ -509,6 +509,13 @@ class SimpleTransport:
             if not envelope:
                 logger.warning(f"❌ [TRANSPORT] No envelope created for event type={event_type}")
                 return
+
+            # Add run_id to all chat.* payloads (additive, non-breaking)
+            if isinstance(envelope, dict) and chat_id:
+                data_payload = envelope.get("data")
+                if isinstance(data_payload, dict):
+                    data_payload.setdefault("run_id", chat_id)
+                    data_payload.setdefault("chat_id", chat_id)
             
             logger.info(f"✅ [TRANSPORT] Envelope created successfully: type={envelope.get('type')}, has_data={bool(envelope.get('data'))}")
 
@@ -604,6 +611,26 @@ class SimpleTransport:
 
             logger.info(f"📤 [TRANSPORT] Sending envelope: type={envelope.get('type')}, chat_id={chat_id}")
             await self._broadcast_to_websockets(envelope, chat_id)
+
+            # Dual-emit AG-UI envelopes (additive; can be toggled via env)
+            try:
+                from mozaiks_ai.runtime.event_agui_adapter import get_agui_adapter, is_agui_enabled
+
+                if is_agui_enabled() and isinstance(envelope, dict):
+                    app_id = None
+                    if chat_id and chat_id in self.connections:
+                        app_id = self.connections[chat_id].get("app_id")
+                    adapter = get_agui_adapter()
+                    agui_events = adapter.build_agui_events(
+                        envelope,
+                        chat_id=chat_id,
+                        app_id=app_id,
+                        workflow_name=workflow_name,
+                    )
+                    for agui_event in agui_events:
+                        await self._broadcast_to_websockets(agui_event, chat_id)
+            except Exception:
+                logger.debug("AG-UI emission failed", exc_info=True)
 
             # Runtime hook: surface run completion to the unified dispatcher so
             # higher-level coordinators (e.g., workflow pack adapter) can react.

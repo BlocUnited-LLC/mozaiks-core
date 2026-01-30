@@ -156,7 +156,12 @@ const ModernChatInterface = ({
   onBrandClick, // Optional callback when brand/logo clicked
   isOnChatPage = true, // Whether we're on the primary chat page (not discovery/workflows)
   hideHeader = false, // Hide the header (used when widget has its own header)
-  plainContainer = false // Skip decorative cosmic-ui-module styling (used in widget)
+  plainContainer = false, // Skip decorative cosmic-ui-module styling (used in widget)
+  artifactContext = null,
+  overlayMode = false,
+  onOverlayClose = null,
+  layoutMode = null,
+  onLayoutModeChange = null
 }) => {
   const [message, setMessage] = useState('');
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
@@ -175,6 +180,7 @@ const ModernChatInterface = ({
   const showModeToggle = isOnChatPage || conversationMode === 'ask' || Boolean(onBrandClick);
   const showAskHistoryToggle = showAskHistoryMenu && typeof onAskHistoryToggle === 'function';
   const avatarIcon = conversationMode === 'ask' ? '🧠' : '🤖';
+  const showLayoutToggle = typeof onLayoutModeChange === 'function' && isOnChatPage;
   // const renderCountRef = useRef(0); // For debugging renders if needed
   
   // Optional debug: enable to trace renders
@@ -220,7 +226,7 @@ const ModernChatInterface = ({
     
     if (message.trim() === '') return;
     
-    const newMessage = { "sender": "user", "content": message };
+    const newMessage = { "sender": "user", "content": message, "artifactContext": artifactContext || null };
     onSendMessage(newMessage);
     setMessage('');
   };
@@ -471,6 +477,33 @@ const ModernChatInterface = ({
               </div>
             )}
           </div>
+
+          {showLayoutToggle && (
+            <div className="hidden md:flex items-center gap-1 rounded-lg border border-[rgba(var(--color-primary-light-rgb),0.25)] bg-black/30 backdrop-blur-sm p-1 mr-2">
+              {['full', 'split', 'view'].map(mode => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => onLayoutModeChange(mode)}
+                  className={`px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wide font-semibold transition ${layoutMode === mode ? 'bg-[rgba(var(--color-primary-rgb),0.3)] text-white' : 'text-gray-400 hover:text-white'}`}
+                  title={`Switch to ${mode} mode`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {overlayMode && typeof onOverlayClose === 'function' && (
+            <button
+              type="button"
+              onClick={onOverlayClose}
+              className="inline-flex items-center justify-center px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg border border-white/20 bg-black/40 text-white text-[10px] sm:text-xs font-semibold uppercase tracking-wide mr-2"
+              title="Close chat overlay"
+            >
+              Close
+            </button>
+          )}
 
           {/* Desktop: Mozaiks Logo Button - context-aware behavior */}
           {/* In Workflow mode: toggles artifact panel | In Ask mode: switches to Workflow mode */}

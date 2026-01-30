@@ -443,6 +443,46 @@ All server-to-client messages follow this envelope:
 | `chat.context_switched` | Journey auto-advance | `{ "next_workflow": "...", "next_chat_id": "..." }` |
 | `chat.ui_tool` | UI tool event (artifact) | `{ "event_type": "...", "payload": {...} }` |
 
+#### AG-UI Compatibility Events (`agui.*`)
+
+Mozaiks Core dual-emits **AG-UI compatible events** alongside existing `chat.*` events.  
+This is **additive** and opt-out via `MOZAIKS_AGUI_ENABLED=false`.
+
+All AG-UI events use the same envelope:
+```json
+{
+  "type": "agui.*",
+  "data": { "runId": "...", "threadId": "...", "...": "..." },
+  "timestamp": "..."
+}
+```
+
+**Thread ID format:** `{app_id}:{chat_id}`  
+**Run ID:** `chat_id` (unless otherwise specified in event payload)
+
+**Lifecycle mappings (AG-UI):**
+| AG-UI Type | Source |
+|------------|--------|
+| `agui.lifecycle.RunStarted` | `chat.orchestration.run_started` |
+| `agui.lifecycle.RunFinished` | `chat.orchestration.run_completed` |
+| `agui.lifecycle.RunError` | `chat.orchestration.run_failed` |
+| `agui.lifecycle.StepStarted` | `chat.orchestration.agent_started` |
+| `agui.lifecycle.StepFinished` | `chat.orchestration.agent_completed` |
+
+**Text mappings (AG-UI):**
+| AG-UI Type | Source |
+|------------|--------|
+| `agui.text.TextMessageStart` | emitted before first `chat.print` (or before `chat.text` if no stream) |
+| `agui.text.TextMessageContent` | `chat.print` |
+| `agui.text.TextMessageEnd` | emitted after `chat.text` |
+
+**Tool mappings (AG-UI):**
+| AG-UI Type | Source |
+|------------|--------|
+| `agui.tool.ToolCallStart` | `chat.tool_call` |
+| `agui.tool.ToolCallEnd` | emitted before `chat.tool_response` |
+| `agui.tool.ToolCallResult` | `chat.tool_response` |
+
 #### Inbound Message Types (Client → Server)
 
 ```json
@@ -803,6 +843,7 @@ A breaking change is any of:
 | `ENV` | Environment name | `development` |
 | `PORT` | HTTP port | `8080` |
 | `FRONTEND_URL` | CORS origin | `http://localhost:5173` |
+| `MOZAIKS_AGUI_ENABLED` | Enable AG-UI dual-emit (`true`/`false`) | `true` |
 
 ### Auth Mode Configuration
 

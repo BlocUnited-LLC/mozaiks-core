@@ -36,12 +36,14 @@ export const ChatUIProvider = ({
   const [unreadChatCount, setUnreadChatCount] = useState(0);
   
   // Fluid layout state - controls chat/artifact panel behavior
-  const [layoutMode, setLayoutMode] = useState('full'); // 'full' | 'split' | 'minimized'
+  const [layoutMode, setLayoutMode] = useState('full'); // 'full' | 'split' | 'minimized' | 'view'
   const [previousLayoutMode, setPreviousLayoutMode] = useState('full'); // Remember state before minimizing
   const [isArtifactOpen, setIsArtifactOpen] = useState(false);
   const [isInWidgetMode, setIsInWidgetMode] = useState(false); // Track if chat is in persistent widget mode (non-ChatPage routes)
   const [isWidgetVisible, setIsWidgetVisible] = useState(true); // Allows specific pages to suppress the widget UI while staying in widget mode
   const [isChatOverlayOpen, setIsChatOverlayOpen] = useState(false); // Full-screen overlay while remaining in widget mode
+  const [widgetOverlayOpen, setWidgetOverlayOpen] = useState(false); // View-mode overlay toggle
+  const [currentArtifactContext, setCurrentArtifactContext] = useState(null); // { type, payload, id }
 
   // Conversation mode + general chat state (non-workflow / ask mode)
   const [conversationMode, setConversationMode] = useState(() => {
@@ -173,6 +175,10 @@ export const ChatUIProvider = ({
     setIsWidgetVisible,
     isChatOverlayOpen,
     setIsChatOverlayOpen,
+    widgetOverlayOpen,
+    setWidgetOverlayOpen,
+    currentArtifactContext,
+    setCurrentArtifactContext,
     conversationMode,
     setConversationMode,
     activeGeneralChatId,

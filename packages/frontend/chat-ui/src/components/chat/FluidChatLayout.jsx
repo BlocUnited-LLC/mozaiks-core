@@ -12,7 +12,7 @@ import React from 'react';
  */
 const FluidChatLayout = ({
   // Layout state
-  layoutMode = 'full', // 'full' | 'split' | 'minimized'
+  layoutMode = 'full', // 'full' | 'split' | 'minimized' | 'view'
   onLayoutChange = () => {},
 
   // Content components
@@ -51,6 +51,13 @@ const FluidChatLayout = ({
           chatVisible: true,
           artifactVisible: true,
         };
+      case 'view':
+        return {
+          chatWidth: '0%',
+          artifactWidth: '100%',
+          chatVisible: false,
+          artifactVisible: true,
+        };
       default:
         return {
           chatWidth: '100%',
@@ -66,44 +73,46 @@ const FluidChatLayout = ({
     'relative flex flex-col min-h-0 h-full self-stretch transition-all duration-500 ease-in-out pt-0';
 
   return (
-    <div className="flex h-full min-h-0 relative overflow-hidden gap-2 p-2 items-stretch">
-      {/* Chat Panel - Always present, transforms width with neon border */}
-      <div
-        className={`${panelContainer} chat-pane-transition`}
-        style={{ width: layout.chatWidth }}
-      >
-        {/* Chat Content - ChatInterface owns its neon frame */}
-        {layoutMode !== 'minimized' && (
-          <div className="flex-1 min-h-0 overflow-visible h-full pt-0 flex flex-col">
+    <div className={`flex h-full min-h-0 relative overflow-hidden ${layoutMode === 'view' ? 'gap-0' : 'gap-2'} p-2 items-stretch`}>
+      {/* Chat Panel - hidden in view mode */}
+      {layout.chatVisible && (
+        <div
+          className={`${panelContainer} chat-pane-transition`}
+          style={{ width: layout.chatWidth }}
+        >
+          {/* Chat Content - ChatInterface owns its neon frame */}
+          {layoutMode !== 'minimized' && (
+            <div className="flex-1 min-h-0 overflow-visible h-full pt-0 flex flex-col">
               {chatContent}
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* Minimized Chat - Show vertical text */}
-        {layoutMode === 'minimized' && (
-          <div className="flex-1 flex flex-col items-center justify-center p-2">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-primary)]/20 to-[var(--color-secondary)]/20 flex items-center justify-center">
-                <span className="text-lg font-semibold text-white">M</span>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <span
-                  className="text-sm font-semibold text-white"
-                  style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
-                >
-                  MozaiksAI
-                </span>
-                <span
-                  className="text-xs text-gray-500"
-                  style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
-                >
-                  Click to expand
-                </span>
+          {/* Minimized Chat - Show vertical text */}
+          {layoutMode === 'minimized' && (
+            <div className="flex-1 flex flex-col items-center justify-center p-2">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-primary)]/20 to-[var(--color-secondary)]/20 flex items-center justify-center">
+                  <span className="text-lg font-semibold text-white">M</span>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <span
+                    className="text-sm font-semibold text-white"
+                    style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+                  >
+                    MozaiksAI
+                  </span>
+                  <span
+                    className="text-xs text-gray-500"
+                    style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+                  >
+                    Click to expand
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Artifact Panel - relies on ArtifactPanel component for styling */}
       {layout.artifactVisible && (

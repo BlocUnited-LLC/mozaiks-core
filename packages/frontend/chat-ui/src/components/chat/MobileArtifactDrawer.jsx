@@ -6,12 +6,14 @@ const MobileArtifactDrawer = ({
   onClose = () => {},
   artifactContent = null,
   hasUnseenChat = false,
-  hasUnseenArtifact = false
+  hasUnseenArtifact = false,
+  viewMode = false,
+  onExitView = null
 }) => {
-  const isExpanded = state === 'expanded';
+  const isExpanded = viewMode || state === 'expanded';
   const isHidden = state === 'hidden';
   const isPeek = !isExpanded && !isHidden;
-  const heightClass = isExpanded ? 'h-[calc(100vh-5rem)]' : isHidden ? 'h-0' : 'h-20';
+  const heightClass = viewMode ? 'h-screen' : (isExpanded ? 'h-[calc(100vh-5rem)]' : isHidden ? 'h-0' : 'h-20');
 
   const baseContainerClasses = 'relative w-full bg-[rgba(3,6,15,0.96)] backdrop-blur-2xl border border-[rgba(var(--color-primary-light-rgb),0.45)] shadow-[0_-12px_40px_rgba(2,6,23,0.65)] overflow-hidden transition-all duration-300 pointer-events-auto flex flex-col';
   const expandedShapeClasses = 'w-full rounded-none rounded-t-3xl';
@@ -19,6 +21,9 @@ const MobileArtifactDrawer = ({
   const containerClasses = `${heightClass} ${baseContainerClasses} ${isExpanded ? expandedShapeClasses : ''} ${isPeek ? peekShapeClasses : ''}`;
 
   const handleToggle = () => {
+    if (viewMode) {
+      return;
+    }
     if (isExpanded) {
       onStateChange('peek');
       if (typeof onClose === 'function') {
@@ -61,6 +66,18 @@ const MobileArtifactDrawer = ({
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            {viewMode && typeof onExitView === 'function' && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onExitView();
+                }}
+                className="px-2 py-1 rounded-full text-[10px] font-semibold bg-white/10 text-white border border-white/20"
+              >
+                Exit
+              </button>
+            )}
             {hasUnseenChat && (
               <span className="hidden sm:inline-flex px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-semibold bg-[rgba(var(--color-error-rgb),0.15)] text-[var(--color-error)] border border-[rgba(var(--color-error-rgb),0.4)]">
                 <span className="hidden sm:inline">Chat updated</span>

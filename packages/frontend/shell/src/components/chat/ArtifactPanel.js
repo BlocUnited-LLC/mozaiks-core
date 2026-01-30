@@ -1,8 +1,9 @@
 import React from 'react';
 import UIToolRenderer from '../../core/ui/UIToolRenderer';
 
-const ArtifactPanel = ({ onClose, isMobile = false, isEmbedded = false, messages = [], workflowName = null }) => {
-  const showMobileClose = Boolean(isMobile && onClose && !isEmbedded);
+const ArtifactPanel = ({ onClose, isMobile = false, isEmbedded = false, messages = [], workflowName = null, viewMode = false, onExitView = null }) => {
+  const showMobileClose = Boolean(isMobile && onClose && !isEmbedded && !viewMode);
+  const showExitView = Boolean(viewMode && typeof onExitView === 'function');
   const isMobileEmbedded = Boolean(isMobile && isEmbedded);
 
   const containerClasses = isMobileEmbedded
@@ -52,7 +53,16 @@ const ArtifactPanel = ({ onClose, isMobile = false, isEmbedded = false, messages
                   </p>
                 </div>
               </div>
-              {showMobileClose ? (
+              {showExitView ? (
+                <button
+                  onClick={onExitView}
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl border border-white/20 bg-black/30 backdrop-blur-sm flex items-center justify-center text-white text-xs sm:text-sm font-semibold transition-opacity duration-200 flex-shrink-0"
+                  title="Exit View Mode"
+                  aria-label="Exit View Mode"
+                >
+                  Exit
+                </button>
+              ) : showMobileClose ? (
                 <button
                   onClick={onClose}
                   className="md:hidden w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl border border-white/20 bg-black/30 backdrop-blur-sm flex items-center justify-center text-white text-xl sm:text-2xl font-light transition-opacity duration-200 flex-shrink-0"

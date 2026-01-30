@@ -269,6 +269,10 @@ const ChatPage = () => {
     setChatMinimized,
     layoutMode,
     setLayoutMode,
+    widgetOverlayOpen,
+    setWidgetOverlayOpen,
+    currentArtifactContext,
+    setCurrentArtifactContext,
     isInWidgetMode,
     setPreviousLayoutMode,
     setIsInWidgetMode,
@@ -308,6 +312,30 @@ const ChatPage = () => {
   const lastErrorIdRef = useRef(null); // Track last error to prevent duplicates
   const workflowMessagesCacheRef = useRef([]);
   const generalMessagesCacheRef = useRef([]);
+  const isViewMode = layoutMode === 'view';
+
+  useEffect(() => {
+    if (typeof setCurrentArtifactContext !== 'function') {
+      return;
+    }
+    if (!currentArtifactMessages || currentArtifactMessages.length === 0) {
+      setCurrentArtifactContext(null);
+      return;
+    }
+    const artifactMsg = currentArtifactMessages.find(m => m?.uiToolEvent?.ui_tool_id) || currentArtifactMessages[0];
+    const uiToolEvent = artifactMsg?.uiToolEvent;
+    if (!uiToolEvent) {
+      setCurrentArtifactContext(null);
+      return;
+    }
+    setCurrentArtifactContext({
+      id: uiToolEvent.eventId || artifactMsg.id || null,
+      type: uiToolEvent.ui_tool_id,
+      payload: uiToolEvent.payload || null,
+      chat_id: currentChatId,
+      workflow_name: currentWorkflowName,
+    });
+  }, [currentArtifactMessages, currentChatId, currentWorkflowName, setCurrentArtifactContext]);
   const generalHydrationPendingRef = useRef(false);
   const workflowArtifactSnapshotRef = useRef({ isOpen: false, messages: [], layoutMode: 'split' });
   const queryResumeHandledRef = useRef(null);
@@ -2066,6 +2094,8 @@ useEffect(() => {
     console.log('🚀 [SEND] App ID:', currentAppId);
     console.log('🚀 [SEND] User ID:', currentUserId);
     console.log('🚀 [SEND] Workflow name:', currentWorkflowName);
+
+    const artifactContextPayload = messageContent?.artifactContext || currentArtifactContext || null;
     
     // If there's a pending input request, route to submitInputRequest instead of regular message flow
     if (pendingInputRequestId) {
@@ -2132,6 +2162,7 @@ useEffect(() => {
           source: 'chat_interface',
           conversation_mode: 'ask',
           general_chat_id: activeGeneralChatId || undefined,
+          ...(artifactContextPayload ? { artifact_context: artifactContextPayload } : {}),
         },
       });
       if (!didSend) {
@@ -2155,7 +2186,8 @@ useEffect(() => {
         currentAppId, 
         currentUserId, 
         currentWorkflowName,
-        currentChatId // Pass the chat ID
+        currentChatId, // Pass the chat ID
+        artifactContextPayload ? { artifact_context: artifactContextPayload } : null
       );
       console.log('📤 [SEND] WebSocket send result:', success);
       if (success) {
@@ -2187,6 +2219,7 @@ useEffect(() => {
         source: 'chat_interface',
         conversation_mode: conversationMode,
         general_chat_id: activeGeneralChatId || undefined,
+        ...(currentArtifactContext ? { artifact_context: currentArtifactContext } : {}),
       },
     });
   }, [currentChatId, activeGeneralChatId, conversationMode]);
@@ -2621,6 +2654,14 @@ useEffect(() => {
   }, [isInWidgetMode, discoveryChatMinimized]);
 
   const toggleSidePanel = () => {
+    if (layoutMode === 'view') {
+      setLayoutMode('split');
+      setIsSidePanelOpen(true);
+      if (isMobileView) {
+        setMobileDrawerState('expanded');
+      }
+      return;
+    }
     setIsSidePanelOpen((open) => {
       const next = !open;
       
@@ -2670,6 +2711,17 @@ useEffect(() => {
       console.log(`🖼️ [UI] Panel ${next ? 'opening' : 'closing'} - keeping artifact cached`);
       return next;
     });
+  };
+
+  const exitViewMode = () => {
+    setLayoutMode('split');
+    setIsSidePanelOpen(true);
+    if (isMobileView) {
+      setMobileDrawerState('expanded');
+    }
+    if (widgetOverlayOpen) {
+      setWidgetOverlayOpen(false);
+    }
   };
 
   // Simplified artifact restore effect: only restore when chatExists === true and connection is open
@@ -2746,6 +2798,24 @@ useEffect(() => {
     };
   }, [layoutMode, setLayoutMode]);
 
+  useEffect(() => {
+    if (layoutMode !== 'view' && widgetOverlayOpen) {
+      setWidgetOverlayOpen(false);
+    }
+  }, [layoutMode, widgetOverlayOpen, setWidgetOverlayOpen]);
+
+  useEffect(() => {
+    if (layoutMode !== 'view') {
+      return;
+    }
+    if (!isSidePanelOpen) {
+      setIsSidePanelOpen(true);
+    }
+    if (isMobileView) {
+      setMobileDrawerState('expanded');
+    }
+  }, [layoutMode, isMobileView, isSidePanelOpen]);
+
   // Keep drawer state in sync as viewport or artifact availability changes
   useEffect(() => {
     if (!isMobileView) {
@@ -2786,6 +2856,10 @@ useEffect(() => {
       ? handleReturnToChat
       : (isMobileView
           ? () => {
+              if (layoutMode === 'view') {
+                exitViewMode();
+                return;
+              }
               setIsSidePanelOpen(true);
               setMobileDrawerState((prev) => (prev === 'expanded' ? 'peek' : 'expanded'));
             }
@@ -2850,6 +2924,9 @@ useEffect(() => {
       generalSessionsLoading={generalSessionsLoading}
       showAskHistoryMenu={showMobileAskHistoryMenu}
       onAskHistoryToggle={() => setIsAskHistoryDrawerOpen((prev) => !prev)}
+      artifactContext={currentArtifactContext}
+      layoutMode={layoutMode}
+      onLayoutModeChange={setLayoutMode}
     />
   );
 
@@ -2968,6 +3045,8 @@ useEffect(() => {
                   setMobileDrawerState('peek');
                   setIsSidePanelOpen(false);
                 }}
+                viewMode={isViewMode}
+                onExitView={exitViewMode}
                 artifactContent={
                   <ArtifactPanel
                     onClose={() => {
@@ -2976,6 +3055,8 @@ useEffect(() => {
                     }}
                     isMobile
                     isEmbedded
+                    viewMode={isViewMode}
+                    onExitView={exitViewMode}
                     messages={currentArtifactMessages}
                     chatId={currentChatId}
                     workflowName={currentWorkflowName}
@@ -3035,6 +3116,8 @@ useEffect(() => {
                 artifactContent={
                   <ArtifactPanel 
                     onClose={toggleSidePanel} 
+                    viewMode={isViewMode}
+                    onExitView={exitViewMode}
                     messages={currentArtifactMessages} 
                     chatId={currentChatId}
                     workflowName={currentWorkflowName}
@@ -3045,6 +3128,53 @@ useEffect(() => {
           </div>
         )}
       </div>
+      {isViewMode && (
+        <>
+          <button
+            type="button"
+            onClick={() => setWidgetOverlayOpen(true)}
+            className="fixed right-4 bottom-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] shadow-[0_12px_30px_rgba(0,0,0,0.5)] border border-[rgba(var(--color-primary-light-rgb),0.5)] flex items-center justify-center text-white text-xl widget-safe-bottom"
+            title="Open chat"
+            aria-label="Open chat"
+          >
+            💬
+          </button>
+
+          {widgetOverlayOpen && (
+            <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/70 backdrop-blur-sm">
+              <div className="w-full md:max-w-3xl md:h-[80vh] h-[85vh] p-2">
+                <ChatInterface
+                  messages={messages}
+                  onSendMessage={sendMessage}
+                  loading={loading}
+                  onAgentAction={handleAgentAction}
+                  onArtifactToggle={null}
+                  artifactToggleLabel={artifactToggleLabel}
+                  connectionStatus={connectionStatus}
+                  transportType={transportType}
+                  workflowName={currentWorkflowName}
+                  structuredOutputs={getWorkflow(currentWorkflowName)?.structuredOutputs || {}}
+                  startupMode={workflowConfig?.getWorkflowConfig(currentWorkflowName)?.startup_mode}
+                  initialMessageToUser={workflowConfig?.getWorkflowConfig(currentWorkflowName)?.initial_message_to_user}
+                  onRetry={retryConnection}
+                  submitInputRequest={submitInputRequest}
+                  onBrandClick={undefined}
+                  conversationMode={conversationMode}
+                  onConversationModeChange={handleConversationModeChange}
+                  onStartGeneralChat={handleStartGeneralChat}
+                  generalChatSummary={generalChatSummary}
+                  isOnChatPage={true}
+                  generalSessionsLoading={generalSessionsLoading}
+                  showAskHistoryMenu={false}
+                  overlayMode
+                  onOverlayClose={() => setWidgetOverlayOpen(false)}
+                  artifactContext={currentArtifactContext}
+                />
+              </div>
+            </div>
+          )}
+        </>
+      )}
       <Footer chatTheme={chatTheme} />
     </div>
   );

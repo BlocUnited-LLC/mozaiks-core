@@ -154,7 +154,12 @@ const ModernChatInterface = ({
   onRetry,
   submitInputRequest,
   onBrandClick, // Optional callback when brand/logo clicked
-  isOnChatPage = true // Whether we're on the primary chat page (not discovery/workflows)
+  isOnChatPage = true, // Whether we're on the primary chat page (not discovery/workflows)
+  artifactContext = null,
+  overlayMode = false,
+  onOverlayClose = null,
+  layoutMode = null,
+  onLayoutModeChange = null
 }) => {
   const [message, setMessage] = useState('');
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
@@ -178,6 +183,7 @@ const ModernChatInterface = ({
     : conversationMode === 'ask'
       ? 'Switch to Workflow Mode'
       : 'Switch to Ask Mode';
+  const showLayoutToggle = typeof onLayoutModeChange === 'function' && isOnChatPage;
   // const renderCountRef = useRef(0); // For debugging renders if needed
   
   // Optional debug: enable to trace renders
@@ -227,7 +233,7 @@ const ModernChatInterface = ({
     
     if (message.trim() === '') return;
     
-    const newMessage = { "sender": "user", "content": message };
+    const newMessage = { "sender": "user", "content": message, "artifactContext": artifactContext || null };
     onSendMessage(newMessage);
     setMessage('');
   };
@@ -476,21 +482,50 @@ const ModernChatInterface = ({
             )}
           </div>
 
-          {/* Desktop: Artifact Canvas Toggle Button */}
-          {onArtifactToggle && (
-            <button
-              onClick={onArtifactToggle}
-              className="hidden md:block group relative p-2 md:p-3 rounded-lg bg-gradient-to-r from-[rgba(var(--color-primary-rgb),0.1)] to-[rgba(var(--color-secondary-rgb),0.1)] border transition-all duration-300 backdrop-blur-sm artifact-hover-glow artifact-cta flex-shrink-0"
-              title={artifactToggleLabel || 'Toggle Artifact Canvas'}
-            >
-              <img
-                src="/mozaik_logo.svg"
-                className="w-8 h-8 md:w-10 md:h-10 opacity-70 group-hover:opacity-100 transition-all duration-300 group-hover:scale-105"
-                alt="Artifact Canvas"
-              />
-              <div className="absolute inset-0 bg-[rgba(var(--color-primary-light-rgb),0.1)] rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
-            </button>
-          )}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {showLayoutToggle && (
+              <div className="hidden md:flex items-center gap-1 rounded-lg border border-[rgba(var(--color-primary-light-rgb),0.25)] bg-black/30 backdrop-blur-sm p-1">
+                {['full', 'split', 'view'].map(mode => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => onLayoutModeChange(mode)}
+                    className={`px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wide font-semibold transition ${layoutMode === mode ? 'bg-[rgba(var(--color-primary-rgb),0.3)] text-white' : 'text-gray-400 hover:text-white'}`}
+                    title={`Switch to ${mode} mode`}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Desktop: Artifact Canvas Toggle Button */}
+            {onArtifactToggle && (
+              <button
+                onClick={onArtifactToggle}
+                className="hidden md:block group relative p-2 md:p-3 rounded-lg bg-gradient-to-r from-[rgba(var(--color-primary-rgb),0.1)] to-[rgba(var(--color-secondary-rgb),0.1)] border transition-all duration-300 backdrop-blur-sm artifact-hover-glow artifact-cta flex-shrink-0"
+                title={artifactToggleLabel || 'Toggle Artifact Canvas'}
+              >
+                <img
+                  src="/mozaik_logo.svg"
+                  className="w-8 h-8 md:w-10 md:h-10 opacity-70 group-hover:opacity-100 transition-all duration-300 group-hover:scale-105"
+                  alt="Artifact Canvas"
+                />
+                <div className="absolute inset-0 bg-[rgba(var(--color-primary-light-rgb),0.1)] rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
+              </button>
+            )}
+
+            {overlayMode && typeof onOverlayClose === 'function' && (
+              <button
+                type="button"
+                onClick={onOverlayClose}
+                className="inline-flex items-center justify-center px-3 py-2 rounded-lg border border-white/20 bg-black/40 text-white text-xs font-semibold uppercase tracking-wide"
+                title="Close chat overlay"
+              >
+                Close
+              </button>
+            )}
+          </div>
         </div>
         
         {/* Initial Message - only show for UserDriven workflows and if message exists */}

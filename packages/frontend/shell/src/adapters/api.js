@@ -94,7 +94,7 @@ export class ApiAdapter {
     throw new Error('sendMessage must be implemented');
   }
 
-  async sendMessageToWorkflow(message, appId, userId, workflowname = null, chatId = null) {
+  async sendMessageToWorkflow(message, appId, userId, workflowname = null, chatId = null, context = null) {
     // Use dynamic default workflow type
     const actualworkflowname = workflowname || workflowConfig.getDefaultWorkflow();
     console.log(`Sending message to workflow: ${actualworkflowname}`);
@@ -185,7 +185,7 @@ export class WebSocketApiAdapter extends ApiAdapter {
     return { success: true };
   }
 
-  async sendMessageToWorkflow(message, appId, userId, workflowname = null, chatId = null) {
+  async sendMessageToWorkflow(message, appId, userId, workflowname = null, chatId = null, context = null) {
     const actualworkflowname = workflowname || workflowConfig.getDefaultWorkflow();
 
     if (!chatId) {
@@ -209,11 +209,12 @@ export class WebSocketApiAdapter extends ApiAdapter {
         workflow_name: actualworkflowname,
         app_id: appId,
         user_id: userId,
+        ...(context || {}),
       },
     });
   }
 
-  async _sendMessageToWorkflowHttp(message, appId, userId, workflowname = null, chatId = null) {
+  async _sendMessageToWorkflowHttp(message, appId, userId, workflowname = null, chatId = null, context = null) {
     // Use dynamic default workflow type
     const actualworkflowname = workflowname || workflowConfig.getDefaultWorkflow();
     
@@ -231,7 +232,8 @@ export class WebSocketApiAdapter extends ApiAdapter {
           message, 
           workflow_name: actualworkflowname,
           app_id: appId,
-          user_id: userId 
+          user_id: userId,
+          context: context || undefined,
         })
       });
 
@@ -523,7 +525,7 @@ export class RestApiAdapter extends ApiAdapter {
     return { success: false, error: 'Failed to send message' };
   }
 
-  async sendMessageToWorkflow(message, appId, userId, workflowname = null, chatId = null) {
+  async sendMessageToWorkflow(message, appId, userId, workflowname = null, chatId = null, context = null) {
     // Use dynamic default workflow type
     const actualworkflowname = workflowname || workflowConfig.getDefaultWorkflow();
     
@@ -541,7 +543,8 @@ export class RestApiAdapter extends ApiAdapter {
           message, 
           workflow_name: actualworkflowname,
           app_id: appId,
-          user_id: userId 
+          user_id: userId,
+          context: context || undefined,
         })
       });
 
