@@ -11,7 +11,7 @@ import asyncio
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
-from logs.logging_config import get_core_logger
+from mozaiks_infra.logs.logging_config import get_core_logger
 
 
 class WebSocketSessionManager:

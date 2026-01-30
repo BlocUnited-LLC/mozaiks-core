@@ -83,7 +83,7 @@ class OAuthCompletedWebhookPayload(BaseModel):
     timestamp_utc: Optional[datetime] = Field(None, alias="timestampUtc")
 
 # Import our custom logging setup
-from logs.logging_config import (
+from mozaiks_infra.logs.logging_config import (
     setup_development_logging, 
     setup_production_logging, 
     get_workflow_logger,

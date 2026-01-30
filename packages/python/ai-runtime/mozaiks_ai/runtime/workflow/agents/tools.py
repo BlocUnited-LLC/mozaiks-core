@@ -47,7 +47,7 @@ def _wrap_with_validation(
     2. Validates structured outputs when enforce_schema=True
     3. Captures execution timing and parameters
     """
-    from logs.tools_logs import get_tool_logger, log_tool_event
+    from mozaiks_infra.logs.tools_logs import get_tool_logger, log_tool_event
     from ..validation.tools import validate_tool_call
     import time
 

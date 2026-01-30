@@ -13,7 +13,7 @@ from dataclasses import dataclass
 import aiohttp
 
 from mozaiks_ai.runtime.auth.config import get_auth_config
-from logs.logging_config import get_core_logger
+from mozaiks_infra.logs.logging_config import get_core_logger
 
 logger = get_core_logger("auth.jwks")
 

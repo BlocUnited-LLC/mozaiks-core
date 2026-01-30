@@ -7,7 +7,7 @@
 import os
 from dotenv import load_dotenv
 from typing import Optional, Dict, Any
-from logs.logging_config import get_core_logger
+from mozaiks_infra.logs.logging_config import get_core_logger
 
 # Azure SDK imports are kept, but we won't construct credentials at import time
 from azure.identity import DefaultAzureCredential

@@ -16,7 +16,7 @@ from autogen import runtime_logging
 from autogen.logger.base_logger import BaseLogger
 from autogen.logger.logger_factory import LoggerFactory
 
-from logs.logging_config import get_observability_logger, get_ag2_runtime_log_path
+from mozaiks_infra.logs.logging_config import get_observability_logger, get_ag2_runtime_log_path
 from mozaiks_ai.runtime.observability.realtime_token_logger import get_realtime_token_logger
 
 log = get_observability_logger("ag2.runtime")

@@ -28,7 +28,7 @@ from collections.abc import Coroutine
 import sqlite3
 
 from autogen.logger.base_logger import BaseLogger
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 from mozaiks_ai.runtime.data.persistence.persistence_manager import AG2PersistenceManager
 from mozaiks_ai.runtime.tokens.manager import TokenManager
 

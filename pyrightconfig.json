@@ -1,0 +1,19 @@
+{
+    "include": [
+        "packages/python"
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/__pycache__",
+        ".venv",
+        "site"
+    ],
+    "extraPaths": [
+        "packages/python/ai-runtime",
+        "packages/python/app",
+        "packages/python/infrastructure",
+        "packages/python/platform",
+        "packages/python/plugin-host",
+        "packages/python/cli"
+    ]
+}

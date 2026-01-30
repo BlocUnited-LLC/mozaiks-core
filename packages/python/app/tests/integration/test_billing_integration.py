@@ -110,7 +110,7 @@ async def test_platform_to_core_sync():
                 return False
         except httpx.ConnectError:
             print(f"\n❌ TEST 1 FAILED: Could not connect to Core at {CORE_URL}")
-            print("   Make sure Core runtime is running: python -m uvicorn core.director:app --port 8000")
+            print("   Make sure Core runtime is running: python -m uvicorn mozaiks_platform.director:app --port 8000")
             return False
 
 

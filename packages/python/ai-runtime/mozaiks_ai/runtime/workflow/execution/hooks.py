@@ -287,7 +287,7 @@ def register_hooks_for_workflow(workflow_name: str, agents: Dict[str, Any], *, b
     
     # Use consolidated logging for summary
     if registered:
-        from logs.logging_config import get_workflow_session_logger
+        from mozaiks_infra.logs.logging_config import get_workflow_session_logger
         workflow_logger = get_workflow_session_logger(workflow_name)
         workflow_logger.log_hook_registration_summary(workflow_name, len(registered))
 

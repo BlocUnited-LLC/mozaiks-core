@@ -7,7 +7,7 @@ from typing import Any, Iterable, Optional
 from fastapi import FastAPI
 from fastapi.routing import APIRouter
 
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 
 
 logger = get_workflow_logger("runtime_extensions")

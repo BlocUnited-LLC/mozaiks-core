@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime, UTC
 from typing import Any, Dict, Optional
 
-from logs.logging_config import get_core_logger
+from mozaiks_infra.logs.logging_config import get_core_logger
 
 from mozaiks_ai.runtime.multitenant import build_app_scope_filter
 from mozaiks_ai.runtime.transport.session_registry import session_registry
@@ -316,7 +316,7 @@ class JourneyOrchestrator:
 
     async def _get_transport_conn(self, chat_id: str) -> tuple[Optional[Dict[str, Any]], Any]:
         try:
-            transport_module = __import__("core.transport.simple_transport", fromlist=["SimpleTransport"])
+            transport_module = __import__("mozaiks_ai.runtime.transport.simple_transport", fromlist=["SimpleTransport"])
             SimpleTransport = getattr(transport_module, "SimpleTransport")
             transport = await SimpleTransport.get_instance()
             conn = transport.connections.get(chat_id) or {}

@@ -1,0 +1,16 @@
+tools:
+  - agent: SubscriptionAssistant
+    file: subscriptions.py
+    function: get_subscription
+    description: Get the current user's subscription status
+    tool_type: Agent_Tool
+  - agent: SubscriptionAssistant
+    file: subscriptions.py
+    function: list_plans
+    description: List available subscription plans
+    tool_type: Agent_Tool
+  - agent: SubscriptionAssistant
+    file: subscriptions.py
+    function: check_plugin_access
+    description: Check whether the current user can access a plugin
+    tool_type: Agent_Tool

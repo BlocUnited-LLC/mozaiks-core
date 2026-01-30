@@ -5,7 +5,7 @@ import json
 import logging
 import uuid
 
-from app.connectors.base import (
+from mozaiks_app.connectors.base import (
     CancelRequest,
     CheckoutRequest,
     CheckoutResponse,

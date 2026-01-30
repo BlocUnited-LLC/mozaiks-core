@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List, Union
 
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 from mozaiks_ai.runtime.data.persistence.persistence_manager import AG2PersistenceManager
 from mozaiks_ai.runtime.data.models import WorkflowStatus
 

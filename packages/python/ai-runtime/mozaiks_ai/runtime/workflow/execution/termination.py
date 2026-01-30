@@ -9,7 +9,7 @@ from datetime import datetime, UTC
 from typing import Optional, Dict, Any, Callable, TYPE_CHECKING
 from dataclasses import dataclass
 
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 from mozaiks_ai.runtime.data.persistence.persistence_manager import AG2PersistenceManager
 from mozaiks_ai.runtime.events import get_event_dispatcher
 # Avoid circular import: only import for typing

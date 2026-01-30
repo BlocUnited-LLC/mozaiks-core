@@ -47,7 +47,7 @@ from pymongo.errors import DuplicateKeyError
 
 from mozaiks_ai.runtime.core_config import get_mongo_client
 from mozaiks_ai.runtime.multitenant import build_app_scope_filter, coalesce_app_id
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 
 logger = get_workflow_logger("chat_workflow_models")
 

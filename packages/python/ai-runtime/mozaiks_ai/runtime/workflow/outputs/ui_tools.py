@@ -11,7 +11,7 @@ import logging
 from typing import Dict, Any, Optional
 import datetime as _dt
 
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 from mozaiks_ai.runtime.workflow.workflow_manager import workflow_manager
 logger = logging.getLogger(__name__)
 
@@ -179,7 +179,7 @@ async def use_ui_tool(
     
     try:
         # Try to log via tools logger (optional import)
-        from logs.tools_logs import get_tool_logger as _get_tool_logger, log_tool_event as _log_tool_event  # type: ignore
+        from mozaiks_infra.logs.tools_logs import get_tool_logger as _get_tool_logger, log_tool_event as _log_tool_event  # type: ignore
         _tlog = _get_tool_logger(tool_name=tool_id, chat_id=chat_id, workflow_name=workflow_name, ui_event_id=event_id)
         _log_tool_event(_tlog, action="emit_ui", status="done", event_id=event_id, display=resolved_display)
     except Exception:
@@ -197,7 +197,7 @@ async def use_ui_tool(
         if isinstance(resp, dict) and 'ui_event_id' not in resp:
             resp['ui_event_id'] = event_id
         try:
-            from logs.tools_logs import get_tool_logger as _get_tool_logger, log_tool_event as _log_tool_event  # type: ignore
+            from mozaiks_infra.logs.tools_logs import get_tool_logger as _get_tool_logger, log_tool_event as _log_tool_event  # type: ignore
             _tlog = _get_tool_logger(tool_name=tool_id, chat_id=chat_id, workflow_name=workflow_name, ui_event_id=event_id)
             _log_tool_event(_tlog, action="ui_response", status=str(resp.get('status', 'unknown')), event_id=event_id)
         except Exception:

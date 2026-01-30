@@ -12,7 +12,7 @@ from autogen.agentchat.group import (
     TerminateTarget,
 )
 from ..workflow_manager import workflow_manager
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 
 log = get_workflow_logger("handoffs")
 

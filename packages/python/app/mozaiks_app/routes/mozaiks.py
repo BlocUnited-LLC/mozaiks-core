@@ -6,16 +6,16 @@ import uuid
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response, status
 
-from app.connectors.base import (
+from mozaiks_app.connectors.base import (
     CancelRequest,
     CheckoutRequest,
     CheckoutResponse,
     OkResponse,
     PaymentStatus,
 )
-from app.runtime.connector_loader import ConnectorBundle, load_connectors
+from mozaiks_app.runtime.connector_loader import ConnectorBundle, load_connectors
 from mozaiks_ai.runtime.auth.dependencies import get_current_user
-from security.rate_limit import RateLimitPolicy, enforce_rate_limit
+from mozaiks_infra.security.rate_limit import RateLimitPolicy, enforce_rate_limit
 
 router = APIRouter()
 

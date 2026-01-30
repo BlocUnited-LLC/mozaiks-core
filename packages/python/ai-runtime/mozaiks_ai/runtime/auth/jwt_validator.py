@@ -20,7 +20,7 @@ from jwt import PyJWKClient, InvalidTokenError
 
 from mozaiks_ai.runtime.auth.config import get_auth_config, AuthConfig
 from mozaiks_ai.runtime.auth.jwks import get_jwks_client
-from logs.logging_config import get_core_logger
+from mozaiks_infra.logs.logging_config import get_core_logger
 
 logger = get_core_logger("auth.jwt_validator")
 

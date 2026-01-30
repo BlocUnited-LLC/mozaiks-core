@@ -26,7 +26,7 @@ from autogen.events import BaseEvent
 from mozaiks_ai.runtime.workflow.workflow_manager import workflow_manager
 
 # Enhanced logging setup
-from logs.logging_config import get_core_logger
+from mozaiks_infra.logs.logging_config import get_core_logger
 
 # Session manager for multi-workflow navigation
 from mozaiks_ai.runtime.workflow import session_manager
@@ -46,7 +46,7 @@ def _load_general_agent_service():
     path rather than importing workflow-specific code directly.
     """
 
-    module_path = os.getenv("MOZAIKS_GENERAL_AGENT_MODULE", "core.capabilities.simple_llm")
+    module_path = os.getenv("MOZAIKS_GENERAL_AGENT_MODULE", "mozaiks_ai.runtime.capabilities.simple_llm")
     factory_name = os.getenv("MOZAIKS_GENERAL_AGENT_FACTORY", "get_general_capability_service")
     try:
         module = importlib.import_module(module_path)
@@ -1634,6 +1634,45 @@ class SimpleTransport:
     # ==================================================================================
     # WORKFLOW INTEGRATION METHODS
     # ==================================================================================
+
+    async def _enforce_token_budget(
+        self,
+        *,
+        app_id: str,
+        chat_id: str,
+        user_id: Optional[str],
+        workflow_name: str,
+    ) -> bool:
+        """Block workflow execution when app-level token budget is exceeded."""
+        if not app_id:
+            return True
+
+        try:
+            from mozaiks_platform.billing.token_budget import check_token_budget
+
+            allowed, reason, state = await check_token_budget(app_id, tokens_needed=0)
+        except Exception as exc:
+            logger.debug(f"Token budget check skipped (error): {exc}")
+            return True
+
+        if allowed:
+            return True
+
+        used = state.used if state else 0
+        limit = state.limit if state else 0
+        message = "Token budget exceeded."
+        if limit >= 0:
+            message = f"Token budget exceeded: {used}/{limit} tokens used."
+
+        await self.send_error(
+            error_message=message,
+            error_code="TOKEN_BUDGET_EXCEEDED",
+            chat_id=chat_id,
+        )
+        logger.warning(
+            f"Token budget blocked workflow={workflow_name} app={app_id} user={user_id} used={used} limit={limit} reason={reason}"
+        )
+        return False
     
     async def handle_user_input_from_api(
         self,
@@ -1651,6 +1690,19 @@ class SimpleTransport:
         If yes, passes message to existing session. If no, starts new workflow.
         """
         try:
+            if not await self._enforce_token_budget(
+                app_id=app_id,
+                chat_id=chat_id,
+                user_id=user_id,
+                workflow_name=workflow_name,
+            ):
+                return {
+                    "status": "error",
+                    "chat_id": chat_id,
+                    "message": "Token budget exceeded",
+                    "route": "blocked",
+                }
+
             starting_new_workflow = False
             is_build = False
             

@@ -12,7 +12,7 @@ if str(BACKEND_DIR) not in sys.path:
 
 
 def _fresh_health_module():
-    sys.modules.pop("core.insights.health", None)
+    sys.modules.pop("mozaiks_platform.insights.health", None)
     import mozaiks_platform.insights.health as health  # noqa: E402
 
     return importlib.reload(health)

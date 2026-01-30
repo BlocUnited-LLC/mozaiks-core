@@ -12,8 +12,8 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 
-from app.routes.mozaiks import router as mozaiks_router  # noqa: E402
-from app.connectors.base import CheckoutResponse  # noqa: E402
+from mozaiks_app.routes.mozaiks import router as mozaiks_router  # noqa: E402
+from mozaiks_app.connectors.base import CheckoutResponse  # noqa: E402
 from mozaiks_ai.runtime.auth.dependencies import get_current_user  # noqa: E402
 
 
@@ -27,7 +27,7 @@ class PayProxyContractTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 401)
 
     def test_correlation_id_is_propagated(self) -> None:
-        import app.routes.mozaiks as mozaiks_routes  # noqa: E402
+        import mozaiks_app.routes.mozaiks as mozaiks_routes  # noqa: E402
 
         class StubPayment:
             def __init__(self) -> None:

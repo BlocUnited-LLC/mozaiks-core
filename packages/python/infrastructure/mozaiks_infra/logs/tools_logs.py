@@ -9,7 +9,7 @@ from typing import Optional, Dict, Any
 
 try:
     # Prefer project workflow logger if present
-    from logs.logging_config import get_workflow_logger  # type: ignore
+    from mozaiks_infra.logs.logging_config import get_workflow_logger  # type: ignore
 except Exception:  # pragma: no cover
     get_workflow_logger = None  # type: ignore
 
@@ -52,7 +52,7 @@ def _ensure_tools_file_handler() -> None:
         # tools.log appears alongside the main mozaiks.log. Fall back to a
         # sane default adjacent to this module if LOGS_DIR is not importable.
         try:
-            from logs.logging_config import LOGS_DIR  # type: ignore
+            from mozaiks_infra.logs.logging_config import LOGS_DIR  # type: ignore
             target_dir = Path(LOGS_DIR)
         except Exception:
             # Fallback: use a 'logs' sibling directory next to this file

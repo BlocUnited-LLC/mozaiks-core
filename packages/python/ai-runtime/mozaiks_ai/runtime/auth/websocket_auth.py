@@ -33,7 +33,7 @@ from fastapi import WebSocket, Query
 
 from mozaiks_ai.runtime.auth.config import get_auth_config
 from mozaiks_ai.runtime.auth.jwt_validator import get_jwt_validator, TokenClaims, AuthError
-from logs.logging_config import get_core_logger
+from mozaiks_infra.logs.logging_config import get_core_logger
 
 logger = get_core_logger("auth.websocket")
 

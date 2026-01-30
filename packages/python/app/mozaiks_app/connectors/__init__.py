@@ -3,7 +3,7 @@
 Connector interfaces and implementations for platform services.
 
 USAGE IN PLUGINS:
-    from app.connectors import get_connectors
+    from mozaiks_app.connectors import get_connectors
     
     async def execute(data):
         connectors = get_connectors()
@@ -20,7 +20,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from app.runtime.connector_loader import ConnectorBundle
+    from mozaiks_app.runtime.connector_loader import ConnectorBundle
 
 # Singleton connector bundle (loaded once at startup)
 _connectors: "ConnectorBundle | None" = None
@@ -31,7 +31,7 @@ def get_connectors() -> "ConnectorBundle":
     global _connectors
     if _connectors is None:
         # Lazy import to avoid circular dependency
-        from app.runtime.connector_loader import load_connectors
+        from mozaiks_app.runtime.connector_loader import load_connectors
         _connectors = load_connectors()
     return _connectors
 
@@ -45,10 +45,10 @@ def reset_connectors() -> None:
 # Re-export key types for convenience (lazy to avoid circular import)
 def __getattr__(name: str):
     if name == "PaymentConnector":
-        from app.connectors.base import PaymentConnector
+        from mozaiks_app.connectors.base import PaymentConnector
         return PaymentConnector
     if name == "ConnectorBundle":
-        from app.runtime.connector_loader import ConnectorBundle
+        from mozaiks_app.runtime.connector_loader import ConnectorBundle
         return ConnectorBundle
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 

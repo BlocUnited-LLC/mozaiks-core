@@ -29,7 +29,7 @@ from mozaiks_ai.runtime.events.auto_tool_handler import AutoToolEventHandler
 from mozaiks_ai.runtime.events.usage_ingest import get_usage_ingest_client
 from mozaiks_ai.runtime.workflow.pack.workflow_pack_coordinator import WorkflowPackCoordinator
 from mozaiks_ai.runtime.workflow.pack.journey_orchestrator import JourneyOrchestrator
-from logs.logging_config import get_core_logger, get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_core_logger, get_workflow_logger
 from mozaiks_ai.runtime.events.event_serialization import serialize_event_content
 
 logger = get_core_logger("unified_event_dispatcher")
@@ -170,6 +170,13 @@ class UnifiedEventDispatcher:
         self.register_handler("chat.run_complete", self._journey_orchestrator.handle_run_complete)
         # Best-effort control-plane notification; must never block execution.
         self.register_handler("chat.usage_summary", self._usage_ingest.handle_usage_summary)
+        # Local usage accounting + optional platform reporting (non-blocking).
+        try:
+            from mozaiks_ai.runtime.events.usage_accounting import handle_usage_delta
+
+            self.register_handler("chat.usage_delta", handle_usage_delta)
+        except Exception as exc:  # pragma: no cover - optional integration
+            logger.debug("usage_accounting handler unavailable: %s", exc)
 
     def _setup_default_handlers(self):
         self.register_handler(BusinessLogHandler())

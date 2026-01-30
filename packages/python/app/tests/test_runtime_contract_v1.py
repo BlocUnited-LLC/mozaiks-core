@@ -16,7 +16,7 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 from mozaiks_ai.routes.ai import router as ai_router  # noqa: E402
-import core.routes.ai as routes_ai  # noqa: E402
+import mozaiks_ai.routes.ai as routes_ai  # noqa: E402
 from mozaiks_ai.core_runtime.manager import RuntimeUiConfig  # noqa: E402
 import shared_app  # noqa: E402
 
@@ -177,9 +177,9 @@ class RuntimeContractTests(unittest.TestCase):
             patch.object(shared_app.persistence_manager, "create_chat_session", new=AsyncMock()),
             patch.object(shared_app.persistence_manager, "get_or_assign_cache_seed", new=AsyncMock(return_value=123)),
             patch.object(shared_app, "uuid4", return_value=UUID("00000000-0000-0000-0000-000000000001")),
-            patch("core.ai_runtime.workflow.workflow_manager.workflow_manager", new=StubWorkflowManager()),
+            patch("mozaiks_ai.runtime.workflow.workflow_manager.workflow_manager", new=StubWorkflowManager()),
             patch(
-                "core.ai_runtime.workflow.pack.gating.list_workflow_availability",
+                "mozaiks_ai.runtime.workflow.pack.gating.list_workflow_availability",
                 new=AsyncMock(
                     return_value=[
                         {
@@ -190,8 +190,8 @@ class RuntimeContractTests(unittest.TestCase):
                     ]
                 ),
             ),
-            patch("core.ai_runtime.workflow.session_manager.get_workflow_session", new=AsyncMock(return_value=None)),
-            patch("core.ai_runtime.workflow.session_manager.get_artifact_instance", new=AsyncMock(return_value=None)),
+            patch("mozaiks_ai.runtime.workflow.session_manager.get_workflow_session", new=AsyncMock(return_value=None)),
+            patch("mozaiks_ai.runtime.workflow.session_manager.get_artifact_instance", new=AsyncMock(return_value=None)),
         ]
         for patcher in self._patchers:
             patcher.start()

@@ -13,7 +13,7 @@ from typing import Dict, Any, List, Optional, Tuple, Callable, Awaitable, Set
 from pathlib import Path
 from dataclasses import dataclass
 
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 
 logger = get_workflow_logger(workflow_name="unified_workflow_manager")
 

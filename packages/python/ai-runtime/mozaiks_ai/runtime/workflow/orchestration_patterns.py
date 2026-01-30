@@ -50,7 +50,7 @@ from mozaiks_ai.runtime.events.event_serialization import (
 from ..data.persistence import AG2PersistenceManager
 from .execution import create_termination_handler, LifecycleTrigger
 from .context import DerivedContextManager
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 from mozaiks_ai.runtime.observability.ag2_runtime_logger import ag2_logging_session
 from mozaiks_ai.runtime.observability.performance_manager import get_performance_manager
 from mozaiks_ai.runtime.events.unified_event_dispatcher import get_event_dispatcher

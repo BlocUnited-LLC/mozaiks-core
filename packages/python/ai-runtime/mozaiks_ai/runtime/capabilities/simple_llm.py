@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 from mozaiks_ai.runtime.workflow.validation.llm_config import get_llm_config
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 
 logger = get_workflow_logger("capabilities.simple_llm")
 

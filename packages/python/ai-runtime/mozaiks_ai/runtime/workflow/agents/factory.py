@@ -484,7 +484,7 @@ async def create_agents(
     logger.info(f"[AGENTS] Created {len(agents)} agents for '{workflow_name}' in {duration:.2f}s")
 
     try:
-        from logs.logging_config import get_workflow_session_logger
+        from mozaiks_infra.logs.logging_config import get_workflow_session_logger
 
         workflow_logger = get_workflow_session_logger(workflow_name)
         total_tools = sum(len(tools) for tools in agent_tool_functions.values())

@@ -1,0 +1,5 @@
+max_turns: 8
+startup_mode: AgentDriven
+orchestration_pattern: AutoPattern
+human_in_the_loop: false
+initial_agent: SubscriptionAssistant

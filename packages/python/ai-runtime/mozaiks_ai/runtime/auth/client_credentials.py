@@ -22,7 +22,7 @@ from typing import Optional
 import httpx
 
 from mozaiks_ai.runtime.auth.discovery import get_discovery_client
-from logs.logging_config import get_core_logger
+from mozaiks_infra.logs.logging_config import get_core_logger
 
 logger = get_core_logger("auth.client_credentials")
 

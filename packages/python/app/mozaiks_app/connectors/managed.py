@@ -11,7 +11,7 @@ from urllib.parse import urljoin
 
 import aiohttp
 
-from app.connectors.base import (
+from mozaiks_app.connectors.base import (
     CancelRequest,
     CheckoutRequest,
     CheckoutResponse,

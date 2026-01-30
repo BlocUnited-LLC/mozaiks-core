@@ -19,7 +19,7 @@ from .schema import (
     load_context_variables_config,
 )
 from ..workflow_manager import workflow_manager, WORKFLOWS_ROOT
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 
 business_logger = get_workflow_logger("context_variables")
 

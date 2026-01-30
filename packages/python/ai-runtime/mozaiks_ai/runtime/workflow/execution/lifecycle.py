@@ -43,8 +43,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
-from logs.logging_config import get_workflow_logger
-from logs.tools_logs import get_tool_logger, log_tool_event
+from mozaiks_infra.logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.tools_logs import get_tool_logger, log_tool_event
 from ..workflow_manager import WORKFLOWS_ROOT
 
 logger = logging.getLogger(__name__)

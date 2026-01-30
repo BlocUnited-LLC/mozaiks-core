@@ -8,7 +8,7 @@ from typing import Any, Dict, Iterable, List, Optional, Callable, Tuple
 
 from autogen.events.agent_events import TextEvent
 
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 from ..workflow_manager import workflow_manager
 from .schema import load_context_variables_config
 

@@ -8,7 +8,7 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 
-from app.connectors.mock import MockPaymentConnector  # noqa: E402
+from mozaiks_app.connectors.mock import MockPaymentConnector  # noqa: E402
 
 
 class MockConnectorBehaviorTests(unittest.IsolatedAsyncioTestCase):

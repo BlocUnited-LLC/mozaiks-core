@@ -12,7 +12,7 @@ from typing import Any, Dict, Iterable, Optional
 
 from pydantic import BaseModel, ValidationError
 
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 from ..outputs.structured import get_structured_outputs_for_workflow
 
 # ---------------------------------------------------------------------------

@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from typing import Any, Dict, Optional
 
 from mozaiks_ai.runtime.events.unified_event_dispatcher import get_event_dispatcher
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 
 logger = get_workflow_logger("token_manager")
 

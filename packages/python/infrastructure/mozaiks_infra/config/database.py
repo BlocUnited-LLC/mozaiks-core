@@ -126,6 +126,10 @@ if db is not None:
     # Stores per-user, per-plugin usage for consumable limits
     entitlement_usage_collection = db["entitlement_usage"]
 
+    # App-level token usage collection (Contract v2)
+    # Stores per-app usage for token budgets
+    token_usage_collection = db["token_usage"]
+
     # Initialize indexes for settings collection
     @with_retry(max_retries=5, delay=2)
     async def create_settings_indexes():
@@ -185,6 +189,38 @@ if db is not None:
             logger.error(f"❌ Error creating entitlement_usage indexes: {e}")
             raise
 
+    # Initialize indexes for token usage collection (Contract v2)
+    @with_retry(max_retries=5, delay=2)
+    async def create_token_usage_indexes():
+        """
+        Create indexes for token_usage collection.
+
+        Schema:
+        {
+            app_id: str,
+            period_key: str,    # e.g., "2026-01" (monthly), "2026-W05" (weekly), "lifetime"
+            period_type: str,   # monthly, weekly, daily, lifetime
+            used: int,
+            period_start: datetime,
+            created_at: datetime,
+            updated_at: datetime
+        }
+        """
+        try:
+            await token_usage_collection.create_index(
+                [("app_id", 1), ("period_key", 1)],
+                unique=True
+            )
+            logger.info("✅ Created unique index on token_usage collection")
+
+            await token_usage_collection.create_index(
+                [("period_type", 1), ("period_start", 1)]
+            )
+            logger.info("✅ Created period index on token_usage collection")
+        except Exception as e:
+            logger.error(f"❌ Error creating token_usage indexes: {e}")
+            raise
+
 else:
     users_collection = None
     subscriptions_collection = None
@@ -192,6 +228,7 @@ else:
     billing_history_collection = None
     settings_collection = None
     entitlement_usage_collection = None
+    token_usage_collection = None
 
 # Async functions to initialize enterprise data
 @with_retry(max_retries=5, delay=1)
@@ -247,6 +284,10 @@ async def initialize_database():
     # Create entitlement usage indexes (Contract v1.0)
     if entitlement_usage_collection is not None:
         await create_entitlement_usage_indexes()
+
+    # Create token usage indexes (Contract v2)
+    if token_usage_collection is not None:
+        await create_token_usage_indexes()
 
 # Cache for frequently accessed database lookups
 class DBCache:

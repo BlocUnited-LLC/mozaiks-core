@@ -27,7 +27,7 @@ if __name__ == "__main__":
         _clear_logs()
 
     # Import app only after optional cleanup so logging_config hasn't opened file handles yet
-    from shared_app import app  # noqa: WPS433 (import within block is intentional)
+    from mozaiks_app.shared_app import app  # noqa: WPS433 (import within block is intentional)
 
     uvicorn.run(
         app,

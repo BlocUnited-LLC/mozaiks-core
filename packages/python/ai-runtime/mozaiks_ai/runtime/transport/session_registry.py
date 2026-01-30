@@ -28,7 +28,7 @@ Example Flow:
 from typing import Dict, Optional, List
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 
 logger = get_workflow_logger("session_registry")
 

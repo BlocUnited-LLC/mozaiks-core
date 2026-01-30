@@ -9,9 +9,9 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 
-from app.runtime.connector_loader import is_managed_mode, load_connectors  # noqa: E402
-from app.connectors.managed import ManagedPaymentConnector  # noqa: E402
-from app.connectors.mock import MockPaymentConnector  # noqa: E402
+from mozaiks_app.runtime.connector_loader import is_managed_mode, load_connectors  # noqa: E402
+from mozaiks_app.connectors.managed import ManagedPaymentConnector  # noqa: E402
+from mozaiks_app.connectors.mock import MockPaymentConnector  # noqa: E402
 
 
 class ConnectorLoaderTests(unittest.TestCase):

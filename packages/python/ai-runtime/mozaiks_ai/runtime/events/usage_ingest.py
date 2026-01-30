@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 import aiohttp
 
-from logs.logging_config import get_core_logger
+from mozaiks_infra.logs.logging_config import get_core_logger
 
 logger = get_core_logger("usage_ingest")
 

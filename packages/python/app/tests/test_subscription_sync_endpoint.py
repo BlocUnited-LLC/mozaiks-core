@@ -13,7 +13,7 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 from mozaiks_platform.routes.subscription_sync import router as subscription_sync_router  # noqa: E402
-import core.routes.subscription_sync as sync_routes  # noqa: E402
+import mozaiks_platform.routes.subscription_sync as sync_routes  # noqa: E402
 import mozaiks_ai.runtime.auth.dependencies as auth_deps  # noqa: E402
 from mozaiks_ai.runtime.auth.jwt_validator import TokenClaims  # noqa: E402
 

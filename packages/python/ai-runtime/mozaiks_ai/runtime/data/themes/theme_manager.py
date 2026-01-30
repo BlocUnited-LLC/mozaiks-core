@@ -11,7 +11,7 @@ import re
 from datetime import datetime, UTC
 from typing import Any, Dict, Optional
 
-from logs.logging_config import get_workflow_logger
+from mozaiks_infra.logs.logging_config import get_workflow_logger
 from pydantic import BaseModel, Field, ValidationInfo, field_validator, ConfigDict
 
 from mozaiks_ai.runtime.data.persistence.persistence_manager import PersistenceManager

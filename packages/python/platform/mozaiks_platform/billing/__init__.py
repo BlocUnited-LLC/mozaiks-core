@@ -41,6 +41,12 @@ from .entitlements import (
     get_entitlements,
     get_entitlements_manager,
 )
+from .token_budget import (
+    TokenBudgetState,
+    get_budget_state,
+    check_token_budget,
+    record_token_usage,
+)
 
 # Usage reporting (optional - only if Platform URL configured)
 from .usage_reporter import UsageReporter, UsageEvent
@@ -51,7 +57,6 @@ from .sync import (
     EntitlementSyncRequest,
     EntitlementSyncResult,
     get_sync_handler,
-    validate_service_key,
 )
 
 # LEGACY: Payment provider API (v1) - kept for backwards compatibility
@@ -75,6 +80,10 @@ __all__ = [
     "EnforcementMode",
     "get_entitlements",
     "get_entitlements_manager",
+    "TokenBudgetState",
+    "get_budget_state",
+    "check_token_budget",
+    "record_token_usage",
     
     # Usage reporting
     "UsageReporter",
@@ -85,7 +94,6 @@ __all__ = [
     "EntitlementSyncRequest",
     "EntitlementSyncResult",
     "get_sync_handler",
-    "validate_service_key",
     
     # LEGACY: Payment provider API (v1)
     "IPaymentProvider",

@@ -5,9 +5,9 @@ import os
 from dataclasses import dataclass
 from typing import Literal
 
-from app.connectors.base import PaymentConnector
-from app.connectors.managed import ManagedGatewayConfig, ManagedHttpClient, ManagedPaymentConnector
-from app.connectors.mock import MockPaymentConnector
+from mozaiks_app.connectors.base import PaymentConnector
+from mozaiks_app.connectors.managed import ManagedGatewayConfig, ManagedHttpClient, ManagedPaymentConnector
+from mozaiks_app.connectors.mock import MockPaymentConnector
 
 
 ConnectorMode = Literal["managed", "self_hosted"]
