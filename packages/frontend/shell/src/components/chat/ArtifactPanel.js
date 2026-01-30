@@ -1,7 +1,18 @@
 import React from 'react';
 import UIToolRenderer from '../../core/ui/UIToolRenderer';
+import ArtifactActionsBar from '../actions/ArtifactActionsBar';
 
-const ArtifactPanel = ({ onClose, isMobile = false, isEmbedded = false, messages = [], workflowName = null, viewMode = false, onExitView = null }) => {
+const ArtifactPanel = ({
+  onClose,
+  isMobile = false,
+  isEmbedded = false,
+  messages = [],
+  workflowName = null,
+  viewMode = false,
+  onExitView = null,
+  onArtifactAction = null,
+  actionStatusMap = null,
+}) => {
   const showMobileClose = Boolean(isMobile && onClose && !isEmbedded && !viewMode);
   const showExitView = Boolean(viewMode && typeof onExitView === 'function');
   const isMobileEmbedded = Boolean(isMobile && isEmbedded);
@@ -103,12 +114,20 @@ const ArtifactPanel = ({ onClose, isMobile = false, isEmbedded = false, messages
                   {messages.map((m, idx) => {
                     // If message has uiToolEvent, render the actual UI component
                     if (m.uiToolEvent && m.uiToolEvent.ui_tool_id) {
+                      const payload = m.uiToolEvent.payload || {};
+                      const actions = payload.actions || [];
                       return (
                         <div key={m.id || idx} className="app-component-wrapper">
                           <UIToolRenderer
                             event={m.uiToolEvent}
                             onResponse={m.uiToolEvent.onResponse}
                             className="app-ui-component"
+                          />
+                          <ArtifactActionsBar
+                            actions={actions}
+                            artifactPayload={payload}
+                            onAction={onArtifactAction}
+                            actionStatusMap={actionStatusMap}
                           />
                         </div>
                       );

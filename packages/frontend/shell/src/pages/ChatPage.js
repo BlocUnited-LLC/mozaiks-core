@@ -13,6 +13,12 @@ import { getLoadedWorkflows, getWorkflow } from '@chat-workflows/index';
 import { dynamicUIHandler } from '../core/dynamicUIHandler';
 import LoadingSpinner from '../utils/AgentChatLoadingSpinner';
 import useTheme from "../styles/useTheme";
+import {
+  applyArtifactUpdate,
+  applyOptimisticUpdate,
+  deriveArtifactId,
+  interpolateParams,
+} from '../core/actions/actionUtils';
 
 // Debug utilities
 const DEBUG_LOG_ALL_AGENT_OUTPUT = true;
@@ -299,6 +305,8 @@ const ChatPage = () => {
   const [mobileDrawerState, setMobileDrawerState] = useState('peek'); // 'hidden' | 'peek' | 'expanded'
   const [hasUnseenChat, setHasUnseenChat] = useState(false);
   const [hasUnseenArtifact, setHasUnseenArtifact] = useState(false);
+  const [actionStatusMap, setActionStatusMap] = useState({});
+  const optimisticSnapshotsRef = useRef(new Map());
   
   // Current artifact messages rendered inside ArtifactPanel (not in chat messages)
   const [currentArtifactMessages, setCurrentArtifactMessages] = useState([]);
@@ -332,6 +340,7 @@ const ChatPage = () => {
       id: uiToolEvent.eventId || artifactMsg.id || null,
       type: uiToolEvent.ui_tool_id,
       payload: uiToolEvent.payload || null,
+      artifact_id: deriveArtifactId(uiToolEvent.payload, uiToolEvent.eventId || artifactMsg.id || null),
       chat_id: currentChatId,
       workflow_name: currentWorkflowName,
     });
@@ -1405,6 +1414,70 @@ const ChatPage = () => {
         }
         return;
       }
+      case 'artifact.action.started': {
+        const detail = data.data || {};
+        const actionId = detail.action_id || data.action_id;
+        const artifactId = detail.artifact_id || data.artifact_id;
+        if (actionId) {
+          setActionStatusMap((prev) => ({
+            ...prev,
+            [actionId]: {
+              ...(prev[actionId] || {}),
+              status: 'started',
+              artifact_id: artifactId,
+              tool: detail.tool || data.tool,
+            }
+          }));
+        }
+        return;
+      }
+      case 'artifact.action.completed': {
+        const detail = data.data || {};
+        const actionId = detail.action_id || data.action_id;
+        const artifactId = detail.artifact_id || data.artifact_id;
+        const result = detail.result || data.result || {};
+        const artifactUpdate = detail.artifact_update || data.artifact_update || result?.artifact_update;
+        if (actionId) {
+          setActionStatusMap((prev) => ({
+            ...prev,
+            [actionId]: {
+              ...(prev[actionId] || {}),
+              status: 'completed',
+              result,
+            }
+          }));
+          optimisticSnapshotsRef.current.delete(actionId);
+        }
+        if (artifactUpdate) {
+          applyArtifactUpdateForAction(artifactId, artifactUpdate);
+        }
+        return;
+      }
+      case 'artifact.action.failed': {
+        const detail = data.data || {};
+        const actionId = detail.action_id || data.action_id;
+        const artifactId = detail.artifact_id || data.artifact_id;
+        const error = detail.error || data.error || 'Action failed';
+        const rollback = detail.rollback || data.rollback;
+        if (actionId) {
+          setActionStatusMap((prev) => ({
+            ...prev,
+            [actionId]: {
+              ...(prev[actionId] || {}),
+              status: 'failed',
+              error,
+            }
+          }));
+        }
+        if (rollback && actionId) {
+          const snapshot = optimisticSnapshotsRef.current.get(actionId);
+          if (snapshot?.payload) {
+            updateArtifactPayload(snapshot.artifactId || artifactId, () => snapshot.payload);
+          }
+          optimisticSnapshotsRef.current.delete(actionId);
+        }
+        return;
+      }
       case 'tool_response': {
         // Suppress intermediate auto-tool responses (already handled by dynamicUIHandler)
         // Only show failures or non-auto-tool responses
@@ -1613,7 +1686,7 @@ const ChatPage = () => {
       default:
         return;
     }
-  }, [currentChatId, currentWorkflowName, setMessagesWithLogging, extractAgentName, isSidePanelOpen, showInitSpinner, setLayoutMode, isMobileView, mobileDrawerState, setConversationMode, setActiveGeneralChatId, setGeneralChatSummary, hydrateGeneralTranscript, refreshGeneralSessions, setActiveChatId, setActiveWorkflowName, setCurrentChatId]);
+  }, [currentChatId, currentWorkflowName, setMessagesWithLogging, extractAgentName, isSidePanelOpen, showInitSpinner, setLayoutMode, isMobileView, mobileDrawerState, setConversationMode, setActiveGeneralChatId, setGeneralChatSummary, hydrateGeneralTranscript, refreshGeneralSessions, setActiveChatId, setActiveWorkflowName, setCurrentChatId, applyArtifactUpdateForAction, updateArtifactPayload]);
 
   // Debug: Log spinner state changes
   useEffect(() => {
@@ -2000,13 +2073,17 @@ useEffect(() => {
       }
       // Create artifact payload for ArtifactPanel to render
       try {
+        const artifactPayload = {
+          ...payload,
+          artifact_id: deriveArtifactId(payload, eventId || ui_tool_id || null),
+        };
         const artifactMsg = {
           id: `ui-artifact-${eventId || Date.now()}`,
           sender: 'agent',
           agentName: payload.agentName || payload.agent_name || update.agent_name || update.agent || 'Agent',
-          content: payload.structured_output || payload.content || payload || {},
+          content: artifactPayload.structured_output || artifactPayload.content || artifactPayload || {},
           isStreaming: false,
-          uiToolEvent: { ui_tool_id, payload, eventId, workflow_name, onResponse, display: displayMode }
+          uiToolEvent: { ui_tool_id, payload: artifactPayload, eventId, workflow_name, onResponse, display: displayMode }
         };
         console.log('🖼️ [UI] Setting currentArtifactMessages', artifactMsg.id);
         setCurrentArtifactMessages([artifactMsg]);
@@ -2039,8 +2116,8 @@ useEffect(() => {
                   ui_tool_id,
                   eventId: eventId || null,
                   workflow_name,
-                  payload,
-      display: displayMode || 'artifact',
+                  payload: artifactPayload,
+                  display: displayMode || 'artifact',
                   ts: Date.now(),
                 };
                 localStorage.setItem(key, JSON.stringify(cache));
@@ -2555,6 +2632,128 @@ useEffect(() => {
     lastPrimaryRouteRef.current = isPrimaryChatRoute;
   }, [ensureGeneralMode, isPrimaryChatRoute]);
 
+  const updateArtifactPayload = useCallback((artifactId, updateFn) => {
+    if (!updateFn) return;
+    setCurrentArtifactMessages((prev) => {
+      if (!Array.isArray(prev) || prev.length === 0) return prev;
+      let updated = false;
+      const next = prev.map((msg) => {
+        const payload = msg?.uiToolEvent?.payload;
+        if (!msg?.uiToolEvent) return msg;
+        const resolvedId = deriveArtifactId(payload, msg?.uiToolEvent?.eventId || msg?.id);
+        if (artifactId && resolvedId !== artifactId) return msg;
+        updated = true;
+        const nextPayload = updateFn(payload || {});
+        return {
+          ...msg,
+          uiToolEvent: {
+            ...msg.uiToolEvent,
+            payload: nextPayload,
+          },
+        };
+      });
+      if (updated) return next;
+      // Fallback: apply to most recent artifact if id mismatch
+      const lastIdx = prev.length - 1;
+      const last = prev[lastIdx];
+      if (last?.uiToolEvent) {
+        const nextPayload = updateFn(last.uiToolEvent.payload || {});
+        const fallback = [...prev];
+        fallback[lastIdx] = {
+          ...last,
+          uiToolEvent: {
+            ...last.uiToolEvent,
+            payload: nextPayload,
+          },
+        };
+        return fallback;
+      }
+      return prev;
+    });
+  }, [setCurrentArtifactMessages]);
+
+  const applyOptimisticForAction = useCallback((actionId, artifactId, optimistic) => {
+    if (!optimistic) return;
+    updateArtifactPayload(artifactId, (payload) => {
+      if (!optimisticSnapshotsRef.current.has(actionId)) {
+        let snapshotPayload = payload;
+        try {
+          if (payload && typeof payload === 'object') {
+            snapshotPayload = JSON.parse(JSON.stringify(payload));
+          }
+        } catch {}
+        optimisticSnapshotsRef.current.set(actionId, { artifactId, payload: snapshotPayload });
+      }
+      return applyOptimisticUpdate(payload, optimistic);
+    });
+  }, [updateArtifactPayload]);
+
+  const applyArtifactUpdateForAction = useCallback((artifactId, update) => {
+    if (!update) return;
+    updateArtifactPayload(artifactId, (payload) => applyArtifactUpdate(payload, update));
+  }, [updateArtifactPayload]);
+
+  const sendArtifactAction = useCallback((action, contextData = {}) => {
+    if (!action || !action.tool) {
+      return null;
+    }
+
+    const artifactPayload = contextData?.artifactPayload || contextData?.payload || contextData || {};
+    const fallbackId = currentArtifactContext?.id || (lastArtifactEventRef.current ? String(lastArtifactEventRef.current) : null);
+    const artifactId = deriveArtifactId(artifactPayload, fallbackId);
+    const actionId = (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+
+    const paramsContext = {
+      artifact: artifactPayload,
+      ...artifactPayload,
+      ...contextData,
+      artifact_id: artifactId,
+      app_id: currentAppId,
+      chat_id: currentChatId,
+      user_id: currentUserId,
+      workflow_name: currentWorkflowName,
+    };
+    const params = interpolateParams(action.params || {}, paramsContext);
+
+    const payload = {
+      type: 'artifact.action',
+      action_id: actionId,
+      artifact_id: artifactId,
+      tool: action.tool,
+      params,
+      context: {
+        chat_id: currentChatId,
+        app_id: currentAppId,
+        user_id: currentUserId,
+        workflow_name: currentWorkflowName,
+      }
+    };
+
+    const connection = wsRef.current;
+    if (connection && typeof connection.send === 'function') {
+      connection.send(payload);
+      setActionStatusMap((prev) => ({
+        ...prev,
+        [actionId]: { status: 'pending', tool: action.tool, artifact_id: artifactId, started_at: Date.now() }
+      }));
+      if (action.optimistic) {
+        applyOptimisticForAction(actionId, artifactId, action.optimistic);
+      }
+    } else {
+      console.warn('No WebSocket connection available for artifact.action');
+      return null;
+    }
+
+    return actionId;
+  }, [
+    currentArtifactContext,
+    currentChatId,
+    currentUserId,
+    currentAppId,
+    currentWorkflowName,
+    applyOptimisticForAction,
+  ]);
+
   // Handle agent UI actions
   const handleAgentAction = async (action) => {
     console.log('Agent action received in chat page:', action);
@@ -3060,6 +3259,8 @@ useEffect(() => {
                     messages={currentArtifactMessages}
                     chatId={currentChatId}
                     workflowName={currentWorkflowName}
+                    onArtifactAction={sendArtifactAction}
+                    actionStatusMap={actionStatusMap}
                   />
                 }
                 hasUnseenChat={hasUnseenChat}
@@ -3121,6 +3322,8 @@ useEffect(() => {
                     messages={currentArtifactMessages} 
                     chatId={currentChatId}
                     workflowName={currentWorkflowName}
+                    onArtifactAction={sendArtifactAction}
+                    actionStatusMap={actionStatusMap}
                   />
                 }
               />

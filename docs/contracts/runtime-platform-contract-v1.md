@@ -442,6 +442,77 @@ All server-to-client messages follow this envelope:
 | `chat.tool_response` | Tool invocation completed | `{ "tool_name": "...", "result": {...} }` |
 | `chat.context_switched` | Journey auto-advance | `{ "next_workflow": "...", "next_chat_id": "..." }` |
 | `chat.ui_tool` | UI tool event (artifact) | `{ "event_type": "...", "payload": {...} }` |
+| `artifact.action.started` | Artifact action accepted | `{ "action_id": "...", "artifact_id": "...", "tool": "..." }` |
+| `artifact.action.completed` | Artifact action completed | `{ "action_id": "...", "artifact_id": "...", "tool": "...", "result": {...}, "artifact_update": {...} }` |
+| `artifact.action.failed` | Artifact action failed | `{ "action_id": "...", "artifact_id": "...", "tool": "...", "error": "..." }` |
+
+#### Artifact Action System
+
+Artifact actions allow frontend-rendered artifacts to trigger stateless tool calls outside
+the agent loop. Actions are declared inside artifact payloads under `actions[]` and executed
+via WebSocket messages of type `artifact.action`.
+
+**ActionSchema**
+```json
+{
+  "label": "string",
+  "icon": "string?",
+  "tool": "string",
+  "params": {},
+  "style": "primary|secondary|ghost|danger",
+  "confirm": "string?",
+  "optimistic": {}
+}
+```
+
+**Action result update**
+```json
+{
+  "mode": "replace|patch",
+  "payload": {}
+}
+```
+When `mode` is `"patch"`, `payload` must be a JSON Patch array (RFC 6902).
+
+**Optimistic updates**
+
+If an action includes an `optimistic` block, the frontend applies it immediately and
+stores a rollback snapshot. If the backend emits `artifact.action.failed` with
+`rollback: true`, the frontend reverts to the snapshot.
+
+**Examples**
+
+Vote:
+```json
+{
+  "label": "Vote",
+  "tool": "platform.vote",
+  "style": "primary",
+  "params": { "target_id": "{{id}}", "direction": "up" },
+  "optimistic": [{ "op": "replace", "path": "/vote_status", "value": "pending" }]
+}
+```
+
+Delete:
+```json
+{
+  "label": "Delete",
+  "tool": "platform.delete",
+  "style": "danger",
+  "confirm": "Delete this item?",
+  "params": { "id": "{{id}}" }
+}
+```
+
+Submit form:
+```json
+{
+  "label": "Submit",
+  "tool": "platform.submit_form",
+  "style": "primary",
+  "params": { "payload": "{{form_data}}" }
+}
+```
 
 #### AG-UI Compatibility Events (`agui.*`)
 
@@ -497,6 +568,16 @@ All AG-UI events use the same envelope:
   "type": "ui.tool.response",
   "event_id": "evt_123",
   "response_data": { /* tool-specific */ }
+}
+
+// Artifact action (stateless tool invocation)
+{
+  "type": "artifact.action",
+  "action_id": "uuid",
+  "artifact_id": "artifact_123",
+  "tool": "platform.invest",
+  "params": { "amount": 25 },
+  "context": { "chat_id": "...", "app_id": "...", "user_id": "..." }
 }
 
 // Cancel current operation

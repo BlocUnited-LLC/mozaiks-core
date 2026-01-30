@@ -946,6 +946,91 @@ class SimpleTransport:
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
 
+    async def _handle_artifact_action_message(self, event: Dict[str, Any], chat_id: str) -> None:
+        """Handle stateless artifact.action messages for tool execution."""
+        action_id = event.get("action_id")
+        artifact_id = event.get("artifact_id")
+        tool_name = event.get("tool")
+        params = event.get("params") if isinstance(event.get("params"), dict) else {}
+
+        conn_meta = self.connections.get(chat_id, {}) if chat_id else {}
+        app_id = conn_meta.get("app_id")
+        user_id = conn_meta.get("user_id")
+        workflow_name = conn_meta.get("workflow_name")
+
+        if not action_id or not artifact_id or not tool_name:
+            logger.warning("artifact.action missing required fields: %s", event)
+            return
+        if not app_id or not user_id:
+            logger.error("Missing app_id/user_id for artifact.action (chat=%s)", chat_id)
+            return
+
+        # Authoritative context from WS session; merge extra context without override.
+        context = event.get("context") if isinstance(event.get("context"), dict) else {}
+        user_context = {
+            "chat_id": chat_id,
+            "app_id": app_id,
+            "user_id": user_id,
+            "workflow_name": workflow_name,
+            "artifact_id": artifact_id,
+            "action_id": action_id,
+        }
+        for k, v in context.items():
+            if k not in user_context:
+                user_context[k] = v
+
+        started_envelope = {
+            "type": "artifact.action.started",
+            "data": {
+                "action_id": action_id,
+                "artifact_id": artifact_id,
+                "tool": tool_name,
+                "chat_id": chat_id,
+                "app_id": app_id,
+                "user_id": user_id,
+                "workflow_name": workflow_name,
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        await self._broadcast_to_websockets(started_envelope, chat_id)
+
+        try:
+            from mozaiks_ai.runtime.action_executor import execute_action
+
+            result = await execute_action(
+                tool_name=str(tool_name),
+                params=params,
+                user_context=user_context,
+                workflow_name=workflow_name,
+            )
+            artifact_update = result.get("artifact_update") if isinstance(result, dict) else None
+            completed_envelope = {
+                "type": "artifact.action.completed",
+                "data": {
+                    "action_id": action_id,
+                    "artifact_id": artifact_id,
+                    "tool": tool_name,
+                    "result": result,
+                    "artifact_update": artifact_update,
+                },
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+            await self._broadcast_to_websockets(completed_envelope, chat_id)
+        except Exception as exc:
+            failed_envelope = {
+                "type": "artifact.action.failed",
+                "data": {
+                    "action_id": action_id,
+                    "artifact_id": artifact_id,
+                    "tool": tool_name,
+                    "error": str(exc),
+                    "rollback": True,
+                },
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+            await self._broadcast_to_websockets(failed_envelope, chat_id)
+            logger.error("artifact.action failed: %s", exc, exc_info=True)
+
     async def _handle_resume_request(self, chat_id: str, last_client_index: int, websocket) -> None:
         """Resume protocol aligned with AG2 GroupChat resume semantics.
 
@@ -1028,7 +1113,16 @@ class SimpleTransport:
         elif msg_type == "client.resume":
             # Canonical resume field: lastClientIndex (0-based index of last message the client has)
             return all(field in message_data for field in ["chat_id", "lastClientIndex"]) and isinstance(message_data.get("lastClientIndex"), int)
-        
+
+        elif msg_type == "artifact.action":
+            # Artifact action invocation (stateless tool execution)
+            required = ("action_id", "artifact_id", "tool")
+            if not all(field in message_data for field in required):
+                return False
+            if not isinstance(message_data.get("tool"), str):
+                return False
+            return True
+
         elif msg_type in (
             "chat.enter_general_mode",
             "chat.start_general_chat",
@@ -1255,6 +1349,19 @@ class SimpleTransport:
                             })
                     continue
                 
+                # Handle artifact action (stateless tool execution)
+                if mtype == "artifact.action":
+                    try:
+                        await self._handle_artifact_action_message(data, chat_id)
+                    except Exception as ae:
+                        logger.error(f"❌ Failed to process artifact.action for chat {chat_id}: {ae}")
+                        await websocket.send_json({
+                            "type": "chat.error",
+                            "data": {"message": "Artifact action failed", "error_code": "ARTIFACT_ACTION_FAILED"},
+                            "timestamp": datetime.now(timezone.utc).isoformat()
+                        })
+                    continue
+
                 # Handle artifact action (launch_workflow, update_state, etc.)
                 if mtype == "chat.artifact_action":
                     try:
