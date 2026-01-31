@@ -30,6 +30,21 @@ graph TD
 
 ---
 
+## Mozaiks-Native vs AG-UI Compatibility
+
+Mozaiks maintains a **single authoritative event stream** (`chat.*`) and can
+**dual-emit** a derived AG-UI stream (`agui.*`) for compatibility.
+
+- **Mozaiks-native (`chat.*`)** is the source of truth and powers custom artifacts
+  (e.g., UI tools like `ActionPlan`).
+- **AG-UI (`agui.*`)** is an additive translation for external or generic consumers.
+- **No replacement:** AG-UI does not replace UI tool rendering or the response system.
+- **Toggleable:** `MOZAIKS_AGUI_ENABLED=false` disables AG-UI emission.
+
+This keeps existing logic intact while providing a standard compatibility layer.
+
+---
+
 ## Event Categories
 
 ### 1. Business Events

@@ -2,8 +2,8 @@
 > **Doc Status:** authoritative (platform depends on this doc)
 
 > **Status**: DRAFT — Pending confirmation from mozaiks-platform agent  
-> **Version**: 1.0.0  
-> **Last Updated**: 2026-01-23  
+> **Version**: 1.3.0  
+> **Last Updated**: 2026-01-31  
 > **Owner**: mozaiks-core
 
 This document defines the authoritative external contracts exposed by **mozaiks-core** for consumption by external control planes (e.g., mozaiks-platform).
@@ -293,6 +293,37 @@ These endpoints enable the platform to launch AI capabilities without knowing wo
 }
 ```
 
+#### Get Cached Artifact State
+
+**`GET /api/artifacts/{artifact_id}/cached`**
+
+**Auth**: User JWT (or any valid token)
+
+**Query Params**:
+- `app_id` (required if token does not carry `app_id`)
+- `chat_id` (optional)
+
+**Response**:
+```json
+{
+  "artifact_id": "artifact_123",
+  "chat_id": "chat_abc123",
+  "workflow_name": "AgentGenerator",
+  "app_id": "app_001",
+  "state": { "artifact_type": "core.card", "title": "Revenue", "body": "$12,450" },
+  "updated_at": "2026-01-31T12:34:56Z",
+  "expires_at": "2026-01-31T13:04:56Z"
+}
+```
+
+**Error Responses**:
+| Status | Condition |
+|--------|-----------|
+| 400 | Missing `app_id` or `artifact_id` |
+| 403 | Token `app_id` mismatch |
+| 404 | Cache miss / expired |
+| 500 | Unexpected runtime error |
+
 #### List User Sessions
 
 **`GET /api/sessions/list/{app_id}/{user_id}`**
@@ -377,6 +408,19 @@ These endpoints enable the platform to launch AI capabilities without knowing wo
       "icon": "home"
     },
     {
+      "label": "Discovery",
+      "icon": "compass",
+      "trigger": {
+        "type": "workflow",
+        "workflow": "DiscoveryDashboard",
+        "input": {
+          "view": "marketplace"
+        },
+        "mode": "view",
+        "cache_ttl": 300
+      }
+    },
+    {
       "plugin_name": "blog",
       "label": "Blog",
       "path": "/plugins/blog",
@@ -385,6 +429,32 @@ These endpoints enable the platform to launch AI capabilities without knowing wo
   ]
 }
 ```
+
+**Navigation Trigger Schema (additive):**
+```json
+{
+  "label": "string",
+  "icon": "string",
+  "path": "string?",   // optional traditional route
+  "trigger": {         // optional workflow trigger
+    "type": "workflow",
+    "workflow": "string",
+    "input": {},
+    "mode": "view|workflow|ask",
+    "cache_ttl": "number?"
+  }
+}
+```
+
+**Notes:**
+- `cache_ttl` is in seconds (optional).
+
+**Client behavior (when `trigger` is present):**
+- Start workflow via `POST /api/chats/{app_id}/{workflow_name}/start`.
+- Connect WebSocket to returned `chat_id`.
+- Set layout mode from `trigger.mode` (`view` → `view`, `workflow` → `split`, `ask` → `full`).
+- If `cache_ttl` is set, clients may render a cached artifact immediately using key
+  `artifact:{workflow}:{input_hash}` and refresh in the background.
 
 #### Get Theme Config
 
@@ -459,6 +529,7 @@ via WebSocket messages of type `artifact.action`.
   "icon": "string?",
   "tool": "string",
   "params": {},
+  "scope": "artifact|row",
   "style": "primary|secondary|ghost|danger",
   "confirm": "string?",
   "optimistic": {}
@@ -514,10 +585,134 @@ Submit form:
 }
 ```
 
+#### Core Artifact Primitives (`core.*`)
+
+Core provides built-in rendering for a small set of **data-driven primitives**.  
+These are sent as **UI tool payloads** (via `chat.ui_tool` or `ui_tool` events) and
+selected by `artifact_type`.
+
+**Notes:**
+- `artifact_type` is required and must start with `core.`.
+- Core reads fields at the **top level**. For convenience, it will also accept
+  a `{ "data": { ... } }` wrapper with the same fields.
+- `actions[]` uses the **ActionSchema** above.
+- Row-level actions can be declared via `row_actions` or `actions[]` with `scope: "row"`.
+
+**`core.markdown`**
+```json
+{
+  "artifact_type": "core.markdown",
+  "artifact_id": "md_123",
+  "title": "Optional title",
+  "body": "Markdown **content**",
+  "actions": [ActionSchema]
+}
+```
+
+**`core.card`**
+```json
+{
+  "artifact_type": "core.card",
+  "artifact_id": "card_123",
+  "title": "Card title",
+  "subtitle": "Optional subtitle",
+  "body": "Body text or markdown",
+  "image": "https://...",
+  "metadata": [{ "label": "Status", "value": "Active" }],
+  "actions": [ActionSchema]
+}
+```
+
+**`core.list`**
+```json
+{
+  "artifact_type": "core.list",
+  "artifact_id": "list_123",
+  "title": "Optional title",
+  "items": [
+    {
+      "id": "item_1",
+      "title": "Item title",
+      "subtitle": "Optional subtitle",
+      "icon": "✅",
+      "actions": [ActionSchema]
+    }
+  ],
+  "actions": [ActionSchema]
+}
+```
+
+**`core.table`**
+```json
+{
+  "artifact_type": "core.table",
+  "artifact_id": "table_123",
+  "title": "Optional title",
+  "columns": [
+    { "key": "name", "label": "Name", "type": "text" },
+    { "key": "status", "label": "Status", "type": "badge" },
+    { "key": "votes", "label": "Votes", "type": "number" },
+    { "key": "actions", "label": "Actions", "type": "actions" }
+  ],
+  "rows": [
+    { "id": "row_1", "name": "App Alpha", "status": "active", "votes": 24 }
+  ],
+  "actions": [ActionSchema],
+  "row_actions": [ActionSchema]
+}
+```
+
+**`core.form`**
+```json
+{
+  "artifact_type": "core.form",
+  "artifact_id": "form_123",
+  "title": "Optional title",
+  "fields": [
+    { "name": "email", "type": "text", "label": "Email", "required": true },
+    { "name": "plan", "type": "select", "label": "Plan", "options": ["Free", "Pro"] }
+  ],
+  "submit_action": ActionSchema,
+  "cancel_action": ActionSchema
+}
+```
+
+**`core.composite`**
+```json
+{
+  "artifact_type": "core.composite",
+  "artifact_id": "composite_123",
+  "layout": "stack|grid|columns",
+  "grid_template": "2x2",
+  "children": [
+    { "artifact_type": "core.card", "title": "Revenue", "body": "$12,450" },
+    { "artifact_type": "core.table", "columns": [...], "rows": [...] }
+  ]
+}
+```
+
+**Primitive theming (CSS variables)**
+
+Core primitives read the following CSS variables (platform can override them):
+
+- `--core-primitive-surface`
+- `--core-primitive-surface-alt`
+- `--core-primitive-border`
+- `--core-primitive-text`
+- `--core-primitive-muted`
+- `--core-primitive-accent`
+- `--core-primitive-shadow`
+- `--core-primitive-radius`
+
+Defaults map to the active theme (e.g., `--color-surface`, `--color-text-primary`, etc.).
+
 #### AG-UI Compatibility Events (`agui.*`)
 
 Mozaiks Core dual-emits **AG-UI compatible events** alongside existing `chat.*` events.  
 This is **additive** and opt-out via `MOZAIKS_AGUI_ENABLED=false`.
+
+For the formal AG-UI specification and implementation associations, see:
+`docs/contracts/AG-UI_CONTRACT.md`.
 
 All AG-UI events use the same envelope:
 ```json
@@ -553,6 +748,17 @@ All AG-UI events use the same envelope:
 | `agui.tool.ToolCallStart` | `chat.tool_call` |
 | `agui.tool.ToolCallEnd` | emitted before `chat.tool_response` |
 | `agui.tool.ToolCallResult` | `chat.tool_response` |
+
+**State events (AG-UI):**
+| AG-UI Type | Emitted When | Payload (data) |
+|------------|--------------|----------------|
+| `agui.state.StateSnapshot` | Initial artifact render | `{ artifact_id, state, workflow_name? }` |
+| `agui.state.StateDelta` | Artifact updates (actions / patches) | `{ artifact_id, patch: [RFC6902 ops], workflow_name? }` |
+| `agui.state.MessagesSnapshot` | Reconnect/resume | `{ messages: [...], mode: "auto|client", total_messages }` |
+
+**Notes:**
+- `StateDelta` uses JSON Patch (RFC 6902). Root replacement uses `path: ""`.
+- `StateSnapshot` and `StateDelta` include `runId` and `threadId` like other AG-UI events.
 
 #### Inbound Message Types (Client → Server)
 
@@ -925,6 +1131,7 @@ A breaking change is any of:
 | `PORT` | HTTP port | `8080` |
 | `FRONTEND_URL` | CORS origin | `http://localhost:5173` |
 | `MOZAIKS_AGUI_ENABLED` | Enable AG-UI dual-emit (`true`/`false`) | `true` |
+| `MOZAIKS_ARTIFACT_STATE_TTL_SECONDS` | TTL (seconds) for cached artifact state | None (no expiry) |
 
 ### Auth Mode Configuration
 
@@ -976,6 +1183,7 @@ These items require confirmation from mozaiks-platform before finalizing the con
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1.0 | 2026-01-30 | Add core artifact primitives + theming variables |
 | 1.0.0 | 2026-01-23 | Initial contract proposal |
 
 ---
