@@ -1,11 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
-import ChatInterface from "../components/chat/ChatInterface";
-import ArtifactPanel from "../components/chat/ArtifactPanel";
-import WorkflowCompletion from "../components/chat/WorkflowCompletion";
-import FluidChatLayout from "../components/chat/FluidChatLayout";
-import MobileArtifactDrawer from "../components/chat/MobileArtifactDrawer";
+import { ChatInterface, ArtifactPanel, WorkflowCompletion, FluidChatLayout, MobileArtifactDrawer } from '@mozaiks/chat-ui';
 import { useNavigate, useLocation } from "react-router-dom";
 import { useChatUI } from "../context/ChatUIContext";
 import workflowConfig from '../config/workflowConfig';
@@ -305,6 +301,7 @@ const ChatPage = () => {
   const queryWorkflowName = searchParams.get('workflow');
   const queryChatId = searchParams.get('chat_id');
   const queryMode = searchParams.get('mode'); // 'ask' or 'workflow'
+  const queryResume = searchParams.get('resume');
 
   const appId = pathAppId || queryAppId;
   const urlWorkflowName = pathWorkflowName || queryWorkflowName;
@@ -368,7 +365,26 @@ const ChatPage = () => {
   const lastErrorIdRef = useRef(null); // Track last error to prevent duplicates
   const workflowMessagesCacheRef = useRef([]);
   const generalMessagesCacheRef = useRef([]);
-  const isViewMode = layoutMode === 'view';
+  const resumeOldestFromWidgetRef = useRef(false);
+  const layoutModeForConversation = conversationMode === 'ask' ? 'full' : 'split';
+  // Respect explicit layout state in workflow mode; force full in ask mode.
+  const effectiveLayoutMode = conversationMode === 'ask' ? 'full' : layoutMode;
+  const isViewMode = effectiveLayoutMode === 'view';
+
+  // Helper function to get default workflow from registry
+  const getDefaultWorkflowFromRegistry = () => {
+    const cfgDefault = typeof workflowConfig?.getDefaultWorkflow === 'function'
+      ? workflowConfig.getDefaultWorkflow()
+      : null;
+    if (cfgDefault) return cfgDefault;
+
+    const workflows = getLoadedWorkflows();
+    if (!Array.isArray(workflows) || workflows.length === 0) return null;
+    return workflows[0].name || null;
+  };
+
+  const defaultWorkflow = (urlWorkflowName || config?.chat?.defaultWorkflow || getDefaultWorkflowFromRegistry() || '');
+  const [currentWorkflowName, setCurrentWorkflowName] = useState(defaultWorkflow);
 
   useEffect(() => {
     if (typeof setCurrentArtifactContext !== 'function') {
@@ -498,19 +514,6 @@ const ChatPage = () => {
   // Workflow completion state
   const [workflowCompleted, setWorkflowCompleted] = useState(false);
   const [completionData, setCompletionData] = useState(null);
-  // Helper function to get default workflow from registry
-  const getDefaultWorkflowFromRegistry = () => {
-    const cfgDefault = typeof workflowConfig?.getDefaultWorkflow === 'function'
-      ? workflowConfig.getDefaultWorkflow()
-      : null;
-    if (cfgDefault) return cfgDefault;
-
-    const workflows = getLoadedWorkflows();
-    if (!Array.isArray(workflows) || workflows.length === 0) return null;
-    return workflows[0].name || null;
-  };
-
-  const defaultWorkflow = (urlWorkflowName || config?.chat?.defaultWorkflow || getDefaultWorkflowFromRegistry() || '');
   const resolveNavMode = (mode) => {
     const normalized = typeof mode === 'string' ? mode.toLowerCase() : 'workflow';
     if (normalized === 'view' || normalized === 'ask' || normalized === 'workflow') {
@@ -523,8 +526,6 @@ const ChatPage = () => {
     if (mode === 'ask') return 'full';
     return 'split';
   };
-  const [currentWorkflowName, setCurrentWorkflowName] = useState(defaultWorkflow);
-
   // CRITICAL: Clear widget mode immediately when ChatPage mounts on a primary chat route.
   // This must happen regardless of connection status so the UI doesn't show stale widget state.
   useEffect(() => {
@@ -799,6 +800,12 @@ const ChatPage = () => {
     if (queryMode === 'ask') {
       console.log('🧭 [BOOTSTRAP] Explicit ask mode requested via URL param');
       setConversationMode('ask');
+      // Restore shared ask-mode messages if available (widget uses askMessages)
+      if (askMessages && askMessages.length > 0) {
+        setMessagesWithLogging(askMessages);
+      } else if (generalMessagesCacheRef.current && generalMessagesCacheRef.current.length > 0) {
+        setMessagesWithLogging(generalMessagesCacheRef.current);
+      }
       // Close artifact panel in a setTimeout to ensure it happens AFTER all other effects
       // This is necessary because other effects may try to restore/open the panel
       setTimeout(() => {
@@ -815,6 +822,9 @@ const ChatPage = () => {
     if (queryMode === 'workflow') {
       console.log('🧭 [BOOTSTRAP] Explicit workflow mode requested via URL param');
       setConversationMode('workflow');
+      if (!queryChatId && queryResume === 'oldest') {
+        resumeOldestFromWidgetRef.current = true;
+      }
       
       // Try to restore artifact state from snapshot or localStorage (works offline)
       const snapshot = workflowArtifactSnapshotRef.current;
@@ -868,7 +878,7 @@ const ChatPage = () => {
     if (conversationMode !== 'workflow') {
       setConversationMode('workflow');
     }
-  }, [conversationMode, setConversationMode, queryMode, queryChatId, urlWorkflowName, setLayoutMode]);
+  }, [conversationMode, setConversationMode, queryMode, queryChatId, queryResume, urlWorkflowName, setLayoutMode, askMessages, setMessagesWithLogging]);
 
   // Separate effect to enforce Ask mode artifact panel state
   // This ensures the panel stays closed even if other effects try to open it
@@ -919,6 +929,67 @@ const ChatPage = () => {
       setMessagesWithLogging(workflowMessages);
     }
   }, [conversationMode, workflowMessages, setMessagesWithLogging]);
+
+  const updateArtifactPayload = useCallback((artifactId, updateFn) => {
+    if (!updateFn) return;
+    setCurrentArtifactMessages((prev) => {
+      if (!Array.isArray(prev) || prev.length === 0) return prev;
+      let updated = false;
+      const next = prev.map((msg) => {
+        const payload = msg?.uiToolEvent?.payload;
+        if (!msg?.uiToolEvent) return msg;
+        const resolvedId = deriveArtifactId(payload, msg?.uiToolEvent?.eventId || msg?.id);
+        if (artifactId && resolvedId !== artifactId) return msg;
+        updated = true;
+        const nextPayload = updateFn(payload || {});
+        return {
+          ...msg,
+          uiToolEvent: {
+            ...msg.uiToolEvent,
+            payload: nextPayload,
+          },
+        };
+      });
+      if (updated) return next;
+      // Fallback: apply to most recent artifact if id mismatch
+      const lastIdx = prev.length - 1;
+      const last = prev[lastIdx];
+      if (last?.uiToolEvent) {
+        const nextPayload = updateFn(last.uiToolEvent.payload || {});
+        const fallback = [...prev];
+        fallback[lastIdx] = {
+          ...last,
+          uiToolEvent: {
+            ...last.uiToolEvent,
+            payload: nextPayload,
+          },
+        };
+        return fallback;
+      }
+      return prev;
+    });
+  }, [setCurrentArtifactMessages]);
+
+  const applyOptimisticForAction = useCallback((actionId, artifactId, optimistic) => {
+    if (!optimistic) return;
+    updateArtifactPayload(artifactId, (payload) => {
+      if (!optimisticSnapshotsRef.current.has(actionId)) {
+        let snapshotPayload = payload;
+        try {
+          if (payload && typeof payload === 'object') {
+            snapshotPayload = JSON.parse(JSON.stringify(payload));
+          }
+        } catch {}
+        optimisticSnapshotsRef.current.set(actionId, { artifactId, payload: snapshotPayload });
+      }
+      return applyOptimisticUpdate(payload, optimistic);
+    });
+  }, [updateArtifactPayload]);
+
+  const applyArtifactUpdateForAction = useCallback((artifactId, update) => {
+    if (!update) return;
+    updateArtifactPayload(artifactId, (payload) => applyArtifactUpdate(payload, update));
+  }, [updateArtifactPayload]);
 
   // Simplified incoming handler (namespaced chat.* only)
   const handleIncoming = useCallback((data) => {
@@ -2026,7 +2097,7 @@ useEffect(() => {
         console.log('[EXISTS] Checking existence of chat', reuseChatId);
         try {
           const wfName = currentWorkflowName;
-          const resp = await fetch(`http://localhost:8000/api/chats/exists/${currentAppId}/${wfName}/${reuseChatId}`);
+          const resp = await fetch(`http://localhost:8080/api/chats/exists/${currentAppId}/${wfName}/${reuseChatId}`);
           if (resp.ok) {
             const data = await resp.json();
             if (data.exists) {
@@ -2710,7 +2781,9 @@ useEffect(() => {
       console.warn('⚠️ Cannot resume workflow mode without chat id, switching mode anyway');
     }
     console.log('🤖 [MODE_TOGGLE] Switching to workflow mode (sending chat.switch_workflow)');
-    const sent = sendWsMessage({ type: 'chat.switch_workflow', chat_id: currentChatId });
+    const sent = currentChatId
+      ? sendWsMessage({ type: 'chat.switch_workflow', chat_id: currentChatId })
+      : false;
     
     // ALWAYS switch to workflow mode locally, even if backend is unavailable
     setConversationMode('workflow');
@@ -2842,6 +2915,28 @@ useEffect(() => {
       console.log('🤖 [MODE_CHANGE] App ID:', currentAppId);
       console.log('🤖 [MODE_CHANGE] User ID:', currentUserId);
 
+      // If API/app/user is unavailable, fall back to persisted workflow state without crashing.
+      if (!api || typeof api.get !== 'function' || !currentAppId || !currentUserId) {
+        const safeGet = (key) => {
+          try { return localStorage.getItem(key); } catch { return null; }
+        };
+        const storedChatId = activeChatId || currentChatId || safeGet('mozaiks.current_chat_id');
+        const storedWorkflowName = activeWorkflowName || currentWorkflowName || safeGet('mozaiks.current_workflow_name');
+
+        if (storedChatId) {
+          setCurrentChatId(storedChatId);
+          setActiveChatId(storedChatId);
+        }
+        if (storedWorkflowName) {
+          setActiveWorkflowName(storedWorkflowName);
+          setCurrentWorkflowName(storedWorkflowName);
+        }
+
+        ensureWorkflowMode();
+        if (setLayoutMode) setLayoutMode('split');
+        return;
+      }
+
       // If in widget mode, navigate to /chat first
       if (isInWidgetMode) {
         console.log('🚀 [MODE_CHANGE] In widget mode - navigating to /chat');
@@ -2883,6 +2978,7 @@ useEffect(() => {
         if (sent) {
           console.log('✅ [MODE_CHANGE] Setting conversation mode to workflow');
           setConversationMode('workflow');
+          if (setLayoutMode) setLayoutMode('split');
           // Cache general messages - workflow messages will be restored via auto-resume
           generalMessagesCacheRef.current = messagesRef.current;
           console.log('✅ [MODE_CHANGE] Cached general messages, count:', messagesRef.current.length);
@@ -2895,10 +2991,35 @@ useEffect(() => {
         console.log('🔄 [MODE_CHANGE] Falling back to ensureWorkflowMode (backend unavailable)');
         // Fallback: switch to workflow mode locally even if backend is down
         ensureWorkflowMode();
+        if (setLayoutMode) setLayoutMode('split');
       }
     }
     console.log('✅ [MODE_CHANGE] handleConversationModeChange completed');
   }, [ensureGeneralMode, ensureWorkflowMode, setLayoutMode, api, currentAppId, currentUserId, sendWsMessage, setConversationMode, setCurrentChatId, setActiveChatId, setActiveWorkflowName, conversationMode, activeChatId, activeWorkflowName, isInWidgetMode, navigate, setIsInWidgetMode, currentChatId, isMobileView, setMobileDrawerState]);
+
+  useEffect(() => {
+    if (!resumeOldestFromWidgetRef.current) {
+      return;
+    }
+    if (conversationMode !== 'workflow') {
+      return;
+    }
+    resumeOldestFromWidgetRef.current = false;
+    handleConversationModeChange('workflow');
+  }, [conversationMode, handleConversationModeChange]);
+
+  useEffect(() => {
+    if (layoutMode !== 'view') {
+      return;
+    }
+    if (!isPrimaryChatRoute || isInWidgetMode) {
+      return;
+    }
+    setLayoutMode(layoutModeForConversation);
+    if (widgetOverlayOpen) {
+      setWidgetOverlayOpen(false);
+    }
+  }, [layoutMode, layoutModeForConversation, isPrimaryChatRoute, isInWidgetMode, setLayoutMode, widgetOverlayOpen, setWidgetOverlayOpen]);
 
   useEffect(() => {
     if (!queryChatId) {
@@ -2941,67 +3062,6 @@ useEffect(() => {
     }
     lastPrimaryRouteRef.current = isPrimaryChatRoute;
   }, [ensureGeneralMode, isPrimaryChatRoute]);
-
-  const updateArtifactPayload = useCallback((artifactId, updateFn) => {
-    if (!updateFn) return;
-    setCurrentArtifactMessages((prev) => {
-      if (!Array.isArray(prev) || prev.length === 0) return prev;
-      let updated = false;
-      const next = prev.map((msg) => {
-        const payload = msg?.uiToolEvent?.payload;
-        if (!msg?.uiToolEvent) return msg;
-        const resolvedId = deriveArtifactId(payload, msg?.uiToolEvent?.eventId || msg?.id);
-        if (artifactId && resolvedId !== artifactId) return msg;
-        updated = true;
-        const nextPayload = updateFn(payload || {});
-        return {
-          ...msg,
-          uiToolEvent: {
-            ...msg.uiToolEvent,
-            payload: nextPayload,
-          },
-        };
-      });
-      if (updated) return next;
-      // Fallback: apply to most recent artifact if id mismatch
-      const lastIdx = prev.length - 1;
-      const last = prev[lastIdx];
-      if (last?.uiToolEvent) {
-        const nextPayload = updateFn(last.uiToolEvent.payload || {});
-        const fallback = [...prev];
-        fallback[lastIdx] = {
-          ...last,
-          uiToolEvent: {
-            ...last.uiToolEvent,
-            payload: nextPayload,
-          },
-        };
-        return fallback;
-      }
-      return prev;
-    });
-  }, [setCurrentArtifactMessages]);
-
-  const applyOptimisticForAction = useCallback((actionId, artifactId, optimistic) => {
-    if (!optimistic) return;
-    updateArtifactPayload(artifactId, (payload) => {
-      if (!optimisticSnapshotsRef.current.has(actionId)) {
-        let snapshotPayload = payload;
-        try {
-          if (payload && typeof payload === 'object') {
-            snapshotPayload = JSON.parse(JSON.stringify(payload));
-          }
-        } catch {}
-        optimisticSnapshotsRef.current.set(actionId, { artifactId, payload: snapshotPayload });
-      }
-      return applyOptimisticUpdate(payload, optimistic);
-    });
-  }, [updateArtifactPayload]);
-
-  const applyArtifactUpdateForAction = useCallback((artifactId, update) => {
-    if (!update) return;
-    updateArtifactPayload(artifactId, (payload) => applyArtifactUpdate(payload, update));
-  }, [updateArtifactPayload]);
 
   const sendArtifactAction = useCallback((action, contextData = {}) => {
     if (!action || !action.tool) {
@@ -3096,7 +3156,7 @@ useEffect(() => {
 
         // Send the UI tool response to the backend
         try {
-          const response = await fetch('http://localhost:8000/api/ui-tool/submit', {
+          const response = await fetch('http://localhost:8080/api/ui-tool/submit', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -3135,6 +3195,7 @@ useEffect(() => {
   const handleDiscoverClick = () => {
     try {
       setPreviousLayoutMode(layoutMode);
+      setLayoutMode('view');
       setIsInWidgetMode(true);
       navigate('/workflows');
     } catch (err) {
@@ -3434,8 +3495,6 @@ useEffect(() => {
       showAskHistoryMenu={showMobileAskHistoryMenu}
       onAskHistoryToggle={() => setIsAskHistoryDrawerOpen((prev) => !prev)}
       artifactContext={currentArtifactContext}
-      layoutMode={layoutMode}
-      onLayoutModeChange={setLayoutMode}
       onArtifactAction={sendArtifactAction}
       actionStatusMap={actionStatusMap}
     />
@@ -3607,7 +3666,7 @@ useEffect(() => {
             )}
             <div className="flex-1 min-h-0 h-full">
               <FluidChatLayout
-                layoutMode={layoutMode}
+                layoutMode={effectiveLayoutMode}
                 onLayoutChange={setLayoutMode}
                 isArtifactAvailable={true}
                 hasActiveChat={!!currentChatId}

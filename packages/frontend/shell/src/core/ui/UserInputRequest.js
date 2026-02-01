@@ -56,7 +56,7 @@ const UserInputRequest = ({ payload, onResponse, onCancel, submitInputRequest })
       // Fall back to REST if WebSocket failed or unavailable
       if (!success) {
         const baseUrlRaw = typeof config?.get === 'function' ? config.get('api.baseUrl') : undefined;
-        const baseUrl = typeof baseUrlRaw === 'string' && baseUrlRaw.endsWith('/') ? baseUrlRaw.slice(0, -1) : (baseUrlRaw || 'http://localhost:8000');
+        const baseUrl = typeof baseUrlRaw === 'string' && baseUrlRaw.endsWith('/') ? baseUrlRaw.slice(0, -1) : (baseUrlRaw || 'http://localhost:8080');
         const response = await fetch(`${baseUrl}/api/user-input/submit`, {
           method: 'POST',
           headers: {

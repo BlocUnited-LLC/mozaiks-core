@@ -7,7 +7,7 @@
  * @module @mozaiks/shell/providers/NavigationProvider
  */
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
 const NavigationContext = createContext(null);
 
@@ -71,12 +71,18 @@ export const NavigationProvider = ({
   const [loading, setLoading] = useState(!config);
   const [error, setError] = useState(null);
 
+  // Use refs for callbacks to avoid re-triggering the fetch effect
+  const onLoadRef = useRef(onLoad);
+  onLoadRef.current = onLoad;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+
   useEffect(() => {
     // If static config provided, skip loading
     if (config) {
       setNavigation(config);
       setLoading(false);
-      onLoad(config);
+      onLoadRef.current(config);
       return;
     }
 
@@ -108,7 +114,7 @@ export const NavigationProvider = ({
             console.log('[NavigationProvider] No navigation.json found, using defaults');
             setNavigation(DEFAULT_NAVIGATION);
             setLoading(false);
-            onLoad(DEFAULT_NAVIGATION);
+            onLoadRef.current(DEFAULT_NAVIGATION);
             return;
           }
           throw new Error(`Failed to load navigation config: ${response.status}`);
@@ -124,7 +130,7 @@ export const NavigationProvider = ({
 
         setNavigation(navConfig);
         setLoading(false);
-        onLoad(navConfig);
+        onLoadRef.current(navConfig);
 
         if (process.env.NODE_ENV === 'development') {
           console.log('[NavigationProvider] Loaded navigation config:', navConfig);
@@ -134,12 +140,12 @@ export const NavigationProvider = ({
         setError(err);
         setNavigation(DEFAULT_NAVIGATION);
         setLoading(false);
-        onError(err);
+        onErrorRef.current(err);
       }
     };
 
     loadNavigation();
-  }, [config, configPath, onLoad, onError]);
+  }, [config, configPath]);
 
   /**
    * Get routes from navigation config

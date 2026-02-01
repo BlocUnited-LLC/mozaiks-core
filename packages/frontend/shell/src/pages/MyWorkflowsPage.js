@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChatUI } from '../context/ChatUIContext';
-import { useWidgetMode } from '../hooks/useWidgetMode';
+import { useWidgetMode } from '@mozaiks/chat-ui';
 import Header from '../components/layout/Header';
 import useTheme from '../styles/useTheme';
 

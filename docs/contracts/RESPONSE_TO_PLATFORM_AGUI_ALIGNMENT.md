@@ -431,7 +431,7 @@ layoutMode = 'view':
 |------|--------|
 | `packages/frontend/chat-ui/src/context/ChatUIContext.jsx` | Add `'view'` to layoutMode, add widgetOverlay state |
 | `packages/frontend/chat-ui/src/components/chat/FluidChatLayout.jsx` | Add `'view'` case: chat width 0, artifact width 100 |
-| `packages/frontend/shell/src/chat/pages/ChatPage.jsx` | Add view mode render path, widget button, overlay logic |
+| `packages/frontend/shell/src/pages/ChatPage.js` | Add view mode render path, widget button, overlay logic |
 | `packages/frontend/chat-ui/src/components/chat/ArtifactPanel.jsx` | Add `viewMode` prop, exit button |
 | `packages/frontend/chat-ui/src/components/chat/ChatInterface.jsx` | Update toggle button logic for view mode |
 | `packages/frontend/chat-ui/src/components/chat/MobileArtifactDrawer.jsx` | Support full-screen mode |

@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: mozaiks-ai-runtime
+Version: 0.1.0
+Summary: AI Runtime for Mozaiks - workflow execution, LLM adapters, and agent framework
+License: MIT
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: mozaiks-infrastructure
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-asyncio; extra == "dev"

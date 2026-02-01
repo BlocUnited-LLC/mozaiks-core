@@ -10,8 +10,8 @@ class ChatUIConfig {
     const defaultConfig = {
       // API Configuration
       api: {
-        baseUrl: process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000',
-        wsUrl: process.env.REACT_APP_WS_URL || 'ws://localhost:8000',
+        baseUrl: process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080',
+        wsUrl: process.env.REACT_APP_WS_URL || 'ws://localhost:8080',
       },
 
       // Auth Configuration

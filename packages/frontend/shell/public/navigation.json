@@ -12,6 +12,14 @@
       }
     },
     {
+      "path": "/chat/*",
+      "component": "ChatPage",
+      "meta": {
+        "title": "Chat",
+        "requiresAuth": false
+      }
+    },
+    {
       "path": "/workflows",
       "component": "MyWorkflowsPage",
       "meta": {

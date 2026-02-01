@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 FastAPI authentication dependencies for protected HTTP routes.
 

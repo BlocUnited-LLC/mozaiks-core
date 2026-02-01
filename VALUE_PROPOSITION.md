@@ -288,7 +288,7 @@ Your AI assistant follows you across pages—always accessible, always contextua
 
 ```javascript
 // Adding widget support to ANY page = 1 line
-import { useWidgetMode } from '../hooks/useWidgetMode';
+import { useWidgetMode } from '@mozaiks/chat-ui';
 
 function AnalyticsPage() {
   useWidgetMode();  // ← That's it. Widget appears.

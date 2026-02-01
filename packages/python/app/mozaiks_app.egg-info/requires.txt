@@ -1,0 +1,8 @@
+mozaiks-ai-runtime
+mozaiks-infrastructure
+mozaiks-platform
+
+[dev]
+pytest
+pytest-asyncio
+httpx

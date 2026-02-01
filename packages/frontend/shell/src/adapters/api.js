@@ -71,7 +71,7 @@ export class ApiAdapter {
     const raw = this.config?.baseUrl
       || this.config?.api?.baseUrl
       || fallback
-      || 'http://localhost:8000';
+      || 'http://localhost:8080';
     if (typeof raw === 'string' && raw.endsWith('/')) {
       return raw.slice(0, -1);
     }
@@ -83,7 +83,7 @@ export class ApiAdapter {
     const raw = this.config?.wsUrl
       || this.config?.api?.wsUrl
       || fallback
-      || 'ws://localhost:8000';
+      || 'ws://localhost:8080';
     if (typeof raw === 'string' && raw.endsWith('/')) {
       return raw.slice(0, -1);
     }

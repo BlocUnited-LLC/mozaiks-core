@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 const ChatUIContext = createContext(null);
 
@@ -28,7 +28,11 @@ export const ChatUIProvider = ({
   const [agentSystemInitialized, setAgentSystemInitialized] = useState(false);
   const [workflowsInitialized, setWorkflowsInitialized] = useState(false);
   const WORKFLOW_INIT_TIMEOUT_MS = 8000; // guard against endless spinner
-  
+
+  // Use ref for onReady callback to avoid re-triggering the init effect
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
+
   // Persistent chat state (survives navigation)
   const [activeChatId, setActiveChatId] = useState(null);
   const [activeWorkflowName, setActiveWorkflowName] = useState(null);
@@ -61,8 +65,33 @@ export const ChatUIProvider = ({
   const [generalChatSummary, setGeneralChatSummary] = useState(null);
   const [generalChatSessions, setGeneralChatSessions] = useState([]);
   
+  // Ask-mode and workflow-mode message caches (survive navigation)
+  const [askMessages, setAskMessages] = useState([]);
+  const [workflowMessages, setWorkflowMessages] = useState([]);
+  const [pendingNavigationTrigger, setPendingNavigationTrigger] = useState(null);
+
   // Workflow sessions list for future dropdown (IN_PROGRESS workflows)
   const [workflowSessions, setWorkflowSessions] = useState([]);
+
+  useEffect(() => {
+    try {
+      if (activeChatId) {
+        localStorage.setItem('mozaiks.current_chat_id', activeChatId);
+      }
+    } catch (_) {
+      /* ignore storage errors */
+    }
+  }, [activeChatId]);
+
+  useEffect(() => {
+    try {
+      if (activeWorkflowName) {
+        localStorage.setItem('mozaiks.current_workflow_name', activeWorkflowName);
+      }
+    } catch (_) {
+      /* ignore storage errors */
+    }
+  }, [activeWorkflowName]);
 
   useEffect(() => {
     try {
@@ -118,7 +147,7 @@ export const ChatUIProvider = ({
         setAgentSystemInitialized(true);
         setInitialized(true);
         setLoading(false);
-        onReady();
+        onReadyRef.current();
 
       } catch (error) {
         console.error('Failed to initialize ChatUI:', error);
@@ -127,7 +156,7 @@ export const ChatUIProvider = ({
     };
 
     initializeServices();
-  }, [authAdapter, apiAdapter, workflowInitializer, onReady]);
+  }, [authAdapter, apiAdapter, workflowInitializer]);
 
   useEffect(() => {
     // Agents are auto-discovered through the workflow system
@@ -189,6 +218,12 @@ export const ChatUIProvider = ({
     setGeneralChatSessions,
     workflowSessions,
     setWorkflowSessions,
+    askMessages,
+    setAskMessages,
+    workflowMessages,
+    setWorkflowMessages,
+    pendingNavigationTrigger,
+    setPendingNavigationTrigger,
 
     // Configuration (host-provided)
     config: resolvedConfig,

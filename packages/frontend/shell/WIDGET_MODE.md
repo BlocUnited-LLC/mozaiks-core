@@ -6,7 +6,7 @@ When creating a new page that should allow users to return to their active workf
 
 ### Step 1: Import the Hook
 ```javascript
-import { useWidgetMode } from '../hooks/useWidgetMode';
+import { useWidgetMode } from '@mozaiks/chat-ui';
 ```
 
 ### Step 2: Call It in Your Component
@@ -46,7 +46,7 @@ The page now has:
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChatUI } from '../context/ChatUIContext';
-import { useWidgetMode } from '../hooks/useWidgetMode';
+import { useWidgetMode } from '@mozaiks/chat-ui';
 import Header from '../components/layout/Header';
 
 function AnalyticsPage() {
@@ -126,7 +126,7 @@ When you ask a stateless PageGenerator (or any plugin agent) to build widget-rea
 
 - **Always import & call** `useWidgetMode()` at the top of the component. Example:
   ```javascript
-  import { useWidgetMode } from '../hooks/useWidgetMode';
+  import { useWidgetMode } from '@mozaiks/chat-ui';
 
   export default function MyPage() {
     useWidgetMode();
@@ -150,7 +150,7 @@ const { isInDiscoveryMode } = useChatUI();
 
 **New:**
 ```javascript
-import { useWidgetMode } from '../hooks/useWidgetMode';
+import { useWidgetMode } from '@mozaiks/chat-ui';
 const { isInWidgetMode } = useChatUI();
 ```
 

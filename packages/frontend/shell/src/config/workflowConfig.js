@@ -30,8 +30,8 @@ class WorkflowConfig {
     const baseUrl = typeof baseUrlRaw === 'string' && baseUrlRaw.endsWith('/') ? baseUrlRaw.slice(0, -1) : baseUrlRaw;
     const hosts = [
       baseUrl,
-      'http://localhost:8000',
-      'http://127.0.0.1:8000'
+      'http://localhost:8080',
+      'http://127.0.0.1:8080'
     ].filter(Boolean);
     const path = '/api/workflows';
     let lastError = null;

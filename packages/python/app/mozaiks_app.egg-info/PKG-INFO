@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: mozaiks-app
+Version: 0.1.0
+Summary: Main FastAPI application for Mozaiks runtime
+License: MIT
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: mozaiks-ai-runtime
+Requires-Dist: mozaiks-infrastructure
+Requires-Dist: mozaiks-platform
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-asyncio; extra == "dev"
+Requires-Dist: httpx; extra == "dev"

@@ -7,7 +7,7 @@
  * @module @mozaiks/shell/providers/BrandingProvider
  */
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
 const BrandingContext = createContext(null);
 
@@ -79,12 +79,18 @@ export const BrandingProvider = ({
   const [loading, setLoading] = useState(!config);
   const [error, setError] = useState(null);
 
+  // Use refs for callbacks to avoid re-triggering the fetch effect
+  const onLoadRef = useRef(onLoad);
+  onLoadRef.current = onLoad;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+
   useEffect(() => {
     // If static config provided, skip loading
     if (config) {
       setBranding(config);
       setLoading(false);
-      onLoad(config);
+      onLoadRef.current(config);
       applyBranding(config);
       return;
     }
@@ -99,7 +105,7 @@ export const BrandingProvider = ({
             console.log('[BrandingProvider] No branding.json found, using defaults');
             setBranding(DEFAULT_BRANDING);
             setLoading(false);
-            onLoad(DEFAULT_BRANDING);
+            onLoadRef.current(DEFAULT_BRANDING);
             applyBranding(DEFAULT_BRANDING);
             return;
           }
@@ -113,7 +119,7 @@ export const BrandingProvider = ({
 
         setBranding(mergedConfig);
         setLoading(false);
-        onLoad(mergedConfig);
+        onLoadRef.current(mergedConfig);
         applyBranding(mergedConfig);
 
         if (process.env.NODE_ENV === 'development') {
@@ -124,13 +130,13 @@ export const BrandingProvider = ({
         setError(err);
         setBranding(DEFAULT_BRANDING);
         setLoading(false);
-        onError(err);
+        onErrorRef.current(err);
         applyBranding(DEFAULT_BRANDING);
       }
     };
 
     loadBranding();
-  }, [config, configPath, onLoad, onError]);
+  }, [config, configPath]);
 
   /**
    * Apply branding to the DOM (CSS variables, document title, etc.)

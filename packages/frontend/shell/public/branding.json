@@ -5,7 +5,7 @@
     "name": "Mozaiks",
     "tagline": "AI-Powered Workflows",
     "logo": "/mozaik_logo.svg",
-    "favicon": "/mozaikloadingicon.png"
+    "favicon": "/mozaik_logo.svg"
   },
   "theme": {
     "mode": "system",

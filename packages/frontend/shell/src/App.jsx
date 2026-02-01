@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { ChatUIProvider, useChatUI } from './context/ChatUIContext';
+import { ChatUIProvider, useChatUI, GlobalChatWidgetWrapper } from '@mozaiks/chat-ui';
+import { initializeWorkflows } from '@chat-workflows/index';
 import { NavigationProvider } from './providers/NavigationProvider';
 import { BrandingProvider } from './providers/BrandingProvider';
 import RouteRenderer from './components/RouteRenderer';
-import { GlobalChatWidgetWrapper } from '@mozaiks/chat-ui';
 import './styles/TransportAwareChat.css';
 
 // Import core component registration
@@ -41,27 +41,27 @@ const AppContent = () => {
  * Platform generators produce the JSON configs, Shell renders them.
  */
 function App() {
-  const handleChatUIReady = () => {
+  const handleChatUIReady = useCallback(() => {
     console.log('ChatUI is ready!');
-  };
+  }, []);
   const navigationPath = process.env.REACT_APP_NAVIGATION_PATH || '/navigation.json';
 
-  const handleNavigationLoad = (config) => {
+  const handleNavigationLoad = useCallback((config) => {
     if (process.env.NODE_ENV === 'development') {
       console.log('[App] Navigation config loaded:', config.version);
     }
-  };
+  }, []);
 
-  const handleBrandingLoad = (config) => {
+  const handleBrandingLoad = useCallback((config) => {
     if (process.env.NODE_ENV === 'development') {
       console.log('[App] Branding config loaded:', config.version);
     }
-  };
+  }, []);
 
   return (
     <BrandingProvider onLoad={handleBrandingLoad}>
       <NavigationProvider onLoad={handleNavigationLoad} configPath={navigationPath}>
-        <ChatUIProvider onReady={handleChatUIReady}>
+        <ChatUIProvider onReady={handleChatUIReady} workflowInitializer={initializeWorkflows}>
           <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <GlobalChatWidgetWrapper />
             <AppContent />
