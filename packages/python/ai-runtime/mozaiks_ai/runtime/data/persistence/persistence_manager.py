@@ -15,7 +15,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta
 from typing import Dict, List, Any, Optional, Union, cast
 import hashlib
 from copy import deepcopy
@@ -48,11 +48,112 @@ def _resolve_agent_log_limit(env_key: str, default: Optional[int]) -> Optional[i
     return None if parsed <= 0 else parsed
 
 
+def _decode_json_pointer(segment: str) -> str:
+    return segment.replace("~1", "/").replace("~0", "~")
+
+
+def _apply_json_patch(target: Any, patch_ops: Optional[List[Dict[str, Any]]]) -> Any:
+    if not isinstance(patch_ops, list):
+        return target
+
+    result = deepcopy(target) if target is not None else {}
+    if not isinstance(result, (dict, list)):
+        result = {}
+
+    def _is_index(seg: str) -> bool:
+        if seg == "-":
+            return True
+        try:
+            int(seg)
+            return True
+        except Exception:
+            return False
+
+    def _parse_index(seg: str, length: int) -> Optional[int]:
+        if seg == "-":
+            return length
+        try:
+            return int(seg)
+        except Exception:
+            return None
+
+    for op in patch_ops:
+        if not isinstance(op, dict):
+            continue
+        operation = op.get("op")
+        path = op.get("path")
+        if not isinstance(path, str):
+            path = ""
+        segments = path.split("/")[1:] if path else []
+
+        if not segments:
+            if operation in ("add", "replace"):
+                result = deepcopy(op.get("value"))
+            elif operation == "remove":
+                result = None
+            continue
+
+        parent = result
+        for idx, raw_seg in enumerate(segments[:-1]):
+            seg = _decode_json_pointer(raw_seg)
+            next_seg = segments[idx + 1]
+            next_is_index = _is_index(next_seg)
+            if isinstance(parent, list):
+                index = _parse_index(seg, len(parent))
+                if index is None:
+                    parent = None
+                    break
+                if index >= len(parent):
+                    while len(parent) < index:
+                        parent.append({} if not next_is_index else [])
+                    parent.append({} if not next_is_index else [])
+                if not isinstance(parent[index], (dict, list)):
+                    parent[index] = {} if not next_is_index else []
+                parent = parent[index]
+            elif isinstance(parent, dict):
+                if seg not in parent or not isinstance(parent[seg], (dict, list)):
+                    parent[seg] = {} if not next_is_index else []
+                parent = parent[seg]
+            else:
+                parent = None
+                break
+
+        if parent is None:
+            continue
+
+        last_seg = _decode_json_pointer(segments[-1])
+        if isinstance(parent, list):
+            index = _parse_index(last_seg, len(parent))
+            if index is None:
+                continue
+            if operation == "remove":
+                if 0 <= index < len(parent):
+                    parent.pop(index)
+            elif operation == "add":
+                if index >= len(parent):
+                    parent.append(op.get("value"))
+                else:
+                    parent.insert(index, op.get("value"))
+            elif operation == "replace":
+                if 0 <= index < len(parent):
+                    parent[index] = op.get("value")
+                elif index == len(parent):
+                    parent.append(op.get("value"))
+        elif isinstance(parent, dict):
+            if operation == "remove":
+                parent.pop(last_seg, None)
+            elif operation in ("add", "replace"):
+                parent[last_seg] = op.get("value")
+
+    return result
+
+
 _AGENT_CONV_JSON_MAX_LEN = _resolve_agent_log_limit("AGENT_CONV_JSON_MAX_LEN", None)
 _AGENT_CONV_TEXT_MAX_LEN = _resolve_agent_log_limit("AGENT_CONV_TEXT_MAX_LEN", None)
 
 _GENERAL_CHAT_COLLECTION = "GeneralChatSessions"
 _GENERAL_CHAT_COUNTER_COLLECTION = "GeneralChatCounters"
+_ARTIFACT_STATE_COLLECTION = "ArtifactStates"
 
 
 class PersistenceManager:
@@ -156,10 +257,13 @@ class AG2PersistenceManager:
         self.persistence = PersistenceManager()
         logger.info("AG2PersistenceManager (lean) ready")
         self._workflow_stats_indexes_checked = False
+        self._artifact_state_indexes_checked = False
 
-    async def _coll(self):
+    async def _coll(self, collection_name: Optional[str] = None):
         await self.persistence._ensure_client()
         assert self.persistence.client is not None, "Mongo client not initialized"
+        if collection_name:
+            return self.persistence.client["MozaiksAI"][collection_name]
         return self.persistence.client["MozaiksAI"]["ChatSessions"]
 
     async def _workflow_stats_coll(self):
@@ -198,6 +302,37 @@ class AG2PersistenceManager:
         await self.persistence._ensure_client()
         assert self.persistence.client is not None, "Mongo client not initialized"
         return self.persistence.client["MozaiksAI"][_GENERAL_CHAT_COUNTER_COLLECTION]
+
+    async def _artifact_state_coll(self):
+        await self.persistence._ensure_client()
+        assert self.persistence.client is not None, "Mongo client not initialized"
+        coll = self.persistence.client["MozaiksAI"][_ARTIFACT_STATE_COLLECTION]
+        if not getattr(self, "_artifact_state_indexes_checked", False):
+            await self._ensure_artifact_state_indexes(coll)
+        return coll
+
+    async def _ensure_artifact_state_indexes(self, coll):
+        try:
+            existing = await coll.list_indexes().to_list(length=None)
+            index_names = [idx.get("name") for idx in existing]
+            if "artifact_state_lookup" not in index_names:
+                await coll.create_index(
+                    [("app_id", 1), ("artifact_id", 1), ("chat_id", 1)],
+                    name="artifact_state_lookup",
+                    unique=True,
+                )
+                logger.debug("Created artifact state lookup index")
+            if "artifact_state_ttl" not in index_names:
+                await coll.create_index(
+                    "expires_at",
+                    name="artifact_state_ttl",
+                    expireAfterSeconds=0,
+                )
+                logger.debug("Created artifact state TTL index")
+        except Exception as idx_err:
+            logger.warning("Artifact state index check failed: %s", idx_err)
+        finally:
+            self._artifact_state_indexes_checked = True
 
     async def get_or_assign_cache_seed(
         self,
@@ -253,6 +388,130 @@ class AG2PersistenceManager:
                 extra={"chat_id": chat_id, "app_id": resolved_app_id, "seed": seed},
             )
         return seed
+
+    # Artifact state persistence ---------------------------------------
+    async def upsert_artifact_state(
+        self,
+        *,
+        artifact_id: str,
+        chat_id: str,
+        app_id: Optional[str] = None,
+        state: Any,
+        workflow_name: Optional[str] = None,
+        ttl_seconds: Optional[int] = None,
+    ) -> Optional[Dict[str, Any]]:
+        resolved_app_id = coalesce_app_id(app_id=app_id)
+        if not resolved_app_id:
+            raise ValueError("app_id is required")
+        if not artifact_id:
+            raise ValueError("artifact_id is required")
+        if not chat_id:
+            raise ValueError("chat_id is required")
+
+        try:
+            coll = await self._artifact_state_coll()
+            now = datetime.now(UTC)
+            try:
+                safe_state = json.loads(json.dumps(state, default=str))
+            except Exception:
+                safe_state = state if isinstance(state, (dict, list)) else {"value": str(state)}
+
+            doc: Dict[str, Any] = {
+                "artifact_id": artifact_id,
+                "chat_id": chat_id,
+                "app_id": resolved_app_id,
+                "workflow_name": workflow_name,
+                "state": safe_state,
+                "updated_at": now,
+            }
+            if isinstance(ttl_seconds, int) and ttl_seconds > 0:
+                doc["ttl_seconds"] = ttl_seconds
+                doc["expires_at"] = now + timedelta(seconds=ttl_seconds)
+            else:
+                doc["ttl_seconds"] = None
+                doc["expires_at"] = None
+
+            doc = dual_write_app_scope(doc, resolved_app_id)
+
+            await coll.update_one(
+                {
+                    "artifact_id": artifact_id,
+                    "chat_id": chat_id,
+                    **build_app_scope_filter(resolved_app_id),
+                },
+                {
+                    "$set": doc,
+                    "$setOnInsert": {"created_at": now},
+                },
+                upsert=True,
+            )
+            return doc
+        except Exception as e:  # pragma: no cover
+            logger.debug("Failed to upsert artifact state for %s: %s", artifact_id, e)
+            return None
+
+    async def get_artifact_state(
+        self,
+        *,
+        artifact_id: str,
+        app_id: Optional[str] = None,
+        chat_id: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        resolved_app_id = coalesce_app_id(app_id=app_id)
+        if not resolved_app_id:
+            raise ValueError("app_id is required")
+        if not artifact_id:
+            raise ValueError("artifact_id is required")
+
+        try:
+            coll = await self._artifact_state_coll()
+            query: Dict[str, Any] = {
+                "artifact_id": artifact_id,
+                **build_app_scope_filter(resolved_app_id),
+            }
+            if chat_id:
+                query["chat_id"] = chat_id
+            doc = await coll.find_one(query)
+            if not doc:
+                return None
+            expires_at = doc.get("expires_at")
+            if isinstance(expires_at, datetime) and expires_at <= datetime.now(UTC):
+                return None
+            return doc
+        except Exception as e:  # pragma: no cover
+            logger.debug("Failed to fetch artifact state for %s: %s", artifact_id, e)
+            return None
+
+    async def apply_artifact_patch(
+        self,
+        *,
+        artifact_id: str,
+        chat_id: str,
+        app_id: Optional[str] = None,
+        patch_ops: Optional[List[Dict[str, Any]]],
+        workflow_name: Optional[str] = None,
+        ttl_seconds: Optional[int] = None,
+    ) -> Optional[Any]:
+        if not artifact_id or not chat_id:
+            return None
+        current_doc = await self.get_artifact_state(
+            artifact_id=artifact_id,
+            app_id=app_id,
+            chat_id=chat_id,
+        )
+        base_state = {}
+        if current_doc and isinstance(current_doc.get("state"), (dict, list)):
+            base_state = current_doc.get("state")
+        next_state = _apply_json_patch(base_state, patch_ops)
+        await self.upsert_artifact_state(
+            artifact_id=artifact_id,
+            chat_id=chat_id,
+            app_id=app_id,
+            state=next_state,
+            workflow_name=workflow_name,
+            ttl_seconds=ttl_seconds,
+        )
+        return next_state
 
     # Chat sessions -----------------------------------------------------
     async def create_chat_session(

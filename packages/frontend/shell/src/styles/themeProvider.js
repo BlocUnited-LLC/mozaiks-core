@@ -421,6 +421,16 @@ function updateCSSVariables(themeColors, themeShadows, themeChat) {
   setColorVar(root, 'color-dark', colors.background?.base, DEFAULT_THEME.colors.background.base);
   setColorVar(root, 'color-light', colors.text?.primary, DEFAULT_THEME.colors.text.primary);
 
+  // Core primitive theming defaults
+  setColorVar(root, 'core-primitive-surface', colors.background?.surface, DEFAULT_THEME.colors.background.surface);
+  setColorVar(root, 'core-primitive-surface-alt', colors.background?.elevated, DEFAULT_THEME.colors.background.elevated);
+  setColorVar(root, 'core-primitive-border', colors.border?.subtle, DEFAULT_THEME.colors.border.subtle);
+  setColorVar(root, 'core-primitive-text', colors.text?.primary, DEFAULT_THEME.colors.text.primary);
+  setColorVar(root, 'core-primitive-muted', colors.text?.muted, DEFAULT_THEME.colors.text.muted);
+  setColorVar(root, 'core-primitive-accent', colors.primary?.main, DEFAULT_THEME.colors.primary.main);
+  setShadowVar(root, 'core-primitive-shadow', shadows?.elevated, DEFAULT_THEME.shadows.elevated);
+  root.style.setProperty('--core-primitive-radius', '16px');
+
   // Shadow tokens
   setShadowVar(root, 'shadow-primary', shadows?.primary, DEFAULT_THEME.shadows.primary);
   setShadowVar(root, 'shadow-secondary', shadows?.secondary, DEFAULT_THEME.shadows.secondary);

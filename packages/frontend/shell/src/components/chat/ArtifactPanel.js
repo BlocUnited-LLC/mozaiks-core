@@ -38,6 +38,11 @@ const ArtifactPanel = ({
     ? 'px-2 py-2 sm:px-3 sm:py-3'
     : 'px-2 py-2 sm:px-3 sm:py-3 md:p-6';
 
+  const isCoreArtifactPayload = (payload, uiToolId = null) => {
+    const type = payload?.artifact_type || payload?.data?.artifact_type || uiToolId;
+    return typeof type === 'string' && type.startsWith('core.');
+  };
+
   return (
     <div className={containerClasses}>
       {/* Mobile backdrop */}
@@ -115,20 +120,27 @@ const ArtifactPanel = ({
                     // If message has uiToolEvent, render the actual UI component
                     if (m.uiToolEvent && m.uiToolEvent.ui_tool_id) {
                       const payload = m.uiToolEvent.payload || {};
-                      const actions = payload.actions || [];
+                      const actions = Array.isArray(payload.actions)
+                        ? payload.actions.filter(action => (action?.scope || 'artifact') !== 'row')
+                        : [];
+                      const isCoreArtifact = isCoreArtifactPayload(payload, m.uiToolEvent.ui_tool_id);
                       return (
                         <div key={m.id || idx} className="app-component-wrapper">
                           <UIToolRenderer
                             event={m.uiToolEvent}
                             onResponse={m.uiToolEvent.onResponse}
+                            onArtifactAction={onArtifactAction}
+                            actionStatusMap={actionStatusMap}
                             className="app-ui-component"
                           />
-                          <ArtifactActionsBar
-                            actions={actions}
-                            artifactPayload={payload}
-                            onAction={onArtifactAction}
-                            actionStatusMap={actionStatusMap}
-                          />
+                          {!isCoreArtifact && (
+                            <ArtifactActionsBar
+                              actions={actions}
+                              artifactPayload={payload}
+                              onAction={onArtifactAction}
+                              actionStatusMap={actionStatusMap}
+                            />
+                          )}
                         </div>
                       );
                     }

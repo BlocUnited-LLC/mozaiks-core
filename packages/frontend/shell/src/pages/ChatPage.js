@@ -15,10 +15,12 @@ import LoadingSpinner from '../utils/AgentChatLoadingSpinner';
 import useTheme from "../styles/useTheme";
 import {
   applyArtifactUpdate,
+  applyJsonPatch,
   applyOptimisticUpdate,
   deriveArtifactId,
   interpolateParams,
 } from '../core/actions/actionUtils';
+import { readNavigationCache, writeNavigationCache } from '../navigation/navigationCache';
 
 // Debug utilities
 const DEBUG_LOG_ALL_AGENT_OUTPUT = true;
@@ -43,6 +45,46 @@ const formatHistoryTimestamp = (timestamp) => {
   } catch {
     return 'Just now';
   }
+};
+
+const normalizeSnapshotMessage = (msg, index) => {
+  if (!msg || typeof msg !== 'object') {
+    return {
+      id: `snapshot-${index}-${Date.now()}`,
+      sender: 'user',
+      agentName: 'user',
+      content: '',
+      isStreaming: false,
+    };
+  }
+  const role = msg.role || 'user';
+  const agentName = msg.agent || msg.agent_name || msg.name || (role === 'assistant' ? 'assistant' : 'user');
+  const metadata = msg.metadata || null;
+  const uiToolMeta = metadata?.ui_tool;
+  const uiToolEvent = uiToolMeta && typeof uiToolMeta === 'object'
+    ? {
+        ui_tool_id: uiToolMeta.ui_tool_id,
+        eventId: uiToolMeta.event_id,
+        payload: uiToolMeta.payload || {},
+        display: uiToolMeta.display || 'inline',
+        workflow_name: msg.workflow_name || uiToolMeta.workflow_name,
+      }
+    : null;
+
+  return {
+    id: msg.id || `snapshot-${index}-${Date.now()}`,
+    sender: role === 'assistant' ? 'agent' : 'user',
+    agentName,
+    content: msg.content || '',
+    isStreaming: false,
+    structuredOutput: msg.structured_output,
+    structuredSchema: msg.structured_schema,
+    uiToolEvent,
+    ui_tool_completed: uiToolMeta?.ui_tool_completed || false,
+    ui_tool_status: uiToolMeta?.ui_tool_status || null,
+    metadata,
+    timestamp: msg.timestamp || null,
+  };
 };
 
 const AskHistorySidebar = ({
@@ -225,6 +267,7 @@ const ChatPage = () => {
   const [messages, setMessages] = useState([]);
   // Ref mirror to access latest messages inside callbacks without stale closure
   const messagesRef = useRef([]);
+  const messagesSnapshotAppliedRef = useRef(false);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
   const [ws, setWs] = useState(null);
   const wsRef = useRef(null);
@@ -233,6 +276,7 @@ const ChatPage = () => {
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [transportType, setTransportType] = useState(null);
   const [currentChatId, setCurrentChatId] = useState(null); // set via start/resume flow below
+  useEffect(() => { messagesSnapshotAppliedRef.current = false; }, [currentChatId]);
   const LOCAL_STORAGE_KEY = 'mozaiks.current_chat_id';
   const [connectionInitialized, setConnectionInitialized] = useState(false);
   const [workflowConfigLoaded, setWorkflowConfigLoaded] = useState(false); // becomes true once workflow config resolved
@@ -294,6 +338,8 @@ const ChatPage = () => {
     setAskMessages,
     workflowMessages,
     setWorkflowMessages,
+    pendingNavigationTrigger,
+    setPendingNavigationTrigger,
   } = useChatUI();
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [forceOverlay, setForceOverlay] = useState(false);
@@ -310,6 +356,8 @@ const ChatPage = () => {
   
   // Current artifact messages rendered inside ArtifactPanel (not in chat messages)
   const [currentArtifactMessages, setCurrentArtifactMessages] = useState([]);
+  const navTriggerRef = useRef(null);
+  const navCacheContextRef = useRef(null);
   // Track the most recent artifact-mode UI event id to manage auto-collapse
   const lastArtifactEventRef = useRef(null);
   // Track pending AG2 input request (when user should respond via submitInputRequest)
@@ -345,6 +393,75 @@ const ChatPage = () => {
       workflow_name: currentWorkflowName,
     });
   }, [currentArtifactMessages, currentChatId, currentWorkflowName, setCurrentArtifactContext]);
+
+  useEffect(() => {
+    if (!currentChatId) return;
+    if (!Array.isArray(currentArtifactMessages) || currentArtifactMessages.length === 0) return;
+    const artifactMsg = currentArtifactMessages.find(m => m?.uiToolEvent?.payload) || currentArtifactMessages[0];
+    const uiToolEvent = artifactMsg?.uiToolEvent;
+    if (!uiToolEvent) return;
+
+    const payload = uiToolEvent.payload || {};
+    const displayMode = uiToolEvent.display || payload.display || payload.mode || 'artifact';
+    if (displayMode !== 'artifact') return;
+
+    const artifactPayload = {
+      ...payload,
+      artifact_id: deriveArtifactId(payload, uiToolEvent.eventId || artifactMsg?.id || null),
+    };
+
+    try {
+      const cacheKey = `mozaiks.current_artifact.${currentChatId}`;
+      const serializableArtifact = {
+        ...artifactMsg,
+        uiToolEvent: {
+          ...uiToolEvent,
+          payload: artifactPayload,
+          onResponse: null,
+        },
+      };
+      localStorage.setItem(cacheKey, JSON.stringify(serializableArtifact));
+
+      const lastKey = `mozaiks.last_artifact.${currentChatId}`;
+      localStorage.setItem(lastKey, JSON.stringify({
+        ui_tool_id: uiToolEvent.ui_tool_id || 'core.state',
+        eventId: uiToolEvent.eventId || null,
+        workflow_name: uiToolEvent.workflow_name || currentWorkflowName,
+        payload: artifactPayload,
+        display: displayMode || 'artifact',
+        ts: Date.now(),
+      }));
+      artifactCacheValidRef.current = true;
+    } catch (e) {
+      console.warn('Failed to persist artifact cache', e);
+    }
+
+    try {
+      const navCache = navCacheContextRef.current;
+      if (navCache?.cache_ttl && artifactPayload) {
+        const artifactWorkflow = uiToolEvent.workflow_name || currentWorkflowName;
+        if (!navCache.workflow || navCache.workflow === artifactWorkflow) {
+          const cacheWorkflow = navCache.workflow || artifactWorkflow;
+          if (cacheWorkflow) {
+            writeNavigationCache(
+              cacheWorkflow,
+              navCache?.input ?? null,
+              {
+                ui_tool_id: uiToolEvent.ui_tool_id || 'core.state',
+                eventId: uiToolEvent.eventId || null,
+                workflow_name: cacheWorkflow,
+                payload: artifactPayload,
+                display: displayMode || 'artifact',
+              },
+              navCache.cache_ttl,
+            );
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to update nav-trigger cache', e);
+    }
+  }, [currentArtifactMessages, currentChatId, currentWorkflowName]);
   const generalHydrationPendingRef = useRef(false);
   const workflowArtifactSnapshotRef = useRef({ isOpen: false, messages: [], layoutMode: 'split' });
   const queryResumeHandledRef = useRef(null);
@@ -394,6 +511,18 @@ const ChatPage = () => {
   };
 
   const defaultWorkflow = (urlWorkflowName || config?.chat?.defaultWorkflow || getDefaultWorkflowFromRegistry() || '');
+  const resolveNavMode = (mode) => {
+    const normalized = typeof mode === 'string' ? mode.toLowerCase() : 'workflow';
+    if (normalized === 'view' || normalized === 'ask' || normalized === 'workflow') {
+      return normalized;
+    }
+    return 'workflow';
+  };
+  const resolveNavLayoutMode = (mode) => {
+    if (mode === 'view') return 'view';
+    if (mode === 'ask') return 'full';
+    return 'split';
+  };
   const [currentWorkflowName, setCurrentWorkflowName] = useState(defaultWorkflow);
 
   // CRITICAL: Clear widget mode immediately when ChatPage mounts on a primary chat route.
@@ -411,6 +540,120 @@ const ChatPage = () => {
       setCurrentWorkflowName(urlWorkflowName);
     }
   }, [urlWorkflowName, currentWorkflowName]);
+
+  useEffect(() => {
+    if (!pendingNavigationTrigger) return;
+    const trigger = pendingNavigationTrigger;
+    const triggerId = trigger?.id || `${trigger?.workflow || 'nav'}-${trigger?.requested_at || Date.now()}`;
+    if (navTriggerRef.current === triggerId) return;
+    navTriggerRef.current = triggerId;
+
+    const resolvedMode = resolveNavMode(trigger?.mode);
+    const nextLayoutMode = resolveNavLayoutMode(resolvedMode);
+    if (layoutMode !== nextLayoutMode) {
+      setLayoutMode(nextLayoutMode);
+    }
+    if (resolvedMode === 'ask' && conversationMode !== 'ask') {
+      setConversationMode('ask');
+    }
+    if (resolvedMode !== 'ask' && conversationMode !== 'workflow') {
+      setConversationMode('workflow');
+    }
+
+    const nextWorkflow = trigger?.workflow || defaultWorkflow;
+    if (nextWorkflow && nextWorkflow !== currentWorkflowName) {
+      setCurrentWorkflowName(nextWorkflow);
+    }
+    if (nextWorkflow) {
+      setActiveWorkflowName(nextWorkflow);
+    }
+
+    try {
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+    } catch {}
+    pendingStartRef.current = false;
+    connectionInProgressRef.current = false;
+    setConnectionInitialized(false);
+    setConnectionStatus('disconnected');
+    setLoading(true);
+    if (wsRef.current && typeof wsRef.current.close === 'function') {
+      wsRef.current.close();
+    }
+    wsRef.current = null;
+    setWs(null);
+    setCurrentChatId(null);
+    setActiveChatId(null);
+
+    setMessagesWithLogging([]);
+    setCurrentArtifactMessages([]);
+    setWorkflowCompleted(false);
+    setCompletionData(null);
+    lastArtifactEventRef.current = null;
+    artifactRestoredOnceRef.current = false;
+    artifactCacheValidRef.current = false;
+
+    navCacheContextRef.current = null;
+    if (trigger?.cache_ttl && nextWorkflow) {
+      navCacheContextRef.current = {
+        workflow: nextWorkflow,
+        input: trigger?.input ?? null,
+        cache_ttl: trigger.cache_ttl,
+      };
+      const cached = readNavigationCache(nextWorkflow, trigger?.input ?? null);
+      if (cached?.artifact) {
+        const cachedEvent = cached.artifact;
+        const cachedPayload = {
+          ...(cachedEvent?.payload || {}),
+          artifact_id: deriveArtifactId(cachedEvent?.payload || {}, cachedEvent?.eventId || null),
+        };
+        const artifactMsg = {
+          id: `nav-cache-${Date.now()}`,
+          sender: 'agent',
+          agentName: cachedEvent?.agentName || cachedEvent?.agent_name || 'Agent',
+          content: cachedPayload.structured_output || cachedPayload.content || cachedPayload || {},
+          isStreaming: false,
+          uiToolEvent: {
+            ui_tool_id: cachedEvent?.ui_tool_id || cachedEvent?.uiToolId || cachedEvent?.tool || 'core.cached',
+            payload: cachedPayload,
+            eventId: cachedEvent?.eventId || cachedEvent?.event_id || null,
+            workflow_name: cachedEvent?.workflow_name || nextWorkflow,
+            onResponse: null,
+            display: cachedEvent?.display || 'artifact',
+          }
+        };
+        setCurrentArtifactMessages([artifactMsg]);
+        setIsSidePanelOpen(true);
+        artifactCacheValidRef.current = true;
+      }
+    }
+
+    if (typeof setPendingNavigationTrigger === 'function') {
+      setPendingNavigationTrigger(null);
+    }
+  }, [
+    pendingNavigationTrigger,
+    currentWorkflowName,
+    defaultWorkflow,
+    layoutMode,
+    conversationMode,
+    setLayoutMode,
+    setConversationMode,
+    setCurrentWorkflowName,
+    setActiveWorkflowName,
+    setConnectionInitialized,
+    setConnectionStatus,
+    setLoading,
+    setWs,
+    setCurrentChatId,
+    setActiveChatId,
+    setMessagesWithLogging,
+    setCurrentArtifactMessages,
+    setWorkflowCompleted,
+    setCompletionData,
+    setIsSidePanelOpen,
+    setPendingNavigationTrigger,
+  ]);
+
   // One-time initial spinner: show after websocket connects, hide after first agent chat.text message
   const [showInitSpinner, setShowInitSpinner] = useState(false);
   // Refs for race-free spinner control
@@ -711,6 +954,45 @@ const ChatPage = () => {
       });
       if ((data.type === 'chat.print' || data.type === 'chat.text') && data.is_visual === false) {
         console.warn('[PIPELINE] Non-visual agent message received (unexpected?)', agentDbg);
+      }
+    }
+
+    // AG-UI state sync events (Phase 6)
+    if (data.type && data.type.startsWith('agui.state.')) {
+      const payload = data.data || {};
+      if (data.type === 'agui.state.StateSnapshot') {
+        const artifactId = payload.artifact_id || payload.artifactId || payload.id || null;
+        const statePayload = payload.state || payload.snapshot || payload.payload || payload.artifact || null;
+        if (statePayload !== null && statePayload !== undefined) {
+          updateArtifactPayload(artifactId, () => statePayload);
+        }
+        return;
+      }
+      if (data.type === 'agui.state.StateDelta') {
+        const artifactId = payload.artifact_id || payload.artifactId || payload.id || null;
+        const patchOps = payload.patch || payload.delta || payload.operations || payload.payload;
+        if (Array.isArray(patchOps)) {
+          updateArtifactPayload(artifactId, (current) => applyJsonPatch(current || {}, patchOps));
+        } else if (payload.state !== undefined) {
+          updateArtifactPayload(artifactId, () => payload.state);
+        }
+        return;
+      }
+      if (data.type === 'agui.state.MessagesSnapshot') {
+        const snapshotMessages = payload.messages;
+        const shouldReplace = payload.replace === true;
+        if (Array.isArray(snapshotMessages)) {
+          if (!shouldReplace && messagesSnapshotAppliedRef.current) {
+            return;
+          }
+          if (!shouldReplace && messagesRef.current.length > 0) {
+            return;
+          }
+          const normalized = snapshotMessages.map((msg, idx) => normalizeSnapshotMessage(msg, idx));
+          setMessagesWithLogging(normalized);
+          messagesSnapshotAppliedRef.current = true;
+        }
+        return;
       }
     }
     // Minimal passthrough for still-emitted dynamic UI events until backend fully migrated
@@ -2072,8 +2354,9 @@ useEffect(() => {
         });
       }
       // Create artifact payload for ArtifactPanel to render
+      let artifactPayload = null;
       try {
-        const artifactPayload = {
+        artifactPayload = {
           ...payload,
           artifact_id: deriveArtifactId(payload, eventId || ui_tool_id || null),
         };
@@ -2116,13 +2399,40 @@ useEffect(() => {
                   ui_tool_id,
                   eventId: eventId || null,
                   workflow_name,
-                  payload: artifactPayload,
+                  payload: artifactPayload || payload,
                   display: displayMode || 'artifact',
                   ts: Date.now(),
                 };
                 localStorage.setItem(key, JSON.stringify(cache));
               }
             } catch {}
+            // Persist nav trigger cache if configured
+            try {
+              const navCache = navCacheContextRef.current;
+              if (navCache?.cache_ttl && artifactPayload) {
+                const artifactWorkflow = workflow_name || currentWorkflowName;
+                if (navCache.workflow && artifactWorkflow && navCache.workflow !== artifactWorkflow) {
+                  return;
+                }
+                const cacheWorkflow = navCache.workflow || artifactWorkflow;
+                if (cacheWorkflow) {
+                  writeNavigationCache(
+                    cacheWorkflow,
+                    navCache?.input ?? null,
+                    {
+                      ui_tool_id,
+                      eventId: eventId || null,
+                      workflow_name: cacheWorkflow,
+                      payload: artifactPayload,
+                      display: displayMode || 'artifact',
+                    },
+                    navCache.cache_ttl,
+                  );
+                }
+              }
+            } catch (e) {
+              console.warn('Failed to cache nav-trigger artifact', e);
+            }
   // Don't inject artifact UIs into the chat feed; they'll render in ArtifactPanel only
   return;
           }
@@ -3126,6 +3436,8 @@ useEffect(() => {
       artifactContext={currentArtifactContext}
       layoutMode={layoutMode}
       onLayoutModeChange={setLayoutMode}
+      onArtifactAction={sendArtifactAction}
+      actionStatusMap={actionStatusMap}
     />
   );
 
@@ -3372,6 +3684,8 @@ useEffect(() => {
                   overlayMode
                   onOverlayClose={() => setWidgetOverlayOpen(false)}
                   artifactContext={currentArtifactContext}
+                  onArtifactAction={sendArtifactAction}
+                  actionStatusMap={actionStatusMap}
                 />
               </div>
             </div>

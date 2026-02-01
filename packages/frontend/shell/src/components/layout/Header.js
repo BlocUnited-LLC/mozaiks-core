@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { DEFAULT_HEADER_CONFIG } from "../../styles/themeProvider";
+import { useNavigation } from "../../providers/NavigationProvider";
+import { useNavigationActions } from "../../navigation/useNavigationActions";
 import "./header-styles.css";
 
 const Header = ({
@@ -8,6 +10,11 @@ const Header = ({
   onNotificationClick = () => {},
   onAction = () => {},
 }) => {
+  const { topNav } = useNavigation();
+  const handleNavigationItem = useNavigationActions();
+  const topNavItems = Array.isArray(topNav?.items)
+    ? [...topNav.items].sort((a, b) => (a?.order ?? 0) - (b?.order ?? 0))
+    : [];
   // Resolve header config from theme with defaults
   const headerConfig = { ...DEFAULT_HEADER_CONFIG, ...chatTheme?.header };
   const logoConfig = { ...DEFAULT_HEADER_CONFIG.logo, ...headerConfig?.logo };
@@ -141,6 +148,20 @@ const Header = ({
         {/* LEFT: Brand (config-driven) */}
         <div className="flex items-center gap-3 md:gap-4">
           <LogoSection />
+          {topNavItems.length > 0 && (
+            <nav className="hidden md:flex items-center gap-2">
+              {topNavItems.map((item) => (
+                <button
+                  key={item.id || item.label}
+                  type="button"
+                  onClick={() => handleNavigationItem(item)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide text-[rgba(226,232,240,0.9)] border border-transparent hover:border-[rgba(var(--color-primary-light-rgb),0.4)] hover:bg-white/10 transition"
+                >
+                  {item.label || item.id}
+                </button>
+              ))}
+            </nav>
+          )}
         </div>
 
         {/* RIGHT: Commander, notifications, actions */}

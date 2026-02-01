@@ -5,7 +5,7 @@ import UIToolRenderer from "../../core/ui/UIToolRenderer";
 
 // UI Tool Renderer - handles workflow-agnostic UI tool events
 // NOTE: Hooks must run unconditionally; define state first, then early-return.
-const UIToolEventRenderer = React.memo(({ uiToolEvent, onResponse, submitInputRequest, isCompleted }) => {
+const UIToolEventRenderer = React.memo(({ uiToolEvent, onResponse, submitInputRequest, isCompleted, onArtifactAction, actionStatusMap }) => {
   const [completed, setCompleted] = React.useState(isCompleted || false);
   const [hasInteracted, setHasInteracted] = React.useState(false);
   const rootRef = React.useRef(null);
@@ -119,6 +119,8 @@ const UIToolEventRenderer = React.memo(({ uiToolEvent, onResponse, submitInputRe
                 event={uiToolEvent}
                 onResponse={handleResponse}
                 submitInputRequest={submitInputRequest}
+                onArtifactAction={onArtifactAction}
+                actionStatusMap={actionStatusMap}
                 className="ui-tool-in-chat"
               />
             </div>
@@ -159,7 +161,9 @@ const ModernChatInterface = ({
   overlayMode = false,
   onOverlayClose = null,
   layoutMode = null,
-  onLayoutModeChange = null
+  onLayoutModeChange = null,
+  onArtifactAction = null,
+  actionStatusMap = null
 }) => {
   const [message, setMessage] = useState('');
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
@@ -391,6 +395,8 @@ const ModernChatInterface = ({
               uiToolEvent={chat.uiToolEvent}
               submitInputRequest={submitInputRequest}
               isCompleted={chat.ui_tool_completed || false}
+              onArtifactAction={onArtifactAction}
+              actionStatusMap={actionStatusMap}
               onResponse={(response) => {
                 handleAgentAction({
                   type: 'ui_tool_response',

@@ -18,3 +18,6 @@ export * from './context/ChatUIContext';
 
 // Hooks
 export * from './hooks/useWidgetMode';
+
+// Primitives
+export * from './primitives';

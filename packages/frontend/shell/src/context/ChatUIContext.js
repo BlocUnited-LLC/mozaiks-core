@@ -45,6 +45,7 @@ export const ChatUIProvider = ({
   const [isChatOverlayOpen, setIsChatOverlayOpen] = useState(false); // Full-screen overlay while remaining in widget mode
   const [widgetOverlayOpen, setWidgetOverlayOpen] = useState(false); // View-mode overlay toggle
   const [currentArtifactContext, setCurrentArtifactContext] = useState(null); // { type, payload, id }
+  const [pendingNavigationTrigger, setPendingNavigationTrigger] = useState(null);
 
   // Conversation mode + general chat state (non-workflow / ask mode)
   const [conversationMode, setConversationMode] = useState(() => {
@@ -181,6 +182,8 @@ export const ChatUIProvider = ({
     setWidgetOverlayOpen,
     currentArtifactContext,
     setCurrentArtifactContext,
+    pendingNavigationTrigger,
+    setPendingNavigationTrigger,
     conversationMode,
     setConversationMode,
     activeGeneralChatId,

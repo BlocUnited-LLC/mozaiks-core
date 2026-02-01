@@ -547,7 +547,8 @@ class SimpleTransport:
             if envelope_type == 'chat.tool_call' and isinstance(envelope.get('data'), dict):
                 data_payload = envelope.get('data')
                 # UI tool events have awaiting_response=True and component_type
-                is_ui_tool_event = data_payload.get('awaiting_response') and data_payload.get('component_type')
+                if data_payload is not None:
+                    is_ui_tool_event = bool(data_payload.get('awaiting_response') and data_payload.get('component_type'))
             
             # Skip visibility filtering for select_speaker, input_request, and UI tool events
             is_input_request_event = envelope_type == 'chat.input_request'
@@ -920,6 +921,28 @@ class SimpleTransport:
             )
             
             logger.info(f"✅ Updated artifact state for {artifact_id}: {list(state_updates.keys())}")
+
+            # Emit AG-UI state delta + persist artifact state (Phase 6)
+            try:
+                def _encode_pointer(segment: str) -> str:
+                    return segment.replace("~", "~0").replace("/", "~1")
+
+                patch_ops = []
+                for key, value in state_updates.items():
+                    if not isinstance(key, str):
+                        continue
+                    path = "/" + _encode_pointer(key)
+                    patch_ops.append({"op": "replace", "path": path, "value": value})
+                await self._apply_artifact_update(
+                    artifact_id=artifact_id,
+                    chat_id=chat_id,
+                    app_id=app_id,
+                    workflow_name=conn_meta.get("workflow_name"),
+                    artifact_update=patch_ops,
+                    source="chat.artifact_action.update_state",
+                )
+            except Exception:
+                logger.debug("Artifact state delta emission failed for %s", artifact_id, exc_info=True)
             
             # Broadcast state update to all connections for this artifact
             await websocket.send_json({
@@ -975,9 +998,10 @@ class SimpleTransport:
             "artifact_id": artifact_id,
             "action_id": action_id,
         }
-        for k, v in context.items():
-            if k not in user_context:
-                user_context[k] = v
+        if context:
+            for k, v in context.items():
+                if k not in user_context:
+                    user_context[k] = v
 
         started_envelope = {
             "type": "artifact.action.started",
@@ -1016,6 +1040,17 @@ class SimpleTransport:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
             await self._broadcast_to_websockets(completed_envelope, chat_id)
+            try:
+                await self._apply_artifact_update(
+                    artifact_id=artifact_id,
+                    chat_id=chat_id,
+                    app_id=app_id,
+                    workflow_name=workflow_name,
+                    artifact_update=artifact_update,
+                    source="artifact.action",
+                )
+            except Exception:
+                logger.debug("Artifact state update failed for %s", artifact_id, exc_info=True)
         except Exception as exc:
             failed_envelope = {
                 "type": "artifact.action.failed",
@@ -1074,6 +1109,11 @@ class SimpleTransport:
                 existing_seq = self._sequence_counters.get(chat_id, 0)
                 if existing_seq < last_idx_sent + 1:
                     self._sequence_counters[chat_id] = last_idx_sent + 1
+
+            try:
+                await self._emit_messages_snapshot(chat_id=chat_id, app_id=app_id, mode="client")
+            except Exception:
+                logger.debug("MessagesSnapshot emission failed for %s", chat_id, exc_info=True)
 
             logger.info(
                 "✅ Resume complete chat=%s replayed=%s missing_from>%s now_at_index=%s total=%s",
@@ -1823,6 +1863,11 @@ class SimpleTransport:
         Checks if there's an active AG2 GroupChat session waiting for input.
         If yes, passes message to existing session. If no, starts new workflow.
         """
+        # Initialize variables used in except block BEFORE try to avoid "possibly unbound"
+        starting_new_workflow = False
+        is_build = False
+        _emit_build_failed: Any = None
+        
         try:
             if not await self._enforce_token_budget(
                 app_id=app_id,
@@ -1836,9 +1881,6 @@ class SimpleTransport:
                     "message": "Token budget exceeded",
                     "route": "blocked",
                 }
-
-            starting_new_workflow = False
-            is_build = False
             
             # Load workflow-declared lifecycle hooks (modular, per-workflow)
             lifecycle = get_workflow_lifecycle_hooks(workflow_name)
@@ -1890,7 +1932,7 @@ class SimpleTransport:
                                 await self.process_incoming_user_message(
                                     chat_id=chat_id,
                                     user_id=user_id,
-                                    content=message,
+                                    content=message or "",
                                     source='http'
                                 )
                             except Exception as persist_err:
@@ -2168,6 +2210,272 @@ class SimpleTransport:
             self._persistence_manager = pm
         return pm
 
+    def _resolve_artifact_id(self, payload: Optional[Dict[str, Any]], fallback: Optional[str] = None) -> Optional[str]:
+        if isinstance(payload, dict):
+            for key in ("artifact_id", "artifactId", "id"):
+                value = payload.get(key)
+                if isinstance(value, str) and value.strip():
+                    return value.strip()
+            nested = payload.get("artifact")
+            if isinstance(nested, dict):
+                for key in ("artifact_id", "artifactId", "id"):
+                    value = nested.get(key)
+                    if isinstance(value, str) and value.strip():
+                        return value.strip()
+        return fallback
+
+    def _resolve_display_mode(self, display_type: Optional[str], payload: Optional[Dict[str, Any]]) -> Optional[str]:
+        candidates = [
+            display_type,
+            payload.get("display") if isinstance(payload, dict) else None,
+            payload.get("mode") if isinstance(payload, dict) else None,
+        ]
+        display_mode = next(
+            (m.strip() for m in candidates if isinstance(m, str) and m.strip()),
+            None,
+        )
+        return display_mode.lower() if display_mode else None
+
+    def _sanitize_payload_for_state(self, payload: Any) -> Any:
+        if payload is None:
+            return None
+        if not isinstance(payload, dict):
+            return {"value": str(payload)}
+        try:
+            return json.loads(json.dumps(payload, default=str))
+        except Exception:
+            return payload
+
+    def _resolve_state_ttl_seconds(self) -> Optional[int]:
+        raw = os.getenv("MOZAIKS_ARTIFACT_STATE_TTL_SECONDS", "").strip()
+        if not raw:
+            return None
+        try:
+            parsed = int(raw)
+        except Exception:
+            return None
+        return parsed if parsed > 0 else None
+
+    def _build_agui_state_envelope(
+        self,
+        event_type: str,
+        *,
+        chat_id: Optional[str],
+        app_id: Optional[str],
+        data: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        payload = dict(data) if isinstance(data, dict) else {}
+        if chat_id and "runId" not in payload:
+            payload["runId"] = chat_id
+        if app_id and chat_id and "threadId" not in payload:
+            payload["threadId"] = f"{app_id}:{chat_id}"
+        if chat_id and "chat_id" not in payload:
+            payload["chat_id"] = chat_id
+        if app_id and "app_id" not in payload:
+            payload["app_id"] = app_id
+        return {
+            "type": event_type,
+            "data": payload,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+
+    def _serialize_snapshot_message(self, message: Dict[str, Any]) -> Dict[str, Any]:
+        if not isinstance(message, dict):
+            return {}
+        role = message.get("role") or "user"
+        agent = message.get("agent_name") or message.get("name")
+        timestamp = message.get("timestamp")
+        if isinstance(timestamp, datetime):
+            timestamp = timestamp.isoformat()
+        serialized: Dict[str, Any] = {
+            "role": role,
+            "content": message.get("content", ""),
+        }
+        if agent:
+            serialized["agent"] = agent
+        if timestamp:
+            serialized["timestamp"] = timestamp
+        for key in ("structured_output", "structured_schema", "metadata"):
+            if key in message:
+                try:
+                    serialized[key] = json.loads(json.dumps(message.get(key), default=str))
+                except Exception:
+                    serialized[key] = message.get(key)
+        return serialized
+
+    async def _persist_artifact_state(
+        self,
+        *,
+        artifact_id: Optional[str],
+        chat_id: Optional[str],
+        app_id: Optional[str],
+        state: Any,
+        workflow_name: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        if not artifact_id or not chat_id or not app_id:
+            return None
+        pm = self._get_or_create_persistence_manager()
+        ttl_seconds = self._resolve_state_ttl_seconds()
+        return await pm.upsert_artifact_state(
+            artifact_id=artifact_id,
+            chat_id=chat_id,
+            app_id=app_id,
+            state=state,
+            workflow_name=workflow_name,
+            ttl_seconds=ttl_seconds,
+        )
+
+    async def _emit_state_snapshot(
+        self,
+        *,
+        artifact_id: Optional[str],
+        chat_id: Optional[str],
+        app_id: Optional[str],
+        workflow_name: Optional[str],
+        state: Any,
+        source: str = "ui_tool",
+    ) -> None:
+        if not artifact_id or not chat_id:
+            return
+        data = {
+            "artifact_id": artifact_id,
+            "state": state,
+            "workflow_name": workflow_name,
+            "source": source,
+        }
+        envelope = self._build_agui_state_envelope(
+            "agui.state.StateSnapshot",
+            chat_id=chat_id,
+            app_id=app_id,
+            data=data,
+        )
+        await self._broadcast_to_websockets(envelope, chat_id)
+
+    async def _emit_state_delta(
+        self,
+        *,
+        artifact_id: Optional[str],
+        chat_id: Optional[str],
+        app_id: Optional[str],
+        workflow_name: Optional[str],
+        patch_ops: Optional[List[Dict[str, Any]]],
+        state: Optional[Any] = None,
+        source: str = "action",
+    ) -> None:
+        if not artifact_id or not chat_id:
+            return
+        if not isinstance(patch_ops, list) or not patch_ops:
+            return
+        data: Dict[str, Any] = {
+            "artifact_id": artifact_id,
+            "patch": patch_ops,
+            "workflow_name": workflow_name,
+            "source": source,
+        }
+        if state is not None:
+            data["state"] = state
+        envelope = self._build_agui_state_envelope(
+            "agui.state.StateDelta",
+            chat_id=chat_id,
+            app_id=app_id,
+            data=data,
+        )
+        await self._broadcast_to_websockets(envelope, chat_id)
+
+    async def _emit_messages_snapshot(
+        self,
+        *,
+        chat_id: Optional[str],
+        app_id: Optional[str],
+        mode: str,
+    ) -> None:
+        if not chat_id or not app_id:
+            return
+        pm = self._get_or_create_persistence_manager()
+        messages = await pm.resume_chat(chat_id, app_id) or []
+        if not messages:
+            return
+        serialized = [self._serialize_snapshot_message(m) for m in messages]
+        data = {
+            "messages": serialized,
+            "mode": mode,
+            "total_messages": len(serialized),
+        }
+        envelope = self._build_agui_state_envelope(
+            "agui.state.MessagesSnapshot",
+            chat_id=chat_id,
+            app_id=app_id,
+            data=data,
+        )
+        await self._broadcast_to_websockets(envelope, chat_id)
+
+    async def _apply_artifact_update(
+        self,
+        *,
+        artifact_id: Optional[str],
+        chat_id: Optional[str],
+        app_id: Optional[str],
+        workflow_name: Optional[str],
+        artifact_update: Any,
+        source: str = "action",
+    ) -> Optional[Any]:
+        if not artifact_id or not chat_id or not artifact_update:
+            return None
+
+        pm = self._get_or_create_persistence_manager()
+        ttl_seconds = self._resolve_state_ttl_seconds()
+        patch_ops: Optional[List[Dict[str, Any]]] = None
+        next_state: Optional[Any] = None
+
+        if isinstance(artifact_update, list):
+            patch_ops = artifact_update
+            next_state = await pm.apply_artifact_patch(
+                artifact_id=artifact_id,
+                chat_id=chat_id,
+                app_id=app_id,
+                patch_ops=patch_ops,
+                workflow_name=workflow_name,
+                ttl_seconds=ttl_seconds,
+            )
+        elif isinstance(artifact_update, dict):
+            mode = artifact_update.get("mode")
+            payload = artifact_update.get("payload")
+            if mode == "patch" or isinstance(payload, list) or isinstance(artifact_update.get("patch"), list):
+                patch_ops = payload if isinstance(payload, list) else artifact_update.get("patch")
+                next_state = await pm.apply_artifact_patch(
+                    artifact_id=artifact_id,
+                    chat_id=chat_id,
+                    app_id=app_id,
+                    patch_ops=patch_ops,
+                    workflow_name=workflow_name,
+                    ttl_seconds=ttl_seconds,
+                )
+            else:
+                if payload is None and mode is None:
+                    payload = artifact_update
+                next_state = self._sanitize_payload_for_state(payload)
+                await pm.upsert_artifact_state(
+                    artifact_id=artifact_id,
+                    chat_id=chat_id,
+                    app_id=app_id,
+                    state=next_state,
+                    workflow_name=workflow_name,
+                    ttl_seconds=ttl_seconds,
+                )
+                patch_ops = [{"op": "replace", "path": "", "value": next_state}]
+
+        if patch_ops:
+            await self._emit_state_delta(
+                artifact_id=artifact_id,
+                chat_id=chat_id,
+                app_id=app_id,
+                workflow_name=workflow_name,
+                patch_ops=patch_ops,
+                state=next_state,
+                source=source,
+            )
+        return next_state
+
     async def _ensure_general_chat_context(
         self,
         *,
@@ -2283,7 +2591,7 @@ class SimpleTransport:
             )
             return
 
-        response = await service.generate_response(
+        response = await service.generate_response(  # type: ignore[attr-defined]
             prompt=user_message,
             workflows=workflows_payload,
             app_id=str(app_id),
@@ -2571,6 +2879,33 @@ class SimpleTransport:
 
         # Delegate to core event sender for namespacing and sequence handling
         await self.send_event_to_ui(event, chat_id)
+
+        # Phase 6: emit AG-UI state snapshot for artifact renders (best-effort)
+        try:
+            display_mode = self._resolve_display_mode(display_type, payload)
+            if display_mode == "artifact" and chat_id:
+                conn_meta = self.connections.get(chat_id, {}) if chat_id else {}
+                app_id = conn_meta.get("app_id")
+                workflow_name = conn_meta.get("workflow_name") or payload.get("workflow_name")
+                artifact_id = self._resolve_artifact_id(payload, event_id)
+                sanitized_payload = self._sanitize_payload_for_state(payload)
+                await self._persist_artifact_state(
+                    artifact_id=artifact_id,
+                    chat_id=chat_id,
+                    app_id=app_id,
+                    state=sanitized_payload,
+                    workflow_name=workflow_name,
+                )
+                await self._emit_state_snapshot(
+                    artifact_id=artifact_id,
+                    chat_id=chat_id,
+                    app_id=app_id,
+                    workflow_name=workflow_name,
+                    state=sanitized_payload,
+                    source="ui_tool",
+                )
+        except Exception:
+            logger.debug("State snapshot emission failed for ui_tool", exc_info=True)
 
     @classmethod
     async def wait_for_ui_tool_response(cls, event_id: str, timeout: Optional[float] = 300.0) -> Dict[str, Any]:
@@ -2872,6 +3207,10 @@ class SimpleTransport:
             )
             
             await self._flush_message_queue(chat_id)
+            try:
+                await self._emit_messages_snapshot(chat_id=chat_id, app_id=app_id, mode="auto")
+            except Exception:
+                logger.debug("MessagesSnapshot emission failed for %s", chat_id, exc_info=True)
 
         except Exception as e:
             logger.warning(f"[AUTO_RESUME] Failed to auto-resume chat {chat_id}: {e}")

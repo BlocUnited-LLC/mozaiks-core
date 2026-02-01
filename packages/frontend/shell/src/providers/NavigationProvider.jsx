@@ -80,6 +80,24 @@ export const NavigationProvider = ({
       return;
     }
 
+    const normalizeNavigationConfig = (navConfig) => {
+      if (!navConfig || typeof navConfig !== 'object') {
+        return DEFAULT_NAVIGATION;
+      }
+
+      // Support API response shape: { navigation: [...] }
+      if (Array.isArray(navConfig.navigation) && !navConfig.routes) {
+        return {
+          ...DEFAULT_NAVIGATION,
+          version: navConfig.version || DEFAULT_NAVIGATION.version,
+          sidebar: { items: navConfig.navigation || [] },
+          topNav: navConfig.topNav || DEFAULT_NAVIGATION.topNav,
+        };
+      }
+
+      return navConfig;
+    };
+
     const loadNavigation = async () => {
       try {
         const response = await fetch(configPath);
@@ -96,7 +114,8 @@ export const NavigationProvider = ({
           throw new Error(`Failed to load navigation config: ${response.status}`);
         }
 
-        const navConfig = await response.json();
+        const rawConfig = await response.json();
+        const navConfig = normalizeNavigationConfig(rawConfig);
 
         // Validate required fields
         if (!navConfig.version || !navConfig.routes) {

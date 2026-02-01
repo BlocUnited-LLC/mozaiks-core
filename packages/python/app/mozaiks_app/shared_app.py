@@ -1489,6 +1489,48 @@ async def chat_meta(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load chat meta: {e}")
+
+
+@app.get("/api/artifacts/{artifact_id}/cached")
+async def get_cached_artifact_state(
+    artifact_id: str,
+    app_id: Optional[str] = None,
+    chat_id: Optional[str] = None,
+    principal: UserPrincipal = Depends(require_any_auth),
+):
+    """Return cached artifact state if available and not expired."""
+    try:
+        if principal.mozaiks_app_id and app_id and not principal.validate_app_id(app_id):
+            raise HTTPException(status_code=403, detail="Token app_id does not match request app_id")
+
+        resolved_app_id = coalesce_app_id(app_id=app_id or principal.mozaiks_app_id)
+        if not resolved_app_id:
+            raise HTTPException(status_code=400, detail="app_id is required")
+        if not artifact_id:
+            raise HTTPException(status_code=400, detail="artifact_id is required")
+
+        doc = await persistence_manager.get_artifact_state(
+            artifact_id=artifact_id,
+            app_id=resolved_app_id,
+            chat_id=chat_id,
+        )
+        if not doc:
+            raise HTTPException(status_code=404, detail="Cached artifact not found")
+
+        return {
+            "artifact_id": artifact_id,
+            "chat_id": doc.get("chat_id"),
+            "workflow_name": doc.get("workflow_name"),
+            "app_id": resolved_app_id,
+            "state": doc.get("state"),
+            "updated_at": _iso(doc.get("updated_at")),
+            "expires_at": _iso(doc.get("expires_at")),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to load cached artifact {artifact_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load cached artifact state")
     
 
 @app.websocket("/ws/{workflow_name}/{app_id}/{chat_id}/{user_id}")

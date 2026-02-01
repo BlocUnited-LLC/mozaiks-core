@@ -2979,6 +2979,8 @@ useEffect(() => {
       artifactContext={currentArtifactContext}
       layoutMode={layoutMode}
       onLayoutModeChange={setLayoutMode}
+      onArtifactAction={sendArtifactAction}
+      actionStatusMap={actionStatusMap}
     />
   );
 
@@ -3228,6 +3230,8 @@ useEffect(() => {
                   overlayMode
                   onOverlayClose={() => setWidgetOverlayOpen(false)}
                   artifactContext={currentArtifactContext}
+                  onArtifactAction={sendArtifactAction}
+                  actionStatusMap={actionStatusMap}
                 />
               </div>
             </div>

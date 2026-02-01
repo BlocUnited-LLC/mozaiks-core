@@ -160,12 +160,14 @@ def _safe_agent_label(value: Any) -> Optional[str]:
 	try:
 		if isinstance(value, str) and value.strip():
 			return value.strip()
-		if hasattr(value, "name") and isinstance(value.name, str) and value.name.strip():
-			return value.name.strip()
-		if hasattr(value, "agent_name") and isinstance(value.agent_name, str) and value.agent_name.strip():
-			return value.agent_name.strip()
 		if value is None:
 			return None
+		name_attr = getattr(value, "name", None)
+		if isinstance(name_attr, str) and name_attr.strip():
+			return name_attr.strip()
+		agent_name_attr = getattr(value, "agent_name", None)
+		if isinstance(agent_name_attr, str) and agent_name_attr.strip():
+			return agent_name_attr.strip()
 		return str(value)
 	except Exception:
 		return None
@@ -272,7 +274,7 @@ def build_ui_event_payload(*, ev: Any, ctx: EventBuildContext) -> Optional[Dict[
 							import json as _json
 							if isinstance(structured, dict):
 								so_keys = list(structured.keys())
-							elif isinstance(structured):
+							elif isinstance(structured, (list, tuple)):
 								so_keys = [f"list[{len(structured)}]"]
 							else:
 								so_keys = [type(structured).__name__]

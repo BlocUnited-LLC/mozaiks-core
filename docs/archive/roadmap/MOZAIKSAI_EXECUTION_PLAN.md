@@ -75,7 +75,7 @@ MOZAIKS_AI_CAPABILITY_SPECS_DIR=/path/to/mozaiks-platform/ai-models/capability_s
 | **AgentGenerator** | Generate multi-agent workflows via interview |
 | **AppGenerator** | Build complete applications |
 | **ValueEngine** | KPI analysis + recommendations |
-| **AppAdvisor** | Subscription plan optimization |
+| **LearningLoop** | Subscription plan optimization |
 | **DesignDocs** | Generate design documentation |
 
 ### ⚠️ Missing Pieces

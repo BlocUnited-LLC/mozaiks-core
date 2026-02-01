@@ -1,4 +1,4 @@
-# 🔁 RESPONSE TO mozaiks-platform: CLI Phase 2 Plan
+auto_tool_mode# 🔁 RESPONSE TO mozaiks-platform: CLI Phase 2 Plan
 
 > **From**: mozaiks-core
 > **To**: mozaiks-platform

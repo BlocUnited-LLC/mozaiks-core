@@ -6,6 +6,8 @@
 
 import React from 'react';
 import { handleEvent } from '../eventDispatcher';
+import PrimitiveRenderer from '../../primitives/PrimitiveRenderer';
+import { isCoreArtifact } from '../../primitives/utils';
 
 /**
  * 🎯 UI TOOL RENDERER - CORE COMPONENT
@@ -22,7 +24,9 @@ const UIToolRenderer = ({
   event, 
   onResponse,
   submitInputRequest,
-  className = ""
+  className = "",
+  onArtifactAction,
+  actionStatusMap
 }) => {
   // Validate event structure
   if (!event || !event.ui_tool_id) {
@@ -44,6 +48,23 @@ const UIToolRenderer = ({
       agentName: resolvedAgentName,
       payloadKeys: event.payload ? Object.keys(event.payload) : []
     });
+    const payload = event.payload || {};
+    const isCore = isCoreArtifact(payload) || (typeof event.ui_tool_id === 'string' && event.ui_tool_id.startsWith('core.'));
+    const hasArtifactType = payload?.artifact_type || payload?.data?.artifact_type;
+    const corePayload = isCore && !hasArtifactType
+      ? { ...payload, artifact_type: event.ui_tool_id }
+      : payload;
+    if (isCore) {
+      return (
+        <div className={`ui-tool-container ${className}`}>
+          <PrimitiveRenderer
+            payload={corePayload}
+            onAction={onArtifactAction}
+            actionStatusMap={actionStatusMap}
+          />
+        </div>
+      );
+    }
     // Use the event dispatcher to render the component
     const renderedComponent = handleEvent(event, onResponse, submitInputRequest);
 

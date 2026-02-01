@@ -31,6 +31,7 @@ If any of these paths move, notify platform immediately.
 - `[reference]` docs/ai-runtime/synthetic-events.md
 - `[reference]` docs/ai-runtime/observability.md
 - `[reference]` docs/ai-runtime/architecture.md
+- `[reference]` docs/coordination/platform-implementation-checklist.md
 
 ## Guides (onboarding + how-to)
 
@@ -42,6 +43,7 @@ If any of these paths move, notify platform immediately.
 - `[guide]` docs/guides/troubleshooting.md
 - `[guide]` docs/guides/operations-runbook.md
 - `[guide]` docs/contracts/agui-migration-guide.md
+- `[guide]` docs/contracts/navigation-trigger-migration.md
 
 ## Roadmap
 

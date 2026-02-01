@@ -203,6 +203,9 @@ class AutoToolEventHandler:
             }
             logger.debug("[AUTO_TOOL] Agent %s has functions: %s", agent, list(agent_function_index[agent].keys()))
 
+        if WORKFLOWS_ROOT is None:
+            logger.warning("[AUTO_TOOL] WORKFLOWS_ROOT is None, cannot load tools.json for workflow=%s", workflow_name)
+            return mapping
         tools_path = WORKFLOWS_ROOT / workflow_name / "tools.json"
         try:
             tools_data = json.loads(tools_path.read_text(encoding="utf-8")) if tools_path.exists() else {}
@@ -274,7 +277,8 @@ class AutoToolEventHandler:
                     and name not in {"self"}
                 ]
                 accepts_context = "context_variables" in sig.parameters
-                ui_cfg = entry.get("ui") if isinstance(entry.get("ui"), dict) else {}
+                ui_raw = entry.get("ui")
+                ui_cfg: Dict[str, Any] = ui_raw if isinstance(ui_raw, dict) else {}
                 binding = AutoToolBinding(
                     model_name=model_name,
                     agent_name=agent_name,

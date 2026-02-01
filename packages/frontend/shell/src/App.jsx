@@ -44,6 +44,7 @@ function App() {
   const handleChatUIReady = () => {
     console.log('ChatUI is ready!');
   };
+  const navigationPath = process.env.REACT_APP_NAVIGATION_PATH || '/navigation.json';
 
   const handleNavigationLoad = (config) => {
     if (process.env.NODE_ENV === 'development') {
@@ -59,7 +60,7 @@ function App() {
 
   return (
     <BrandingProvider onLoad={handleBrandingLoad}>
-      <NavigationProvider onLoad={handleNavigationLoad}>
+      <NavigationProvider onLoad={handleNavigationLoad} configPath={navigationPath}>
         <ChatUIProvider onReady={handleChatUIReady}>
           <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <GlobalChatWidgetWrapper />

@@ -1,7 +1,7 @@
 # AG-UI Migration Guide (chat.* → agui.*)
 > **Status:** Draft  
 > **Owner:** mozaiks-core  
-> **Last Updated:** 2026-01-30
+> **Last Updated:** 2026-01-31
 
 This guide explains how to migrate consumers from the legacy `chat.*` event namespace to the AG-UI compatible `agui.*` namespace.
 
@@ -49,6 +49,17 @@ Mozaiks Core **dual-emits** events:
 | `chat.tool_response` | `agui.tool.ToolCallResult` |
 | *(synthetic)* | `agui.tool.ToolCallEnd` |
 
+### State
+| chat.* | agui.* |
+|--------|--------|
+| *(none)* | `agui.state.StateSnapshot` |
+| *(none)* | `agui.state.StateDelta` |
+| *(none)* | `agui.state.MessagesSnapshot` |
+
+**Notes:**
+- State events are new in core and do not have `chat.*` equivalents.
+- `StateDelta` uses JSON Patch (RFC 6902) ops; root replacement uses `path: ""`.
+
 ---
 
 ## 3) Recommended Migration Steps
@@ -87,4 +98,3 @@ A: `MOZAIKS_AGUI_ENABLED=false`
 
 **Q: Are there AG-UI equivalents for every `chat.*` event?**  
 A: No. Some runtime-specific events (usage, resume, select_speaker, etc.) remain `chat.*` only.
-

@@ -81,7 +81,7 @@
 │  │ ├── packages/shell/ (React UI)     │  │  │ ├── workflows/AgentGenerator               │  │
 │  │ ├── packages/sdk/                  │  │  │ ├── workflows/AppGenerator                 │  │
 │  │ ├── backend/ (Python FastAPI)      │  │  │ ├── workflows/DesignDocs                   │  │
-│  │ └── ai/                            │  │  │ ├── workflows/AppAdvisor          │  │
+│  │ └── ai/                            │  │  │ ├── workflows/LearningLoop          │  │
 │  │     ├── packages/core/             │  │  │ ├── workflows/ValueEngine                  │  │
 │  │     ├── packages/ui/ (ChatUI)      │  │  │ └── packs/                                 │  │
 │  │     └── packages/tools/            │  │  └────────────────────────────────────────────┘  │
@@ -239,7 +239,7 @@ MozaiksAI/
 │   ├── AgentGenerator/         # Agent generation workflow
 │   ├── AppGenerator/           # App generation workflow
 │   ├── DesignDocs/             # Design docs workflow
-│   ├── AppAdvisor/    # Subscription workflow
+│   ├── LearningLoop/    # Subscription workflow
 │   └── ValueEngine/            # Value engine workflow
 │
 ├── docs/                       # Documentation
@@ -493,7 +493,7 @@ mozaiks-app/
 | `workflows/AgentGenerator/` | `ai-models/workflows/AgentGenerator/` | **PROPRIETARY** |
 | `workflows/AppGenerator/` | `ai-models/workflows/AppGenerator/` | **PROPRIETARY** |
 | `workflows/DesignDocs/` | `ai-models/workflows/DesignDocs/` | **PROPRIETARY** |
-| `workflows/AppAdvisor/` | `ai-models/workflows/AppAdvisor/` | **PROPRIETARY** |
+| `workflows/LearningLoop/` | `ai-models/workflows/LearningLoop/` | **PROPRIETARY** |
 | `workflows/ValueEngine/` | `ai-models/workflows/ValueEngine/` | **PROPRIETARY** |
 | `workflows/_pack/` | `ai-models/packs/` | Curated packs **PROPRIETARY** |
 | `workflows/_examples/` | `examples/workflows/` | Could be open source |
@@ -717,7 +717,7 @@ mozaiks-platform/
 │   │   ├── AgentGenerator/
 │   │   ├── AppGenerator/
 │   │   ├── DesignDocs/
-│   │   ├── AppAdvisor/
+│   │   ├── LearningLoop/
 │   │   └── ValueEngine/
 │   ├── packs/
 │   └── shared/
@@ -844,7 +844,7 @@ Copy-Item -Recurse "$aiRoot\workflows\_examples\*" "$coreRoot\examples\workflows
 Copy-Item -Recurse "$aiRoot\workflows\AgentGenerator" "$platformRoot\ai-models\workflows\"
 Copy-Item -Recurse "$aiRoot\workflows\AppGenerator" "$platformRoot\ai-models\workflows\"
 Copy-Item -Recurse "$aiRoot\workflows\DesignDocs" "$platformRoot\ai-models\workflows\"
-Copy-Item -Recurse "$aiRoot\workflows\AppAdvisor" "$platformRoot\ai-models\workflows\"
+Copy-Item -Recurse "$aiRoot\workflows\LearningLoop" "$platformRoot\ai-models\workflows\"
 Copy-Item -Recurse "$aiRoot\workflows\ValueEngine" "$platformRoot\ai-models\workflows\"
 Copy-Item -Recurse "$aiRoot\workflows\_pack\*" "$platformRoot\ai-models\packs\"
 Copy-Item -Recurse "$aiRoot\workflows\_shared\*" "$platformRoot\ai-models\shared\"

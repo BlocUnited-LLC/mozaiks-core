@@ -25,10 +25,13 @@ Example Flow:
 4. User clicks "Generator" tab → Generator resumes from paused state
 """
 
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Union
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
 from mozaiks_infra.logs.logging_config import get_workflow_logger
+
+# Type alias for ws_id which can be int or str depending on caller
+WsId = Union[int, str]
 
 logger = get_workflow_logger("session_registry")
 
@@ -86,7 +89,7 @@ class SessionRegistry:
     
     def add_workflow(
         self, 
-        ws_id: str, 
+        ws_id: WsId, 
         chat_id: str, 
         workflow_name: str,
         app_id: str,
@@ -145,7 +148,7 @@ class SessionRegistry:
         
         return context
     
-    def switch_workflow(self, ws_id: str, chat_id: str) -> Optional[WorkflowContext]:
+    def switch_workflow(self, ws_id: WsId, chat_id: str) -> Optional[WorkflowContext]:
         """
         Switch to a different workflow context (pause current, resume target).
         
@@ -178,7 +181,7 @@ class SessionRegistry:
         logger.warning(f"Workflow {chat_id} not found or already completed in session {ws_id}")
         return None
     
-    def enter_general_mode(self, ws_id: str):
+    def enter_general_mode(self, ws_id: WsId) -> None:
         """
         Pause all workflows and enter general (non-AG2) mode.
         
@@ -195,7 +198,7 @@ class SessionRegistry:
         self._active_chat[ws_id] = None
         logger.info(f"Session {ws_id} entered general mode (all workflows paused)")
     
-    def get_active_workflow(self, ws_id: str) -> Optional[WorkflowContext]:
+    def get_active_workflow(self, ws_id: WsId) -> Optional[WorkflowContext]:
         """
         Get currently active workflow for this WebSocket.
         
@@ -211,7 +214,7 @@ class SessionRegistry:
         
         return None
     
-    def get_all_workflows(self, ws_id: str) -> List[WorkflowContext]:
+    def get_all_workflows(self, ws_id: WsId) -> List[WorkflowContext]:
         """
         Get all workflow contexts (active + paused + completed) for this session.
         
@@ -220,7 +223,7 @@ class SessionRegistry:
         """
         return self._workflows.get(ws_id, [])
     
-    def complete_workflow(self, ws_id: str, chat_id: str):
+    def complete_workflow(self, ws_id: WsId, chat_id: str) -> None:
         """
         Mark a workflow as completed.
         
@@ -242,7 +245,7 @@ class SessionRegistry:
                 
                 break
     
-    def remove_session(self, ws_id: str):
+    def remove_session(self, ws_id: WsId) -> None:
         """
         Clean up session registry when WebSocket disconnects.
         
@@ -255,7 +258,7 @@ class SessionRegistry:
             del self._active_chat[ws_id]
             logger.info(f"Removed session {ws_id} ({workflow_count} workflows)")
     
-    def get_workflow_by_chat_id(self, ws_id: str, chat_id: str) -> Optional[WorkflowContext]:
+    def get_workflow_by_chat_id(self, ws_id: WsId, chat_id: str) -> Optional[WorkflowContext]:
         """
         Get a specific workflow context by chat_id.
         
@@ -271,7 +274,7 @@ class SessionRegistry:
         
         return None
     
-    def is_in_general_mode(self, ws_id: str) -> bool:
+    def is_in_general_mode(self, ws_id: WsId) -> bool:
         """
         Check if session is in general mode (no active workflow).
         
