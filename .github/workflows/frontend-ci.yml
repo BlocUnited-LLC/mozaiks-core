@@ -46,7 +46,7 @@ jobs:
         run: npm test || echo "No tests found or tests failed"
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: shell-build
           path: runtime/packages/shell/dist
