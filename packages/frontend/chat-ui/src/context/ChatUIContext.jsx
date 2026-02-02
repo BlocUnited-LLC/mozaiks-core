@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { createInitialSurfaceState, mapSurfaceEventToAction, uiSurfaceReducer } from '../state/uiSurfaceReducer';
 
 const ChatUIContext = createContext(null);
 
@@ -39,28 +40,101 @@ export const ChatUIProvider = ({
   const [chatMinimized, setChatMinimized] = useState(false);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
   
-  // Fluid layout state - controls chat/artifact panel behavior
-  const [layoutMode, setLayoutMode] = useState('full'); // 'full' | 'split' | 'minimized' | 'view'
-  const [previousLayoutMode, setPreviousLayoutMode] = useState('full'); // Remember state before minimizing
-  const [isArtifactOpen, setIsArtifactOpen] = useState(false);
-  const [isInWidgetMode, setIsInWidgetMode] = useState(false); // Track if chat is in persistent widget mode (non-ChatPage routes)
-  const [isWidgetVisible, setIsWidgetVisible] = useState(true); // Allows specific pages to suppress the widget UI while staying in widget mode
-  const [isChatOverlayOpen, setIsChatOverlayOpen] = useState(false); // Full-screen overlay while remaining in widget mode
-  const [widgetOverlayOpen, setWidgetOverlayOpen] = useState(false); // View-mode overlay toggle
-  const [currentArtifactContext, setCurrentArtifactContext] = useState(null); // { type, payload, id }
-
-  // Conversation mode + general chat state (non-workflow / ask mode)
-  const [conversationMode, setConversationMode] = useState(() => {
-    try {
-      const stored = localStorage.getItem('mozaiks.conversation_mode');
-      if (stored === 'ask' || stored === 'workflow') {
-        return stored;
+  // Surface/layout FSM (controls chat/artifact/widget state)
+  const [surfaceState, surfaceDispatch] = useReducer(
+    uiSurfaceReducer,
+    null,
+    () => {
+      let initialMode = 'workflow';
+      try {
+        const stored = localStorage.getItem('mozaiks.conversation_mode');
+        if (stored === 'ask' || stored === 'workflow') {
+          initialMode = stored;
+        }
+      } catch (_) {
+        /* ignore storage errors */
       }
-    } catch (_) {
-      /* ignore storage errors */
+      return createInitialSurfaceState(initialMode);
+    },
+  );
+  const surfaceStateRef = useRef(surfaceState);
+  useEffect(() => {
+    surfaceStateRef.current = surfaceState;
+  }, [surfaceState]);
+
+  const layoutMode = surfaceState.layoutMode;
+  const previousLayoutMode = surfaceState.previousLayoutMode;
+  const isArtifactOpen = surfaceState.artifact.panelOpen;
+  const isInWidgetMode = surfaceState.widget.isInWidgetMode;
+  const isWidgetVisible = surfaceState.widget.isWidgetVisible;
+  const isChatOverlayOpen = surfaceState.widget.isChatOverlayOpen;
+  const widgetOverlayOpen = surfaceState.widget.widgetOverlayOpen;
+  const conversationMode = surfaceState.conversationMode;
+  const surfaceMode = surfaceState.surfaceMode;
+  const workflowStatus = surfaceState.workflowStatus;
+
+  const setLayoutMode = useCallback((mode) => {
+    const current = surfaceStateRef.current?.layoutMode;
+    const nextMode = typeof mode === 'function' ? mode(current) : mode;
+    surfaceDispatch({ type: 'SET_LAYOUT_MODE', mode: nextMode });
+  }, [surfaceDispatch]);
+
+  const setPreviousLayoutMode = useCallback((mode) => {
+    const current = surfaceStateRef.current?.previousLayoutMode;
+    const nextMode = typeof mode === 'function' ? mode(current) : mode;
+    surfaceDispatch({ type: 'SET_PREVIOUS_LAYOUT_MODE', mode: nextMode });
+  }, [surfaceDispatch]);
+
+  const setIsArtifactOpen = useCallback((value) => {
+    const current = surfaceStateRef.current?.artifact?.panelOpen;
+    const nextValue = typeof value === 'function' ? value(current) : value;
+    surfaceDispatch({ type: 'SET_ARTIFACT_PANEL_OPEN', open: nextValue });
+  }, [surfaceDispatch]);
+
+  const setIsInWidgetMode = useCallback((value) => {
+    const current = surfaceStateRef.current?.widget?.isInWidgetMode;
+    const nextValue = typeof value === 'function' ? value(current) : value;
+    surfaceDispatch({ type: 'SET_WIDGET_MODE', value: nextValue });
+  }, [surfaceDispatch]);
+
+  const setIsWidgetVisible = useCallback((value) => {
+    const current = surfaceStateRef.current?.widget?.isWidgetVisible;
+    const nextValue = typeof value === 'function' ? value(current) : value;
+    surfaceDispatch({ type: 'SET_WIDGET_VISIBILITY', value: nextValue });
+  }, [surfaceDispatch]);
+
+  const setIsChatOverlayOpen = useCallback((value) => {
+    const current = surfaceStateRef.current?.widget?.isChatOverlayOpen;
+    const nextValue = typeof value === 'function' ? value(current) : value;
+    surfaceDispatch({ type: 'SET_CHAT_OVERLAY_OPEN', value: nextValue });
+  }, [surfaceDispatch]);
+
+  const setWidgetOverlayOpen = useCallback((value) => {
+    const current = surfaceStateRef.current?.widget?.widgetOverlayOpen;
+    const nextValue = typeof value === 'function' ? value(current) : value;
+    surfaceDispatch({ type: 'SET_WIDGET_OVERLAY_OPEN', value: nextValue });
+  }, [surfaceDispatch]);
+
+  const setConversationMode = useCallback((mode) => {
+    const current = surfaceStateRef.current?.conversationMode;
+    const nextMode = typeof mode === 'function' ? mode(current) : mode;
+    surfaceDispatch({ type: 'SET_CONVERSATION_MODE', mode: nextMode });
+  }, [surfaceDispatch]);
+
+  const dispatchSurfaceAction = useCallback((action) => {
+    if (action) {
+      surfaceDispatch(action);
     }
-    return 'workflow';
-  });
+  }, [surfaceDispatch]);
+
+  const dispatchSurfaceEvent = useCallback((event) => {
+    const action = mapSurfaceEventToAction(event);
+    if (action) {
+      surfaceDispatch(action);
+    }
+  }, [surfaceDispatch]);
+
+  const [currentArtifactContext, setCurrentArtifactContext] = useState(null); // { type, payload, id }
   const [activeGeneralChatId, setActiveGeneralChatId] = useState(null);
   const [generalChatSummary, setGeneralChatSummary] = useState(null);
   const [generalChatSessions, setGeneralChatSessions] = useState([]);
@@ -210,6 +284,11 @@ export const ChatUIProvider = ({
     setCurrentArtifactContext,
     conversationMode,
     setConversationMode,
+    surfaceMode,
+    workflowStatus,
+    surfaceState,
+    dispatchSurfaceAction,
+    dispatchSurfaceEvent,
     activeGeneralChatId,
     setActiveGeneralChatId,
     generalChatSummary,

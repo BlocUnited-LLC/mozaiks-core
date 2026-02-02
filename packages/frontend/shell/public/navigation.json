@@ -57,7 +57,7 @@
         "id": "workflows",
         "label": "My Workflows",
         "icon": "Workflow",
-        "path": "/workflows",
+        "path": "/chat?discover=1",
         "order": 2
       }
     ]

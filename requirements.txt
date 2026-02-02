@@ -1,4 +1,4 @@
-ag2==0.10.4
+ag2[openai]==0.10.5
 aiohappyeyeballs==2.6.1
 aiohttp==3.13.3
 aiosignal==1.4.0
@@ -117,3 +117,4 @@ websockets==16.0
 Werkzeug==3.1.5
 yarl==1.22.0
 zipp==3.23.0
+falkordb>=1.0.0

@@ -32,7 +32,9 @@ const Header = ({
   const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(3);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [openActionMenuId, setOpenActionMenuId] = useState(null);
   const dropdownRef = useRef(null);
+  const headerRef = useRef(null);
 
   // Handle scroll effect for dynamic blur
   useEffect(() => {
@@ -58,11 +60,15 @@ const Header = ({
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         if (isProfileDropdownOpen) setIsProfileDropdownOpen(false);
       }
+      if (openActionMenuId && headerRef.current && !headerRef.current.contains(e.target)) {
+        setOpenActionMenuId(null);
+      }
     };
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         if (isProfileDropdownOpen) setIsProfileDropdownOpen(false);
         if (isNotificationDropdownOpen) setIsNotificationDropdownOpen(false);
+        if (openActionMenuId) setOpenActionMenuId(null);
       }
     };
     document.addEventListener('mousedown', handleGlobalPointer);
@@ -73,7 +79,7 @@ const Header = ({
       document.removeEventListener('touchstart', handleGlobalPointer);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isProfileDropdownOpen, isNotificationDropdownOpen]);
+  }, [isProfileDropdownOpen, isNotificationDropdownOpen, openActionMenuId]);
 
   const toggleProfileDropdown = () => {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
@@ -105,13 +111,26 @@ const Header = ({
   };
 
   // --- Config-driven Action Buttons ---
+  const handleActionClick = (action) => {
+    if (action?.items && Array.isArray(action.items) && action.items.length > 0) {
+      setOpenActionMenuId((prev) => (prev === action.id ? null : action.id));
+      return;
+    }
+    onAction(action.id, action);
+  };
+
+  const handleActionItemClick = (action, item) => {
+    setOpenActionMenuId(null);
+    onAction(item?.id || action.id, item || action);
+  };
+
   const ActionButtons = () => {
     const actions = headerConfig.actions || DEFAULT_HEADER_CONFIG.actions || [];
     return actions.filter(a => a.visible !== false).map(action => (
       <React.Fragment key={action.id}>
         {/* Desktop action button */}
         <button
-          onClick={() => onAction(action.id)}
+          onClick={() => handleActionClick(action)}
           className="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] border-2 border-[var(--color-primary-light)] text-white oxanium hover:shadow-[0_0_20px_rgba(51,240,250,0.5)] transition-all duration-300 text-sm font-bold"
           title={action.label || action.id}
           style={{ boxShadow: '0 0 10px rgba(51,240,250,0.3)' }}
@@ -122,9 +141,25 @@ const Header = ({
           </svg>
           <span className="font-bold tracking-wide">{action.label || action.id}</span>
         </button>
+        {openActionMenuId === action.id && Array.isArray(action.items) && action.items.length > 0 && (
+          <div className="hidden md:block absolute right-16 top-full mt-2 w-56 rounded-2xl border border-[rgba(var(--color-primary-light-rgb),0.35)] bg-[rgba(5,10,24,0.96)] backdrop-blur-xl shadow-[0_20px_60px_rgba(2,6,23,0.6)] overflow-hidden z-50">
+            <div className="flex flex-col py-2">
+              {action.items.map((item) => (
+                <button
+                  key={item.id || item.label}
+                  type="button"
+                  onClick={() => handleActionItemClick(action, item)}
+                  className="w-full text-left px-4 py-2.5 text-sm text-[rgba(226,232,240,0.9)] hover:bg-white/10 transition"
+                >
+                  {item.label || item.id}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {/* Mobile action button */}
         <button
-          onClick={() => onAction(action.id)}
+          onClick={() => handleActionClick(action)}
           className="md:hidden inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] border border-[rgba(var(--color-primary-light-rgb),0.5)] text-white hover:shadow-[0_8px_30px_rgba(var(--color-primary-light-rgb),0.4)] transition-all"
           title={action.label || action.id}
         >
@@ -138,7 +173,7 @@ const Header = ({
   };
 
   return (
-    <header className={`
+    <header ref={headerRef} className={`
       fixed top-0 left-0 right-0 z-50 transition-all duration-300
       ${isScrolled ? 'backdrop-blur-md bg-black/25' : 'backdrop-blur-md bg-black/15'}
       border-b border-[rgba(var(--color-primary-rgb),0.1)]

@@ -6,6 +6,7 @@ import { NavigationProvider } from './providers/NavigationProvider';
 import { BrandingProvider } from './providers/BrandingProvider';
 import RouteRenderer from './components/RouteRenderer';
 import './styles/TransportAwareChat.css';
+import ShellUIToolRenderer from './core/ui/UIToolRenderer';
 
 // Import core component registration
 import './registry/coreComponents';
@@ -58,10 +59,24 @@ function App() {
     }
   }, []);
 
+  const renderUiTool = useCallback((event, onResponse, submitInputRequest, options = {}) => (
+    <ShellUIToolRenderer
+      event={event}
+      onResponse={onResponse}
+      submitInputRequest={submitInputRequest}
+      onArtifactAction={options.onArtifactAction}
+      actionStatusMap={options.actionStatusMap}
+    />
+  ), []);
+
   return (
     <BrandingProvider onLoad={handleBrandingLoad}>
       <NavigationProvider onLoad={handleNavigationLoad} configPath={navigationPath}>
-        <ChatUIProvider onReady={handleChatUIReady} workflowInitializer={initializeWorkflows}>
+        <ChatUIProvider
+          onReady={handleChatUIReady}
+          workflowInitializer={initializeWorkflows}
+          uiToolRenderer={renderUiTool}
+        >
           <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <GlobalChatWidgetWrapper />
             <AppContent />

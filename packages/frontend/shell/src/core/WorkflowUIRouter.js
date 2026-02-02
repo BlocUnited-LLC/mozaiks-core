@@ -5,6 +5,7 @@
 // ==============================================================================
 
 import React from 'react';
+import { getComponent } from '../registry/componentRegistry';
 
 /**
  * 🎯 WORKFLOW UI ROUTER - TRULY MODULAR
@@ -54,6 +55,15 @@ const WorkflowUIRouter = ({
       setIsLoading(true);
       setError(null);
       console.log('🛰️ WorkflowUIRouter: Loading component', { workflow, component });
+      if (workflow === 'core' || workflow === 'shell') {
+        const registryComponent = getComponent(component) || getComponent(ui_tool_id);
+        if (registryComponent) {
+          console.log(`✅ WorkflowUIRouter: Using registered component ${component || ui_tool_id}`);
+          setComponent(() => registryComponent);
+          setIsLoading(false);
+          return;
+        }
+      }
       // Derive chat-specific cache key (include cache_seed AND eventId to prevent collision on revisions)
       let chatId = null;
       try { chatId = localStorage.getItem('mozaiks.current_chat_id'); } catch {}
@@ -109,6 +119,19 @@ const WorkflowUIRouter = ({
         }
       } catch (coreError) {
         console.warn(`⚠️ WorkflowUIRouter: Failed to load core components`, coreError);
+      }
+
+      // Final fallback: registered core Shell components (pages/artifacts)
+      try {
+        const registryComponent = getComponent(component) || getComponent(ui_tool_id);
+        if (registryComponent) {
+          console.log(`✅ WorkflowUIRouter: Using registered component ${component || ui_tool_id}`);
+          setComponent(() => registryComponent);
+          setIsLoading(false);
+          return;
+        }
+      } catch (registryError) {
+        console.warn(`⚠️ WorkflowUIRouter: Failed to load registered components`, registryError);
       }
       
       // No fallback found

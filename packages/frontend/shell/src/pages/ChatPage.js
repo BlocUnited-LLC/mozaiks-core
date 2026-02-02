@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import Header from "../components/layout/Header";
-import Footer from "../components/layout/Footer";
 import { ChatInterface, ArtifactPanel, WorkflowCompletion, FluidChatLayout, MobileArtifactDrawer } from '@mozaiks/chat-ui';
 import { useNavigate, useLocation } from "react-router-dom";
 import { useChatUI } from "../context/ChatUIContext";
@@ -179,7 +178,7 @@ const MobileAskHistoryDrawer = ({
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       ></button>
-      <div className="relative z-10 h-full w-[min(86vw,320px)] max-w-sm bg-[rgba(5,10,24,0.96)] backdrop-blur-2xl border-r border-[rgba(var(--color-primary-light-rgb),0.3)] shadow-[0_20px_60px_rgba(2,6,23,0.85)] flex flex-col">
+      <div className="relative z-10 h-full w-full max-w-full bg-[rgba(5,10,24,0.96)] backdrop-blur-2xl border border-[rgba(var(--color-primary-light-rgb),0.3)] shadow-[0_20px_60px_rgba(2,6,23,0.85)] flex flex-col">
         <div className="flex items-center justify-between px-4 py-3 border-b border-[rgba(var(--color-primary-light-rgb),0.25)]">
           <div>
             <p className="text-[10px] tracking-[0.3em] uppercase text-[rgba(148,163,184,0.8)]">Ask</p>
@@ -301,6 +300,7 @@ const ChatPage = () => {
   const queryWorkflowName = searchParams.get('workflow');
   const queryChatId = searchParams.get('chat_id');
   const queryMode = searchParams.get('mode'); // 'ask' or 'workflow'
+  const queryDiscover = searchParams.get('discover');
   const queryResume = searchParams.get('resume');
 
   const appId = pathAppId || queryAppId;
@@ -316,12 +316,15 @@ const ChatPage = () => {
     setChatMinimized,
     layoutMode,
     setLayoutMode,
+    isArtifactOpen,
+    setIsArtifactOpen,
     widgetOverlayOpen,
     setWidgetOverlayOpen,
+    dispatchSurfaceEvent,
+    dispatchSurfaceAction,
     currentArtifactContext,
     setCurrentArtifactContext,
     isInWidgetMode,
-    setPreviousLayoutMode,
     setIsInWidgetMode,
     conversationMode,
     setConversationMode,
@@ -337,8 +340,14 @@ const ChatPage = () => {
     setWorkflowMessages,
     pendingNavigationTrigger,
     setPendingNavigationTrigger,
+    surfaceState,
   } = useChatUI();
-  const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
+  const surfaceStateRef = useRef(surfaceState);
+  useEffect(() => {
+    surfaceStateRef.current = surfaceState;
+  }, [surfaceState]);
+  const isSidePanelOpen = isArtifactOpen;
+  const setIsSidePanelOpen = setIsArtifactOpen;
   const [forceOverlay, setForceOverlay] = useState(false);
   const [discoveryChatMinimized, setDiscoveryChatMinimized] = useState(false);
   const [isAskHistoryDrawerOpen, setIsAskHistoryDrawerOpen] = useState(false);
@@ -353,8 +362,14 @@ const ChatPage = () => {
   
   // Current artifact messages rendered inside ArtifactPanel (not in chat messages)
   const [currentArtifactMessages, setCurrentArtifactMessages] = useState([]);
+  const currentArtifactMessagesRef = useRef([]);
+  useEffect(() => {
+    currentArtifactMessagesRef.current = currentArtifactMessages;
+  }, [currentArtifactMessages]);
   const navTriggerRef = useRef(null);
   const navCacheContextRef = useRef(null);
+  const discoverHandledRef = useRef(false);
+  const viewArtifactSnapshotRef = useRef(null);
   // Track the most recent artifact-mode UI event id to manage auto-collapse
   const lastArtifactEventRef = useRef(null);
   // Track pending AG2 input request (when user should respond via submitInputRequest)
@@ -370,6 +385,7 @@ const ChatPage = () => {
   // Respect explicit layout state in workflow mode; force full in ask mode.
   const effectiveLayoutMode = conversationMode === 'ask' ? 'full' : layoutMode;
   const isViewMode = effectiveLayoutMode === 'view';
+  const mainPaddingClass = 'pt-16 md:pt-16';
 
   // Helper function to get default workflow from registry
   const getDefaultWorkflowFromRegistry = () => {
@@ -998,6 +1014,9 @@ const ChatPage = () => {
       try { logAgentOutput('INCOMING', extractAgentName(data), data, { type: data?.type }); } catch {}
     }
     if (!data?.type) return;
+    if (dispatchSurfaceEvent) {
+      dispatchSurfaceEvent(data);
+    }
     // Robust spinner hide: only once
     try {
       if (initSpinnerShownRef.current && !initSpinnerHiddenOnceRef.current) {
@@ -1081,10 +1100,10 @@ const ChatPage = () => {
       };
       
       console.debug('🔌 ChatPage: Passing sendResponse callback type:', typeof sendResponse, 'event:', data);
-      // Auto-open artifact panel ONLY for display === 'artifact' (not inline components)
+      // Surface artifact for mobile drawer; desktop layout is handled by surface reducer.
       try {
         const displayMode = data.display || data.display_type || data.mode;
-        if (displayMode === 'artifact') {
+        if (displayMode === 'artifact' || displayMode === 'view' || displayMode === 'fullscreen') {
           console.log('📊 [TELEMETRY] Auto-opening artifact panel for ui_tool_event:', {
             ui_tool_id: data.ui_tool_id,
             display: displayMode,
@@ -1095,13 +1114,8 @@ const ChatPage = () => {
           
           if (isMobileView) {
             // Mobile: surface the bottom drawer and clear artifact badge
-            setIsSidePanelOpen(true);
             setMobileDrawerState('expanded');
             setHasUnseenArtifact(false);
-          } else {
-            // Desktop: Open split view as usual
-            setLayoutMode && setLayoutMode('split');
-            setIsSidePanelOpen && setIsSidePanelOpen(true);
           }
         }
       } catch (e) { /* ignore if not available */ }
@@ -2397,69 +2411,91 @@ useEffect(() => {
       try {
         if (!update || !update.type) return;
         // Only handle ui_tool_event here; other updates (status/component updates) are ignored for now
-  if (update.type === 'ui_tool_event') {
-    const { ui_tool_id, payload = {}, eventId, workflow_name, onResponse, display } = update;
+        if (update.type === 'ui_tool_event') {
+          if (dispatchSurfaceEvent) {
+            dispatchSurfaceEvent(update);
+          }
+          const { ui_tool_id, payload = {}, eventId, workflow_name, onResponse, display } = update;
           console.log('🧩 [UI] ChatPage received ui_tool_event -> inserting into messages', { ui_tool_id, eventId, workflow_name });
           // If this UI tool requests artifact display, auto-open the ArtifactPanel like OpenAI/Claude canvases
-    const displayMode = (display || payload.display || payload.mode);
-    if (displayMode === 'artifact') {
-      console.log('🖼️ [UI] Auto-opening ArtifactPanel for artifact-mode event');
-      setIsSidePanelOpen(true);
-      const agentText = payload.agent_message || payload.description || null;
-      if (agentText) {
-        setMessagesWithLogging((prev) => {
-          const withoutThinking = prev.filter(msg => !msg.isThinking);
-          const hasExisting = withoutThinking.some(msg => msg?.metadata?.eventId === (eventId || ui_tool_id) && msg?.metadata?.type === 'ui_tool_agent_message');
-          if (hasExisting) return withoutThinking;
-          return [
-            ...withoutThinking,
-            {
-              id: `ui-msg-${eventId || Date.now()}`,
-              sender: 'agent',
-              agentName: payload.agentName || payload.agent_name || update.agent_name || update.agent || 'Agent',
-              content: agentText,
-              isStreaming: false,
-              metadata: { type: 'ui_tool_agent_message', eventId: eventId || ui_tool_id, ui_tool_id }
+          const displayMode = (display || payload.display || payload.mode);
+          const isViewDisplay = displayMode === 'view' || displayMode === 'fullscreen';
+          if (isViewDisplay) {
+            const snapshotState = surfaceStateRef.current;
+            if (snapshotState?.layoutMode !== 'view') {
+              const snapshotLayout = snapshotState?.layoutMode || 'split';
+              viewArtifactSnapshotRef.current = {
+                isOpen: Boolean(snapshotState?.artifact?.panelOpen),
+                layoutMode: snapshotLayout,
+                messages: Array.isArray(currentArtifactMessagesRef.current) ? [...currentArtifactMessagesRef.current] : [],
+              };
             }
-          ];
-        });
-      }
-      // Create artifact payload for ArtifactPanel to render
-      let artifactPayload = null;
-      try {
-        artifactPayload = {
-          ...payload,
-          artifact_id: deriveArtifactId(payload, eventId || ui_tool_id || null),
-        };
-        const artifactMsg = {
-          id: `ui-artifact-${eventId || Date.now()}`,
-          sender: 'agent',
-          agentName: payload.agentName || payload.agent_name || update.agent_name || update.agent || 'Agent',
-          content: artifactPayload.structured_output || artifactPayload.content || artifactPayload || {},
-          isStreaming: false,
-          uiToolEvent: { ui_tool_id, payload: artifactPayload, eventId, workflow_name, onResponse, display: displayMode }
-        };
-        console.log('🖼️ [UI] Setting currentArtifactMessages', artifactMsg.id);
-        setCurrentArtifactMessages([artifactMsg]);
-        artifactCacheValidRef.current = true;
-        
-        // Also cache to localStorage for persistence across panel open/close
-        try {
-          if (currentChatId) {
-            const cacheKey = `mozaiks.current_artifact.${currentChatId}`;
-            // Create a serializable version without the function
-            const serializableArtifact = {
-              ...artifactMsg,
-              uiToolEvent: {
-                ...artifactMsg.uiToolEvent,
-                onResponse: null // Functions can't be serialized, will be reconstructed on restore
-              }
-            };
-            localStorage.setItem(cacheKey, JSON.stringify(serializableArtifact));
-            console.log('🖼️ [UI] Cached artifact to localStorage');
           }
-        } catch (e) { console.warn('Failed to cache artifact', e); }
-      } catch (e) { console.warn('Failed to set artifact message', e); }
+          const shouldRenderArtifact = displayMode === 'artifact' || isViewDisplay;
+          if (shouldRenderArtifact) {
+            console.log('🖼️ [UI] Auto-opening ArtifactPanel for artifact-mode event');
+            if (isMobileView) {
+              setMobileDrawerState('expanded');
+              setHasUnseenArtifact(false);
+            }
+            if (!dispatchSurfaceEvent) {
+              setIsSidePanelOpen(true);
+            }
+            const agentText = payload.agent_message || payload.description || null;
+            if (agentText) {
+              setMessagesWithLogging((prev) => {
+                const withoutThinking = prev.filter(msg => !msg.isThinking);
+                const hasExisting = withoutThinking.some(msg => msg?.metadata?.eventId === (eventId || ui_tool_id) && msg?.metadata?.type === 'ui_tool_agent_message');
+                if (hasExisting) return withoutThinking;
+                return [
+                  ...withoutThinking,
+                  {
+                    id: `ui-msg-${eventId || Date.now()}`,
+                    sender: 'agent',
+                    agentName: payload.agentName || payload.agent_name || update.agent_name || update.agent || 'Agent',
+                    content: agentText,
+                    isStreaming: false,
+                    metadata: { type: 'ui_tool_agent_message', eventId: eventId || ui_tool_id, ui_tool_id }
+                  }
+                ];
+              });
+            }
+            // Create artifact payload for ArtifactPanel to render
+            let artifactPayload = null;
+            try {
+              artifactPayload = {
+                ...payload,
+                artifact_id: deriveArtifactId(payload, eventId || ui_tool_id || null),
+              };
+              const artifactMsg = {
+                id: `ui-artifact-${eventId || Date.now()}`,
+                sender: 'agent',
+                agentName: payload.agentName || payload.agent_name || update.agent_name || update.agent || 'Agent',
+                content: artifactPayload.structured_output || artifactPayload.content || artifactPayload || {},
+                isStreaming: false,
+                uiToolEvent: { ui_tool_id, payload: artifactPayload, eventId, workflow_name, onResponse, display: displayMode }
+              };
+              console.log('🖼️ [UI] Setting currentArtifactMessages', artifactMsg.id);
+              setCurrentArtifactMessages([artifactMsg]);
+              artifactCacheValidRef.current = true;
+              
+              // Also cache to localStorage for persistence across panel open/close
+              try {
+                if (currentChatId) {
+                  const cacheKey = `mozaiks.current_artifact.${currentChatId}`;
+                  // Create a serializable version without the function
+                  const serializableArtifact = {
+                    ...artifactMsg,
+                    uiToolEvent: {
+                      ...artifactMsg.uiToolEvent,
+                      onResponse: null // Functions can't be serialized, will be reconstructed on restore
+                    }
+                  };
+                  localStorage.setItem(cacheKey, JSON.stringify(serializableArtifact));
+                  console.log('🖼️ [UI] Cached artifact to localStorage');
+                }
+              } catch (e) { console.warn('Failed to cache artifact', e); }
+            } catch (e) { console.warn('Failed to set artifact message', e); }
             // Remember this artifact to collapse on next sequence
             lastArtifactEventRef.current = eventId || ui_tool_id || 'artifact';
             // Persist minimal artifact session state for graceful refresh restore
@@ -2504,8 +2540,8 @@ useEffect(() => {
             } catch (e) {
               console.warn('Failed to cache nav-trigger artifact', e);
             }
-  // Don't inject artifact UIs into the chat feed; they'll render in ArtifactPanel only
-  return;
+            // Don't inject artifact UIs into the chat feed; they'll render in ArtifactPanel only
+            return;
           }
           setMessagesWithLogging((prev) => {
             const thinkingMessages = prev.filter(m => m.isThinking);
@@ -2529,7 +2565,7 @@ useEffect(() => {
                   workflow_name,
                   onResponse,
                   // Surface display mode for inline Completed chip logic
-      display: displayMode || 'inline',
+                  display: displayMode || 'inline',
                 },
               },
             ];
@@ -2697,6 +2733,53 @@ useEffect(() => {
     }
   }, []);
 
+  const isViewArtifactMessage = useCallback((msg) => {
+    const uiEvent = msg?.uiToolEvent;
+    if (!uiEvent) return false;
+    const display = uiEvent.display || uiEvent?.payload?.display || uiEvent?.payload?.mode;
+    if (display === 'view' || display === 'fullscreen') return true;
+    if (uiEvent?.payload?.page && uiEvent?.payload?.presentation === 'artifact') return true;
+    return false;
+  }, []);
+
+  const restoreViewSnapshot = useCallback(() => {
+    const snapshot = viewArtifactSnapshotRef.current;
+    if (!snapshot) return false;
+    const nextLayout = snapshot.layoutMode || (snapshot.isOpen ? 'split' : 'full');
+    if (setLayoutMode) setLayoutMode(nextLayout);
+    setIsSidePanelOpen(Boolean(snapshot.isOpen));
+    if (Array.isArray(snapshot.messages)) {
+      setCurrentArtifactMessages(snapshot.messages);
+    }
+    viewArtifactSnapshotRef.current = null;
+    return true;
+  }, [setLayoutMode, setIsSidePanelOpen, setCurrentArtifactMessages]);
+
+  const clearViewArtifacts = useCallback(() => {
+    if (!Array.isArray(currentArtifactMessages) || currentArtifactMessages.length === 0) return false;
+    const hasView = currentArtifactMessages.some(isViewArtifactMessage);
+    if (hasView) {
+      setCurrentArtifactMessages([]);
+      return true;
+    }
+    return false;
+  }, [currentArtifactMessages, isViewArtifactMessage, setCurrentArtifactMessages]);
+
+  const exitViewMode = () => {
+    const restored = restoreViewSnapshot();
+    if (!restored) {
+      const cleared = clearViewArtifacts();
+      if (setLayoutMode) setLayoutMode('split');
+      setIsSidePanelOpen(!cleared);
+    }
+    if (isMobileView) {
+      setMobileDrawerState('expanded');
+    }
+    if (widgetOverlayOpen) {
+      setWidgetOverlayOpen(false);
+    }
+  };
+
   const ensureGeneralMode = useCallback(() => {
     if (conversationMode === 'ask') {
       return true;
@@ -2806,6 +2889,13 @@ useEffect(() => {
     // Restore artifact panel state from snapshot (respecting user's previous state)
     // Use setTimeout to ensure this runs after React state updates settle
     setTimeout(() => {
+      const surfaceSnapshot = surfaceStateRef.current;
+      if (surfaceSnapshot?.layoutMode === 'view'
+        || surfaceSnapshot?.artifact?.display === 'view'
+        || surfaceSnapshot?.artifact?.display === 'fullscreen') {
+        console.log('🎨 [ARTIFACT_RESTORE] Skipping snapshot restore; view mode active');
+        return;
+      }
       const snapshot = workflowArtifactSnapshotRef.current;
       console.log('🎨 [ARTIFACT_RESTORE] Checking snapshot:', snapshot);
       
@@ -2914,6 +3004,13 @@ useEffect(() => {
       console.log('🤖 [MODE_CHANGE] API available?', !!api);
       console.log('🤖 [MODE_CHANGE] App ID:', currentAppId);
       console.log('🤖 [MODE_CHANGE] User ID:', currentUserId);
+      if (layoutMode === 'view') {
+        console.log('🧭 [MODE_CHANGE] Leaving view mode -> restoring workflow surface');
+        const restored = restoreViewSnapshot();
+        if (!restored) {
+          clearViewArtifacts();
+        }
+      }
 
       // If API/app/user is unavailable, fall back to persisted workflow state without crashing.
       if (!api || typeof api.get !== 'function' || !currentAppId || !currentUserId) {
@@ -2995,7 +3092,31 @@ useEffect(() => {
       }
     }
     console.log('✅ [MODE_CHANGE] handleConversationModeChange completed');
-  }, [ensureGeneralMode, ensureWorkflowMode, setLayoutMode, api, currentAppId, currentUserId, sendWsMessage, setConversationMode, setCurrentChatId, setActiveChatId, setActiveWorkflowName, conversationMode, activeChatId, activeWorkflowName, isInWidgetMode, navigate, setIsInWidgetMode, currentChatId, isMobileView, setMobileDrawerState]);
+  }, [
+    ensureGeneralMode,
+    ensureWorkflowMode,
+    restoreViewSnapshot,
+    clearViewArtifacts,
+    setLayoutMode,
+    api,
+    currentAppId,
+    currentUserId,
+    sendWsMessage,
+    setConversationMode,
+    setCurrentChatId,
+    setActiveChatId,
+    setActiveWorkflowName,
+    conversationMode,
+    activeChatId,
+    activeWorkflowName,
+    isInWidgetMode,
+    navigate,
+    setIsInWidgetMode,
+    currentChatId,
+    isMobileView,
+    setMobileDrawerState,
+    layoutMode,
+  ]);
 
   useEffect(() => {
     if (!resumeOldestFromWidgetRef.current) {
@@ -3015,11 +3136,26 @@ useEffect(() => {
     if (!isPrimaryChatRoute || isInWidgetMode) {
       return;
     }
+    const hasArtifact = Array.isArray(currentArtifactMessages) && currentArtifactMessages.length > 0;
+    const artifactActive = surfaceState?.artifact?.status === 'active';
+    if (hasArtifact || artifactActive) {
+      return;
+    }
     setLayoutMode(layoutModeForConversation);
     if (widgetOverlayOpen) {
       setWidgetOverlayOpen(false);
     }
-  }, [layoutMode, layoutModeForConversation, isPrimaryChatRoute, isInWidgetMode, setLayoutMode, widgetOverlayOpen, setWidgetOverlayOpen]);
+  }, [
+    layoutMode,
+    layoutModeForConversation,
+    isPrimaryChatRoute,
+    isInWidgetMode,
+    currentArtifactMessages,
+    surfaceState,
+    setLayoutMode,
+    widgetOverlayOpen,
+    setWidgetOverlayOpen,
+  ]);
 
   useEffect(() => {
     if (!queryChatId) {
@@ -3137,6 +3273,9 @@ useEffect(() => {
         if (lastArtifactEventRef.current && (!action.eventId || action.eventId === lastArtifactEventRef.current)) {
           try { console.log('🧹 [UI] Artifact response received; collapsing ArtifactPanel now'); } catch {}
           setIsSidePanelOpen(false);
+          if (dispatchSurfaceAction) {
+            dispatchSurfaceAction({ type: 'ARTIFACT_CLEARED' });
+          }
             lastArtifactEventRef.current = null;
           console.log('🖼️ [UI] Clearing currentArtifactMessages due to response');
           setCurrentArtifactMessages([]);
@@ -3192,20 +3331,106 @@ useEffect(() => {
   // console.debug('Show notifications');
   };
 
-  const handleDiscoverClick = () => {
+  const emitLocalArtifactEvent = useCallback((event) => {
     try {
-      setPreviousLayoutMode(layoutMode);
-      setLayoutMode('view');
-      setIsInWidgetMode(true);
-      navigate('/workflows');
+      if (!event || !event.ui_tool_id) {
+        return;
+      }
+      dynamicUIHandler.notifyUIUpdate(event);
     } catch (err) {
-      console.warn('Failed to navigate to workflows', err);
+      console.warn('Failed to emit local artifact event', err);
+    }
+  }, []);
+
+  const resolveDiscoverPage = (value) => {
+    if (!value) return 'workflows';
+    if (value === '1' || value === 'true') return 'workflows';
+    return value;
+  };
+
+  const openDiscoveryView = useCallback(async (source = 'discover', page = 'workflows') => {
+    try {
+      const resolvedPage = resolveDiscoverPage(page);
+      if (conversationMode === 'workflow') {
+        viewArtifactSnapshotRef.current = {
+          isOpen: isSidePanelOpen,
+          layoutMode: layoutMode || 'split',
+          messages: Array.isArray(currentArtifactMessages) ? [...currentArtifactMessages] : [],
+        };
+      } else {
+        viewArtifactSnapshotRef.current = null;
+      }
+      if (conversationMode !== 'workflow') {
+        await handleConversationModeChange('workflow');
+      }
+
+      const eventId = `discover-${Date.now()}`;
+      const payload = {
+        embedded: true,
+        presentation: 'artifact',
+        page: resolvedPage,
+        source,
+        workflow_name: 'core',
+        component_type: resolvedPage === 'workflows' ? 'MyWorkflowsPage' : resolvedPage,
+      };
+
+      emitLocalArtifactEvent({
+        type: 'ui_tool_event',
+        ui_tool_id: resolvedPage === 'workflows' ? 'MyWorkflowsPage' : resolvedPage,
+        eventId,
+        workflow_name: 'core',
+        display: 'view',
+        payload,
+        agentName: 'System',
+        agent_name: 'System',
+      });
+    } catch (err) {
+      console.warn('Failed to open discovery view', err);
+    }
+  }, [conversationMode, emitLocalArtifactEvent, handleConversationModeChange, isSidePanelOpen, layoutMode, currentArtifactMessages]);
+
+  const handleDiscoverClick = async (pageOverride = null) => {
+    try {
+      if (isInWidgetMode) {
+        setIsInWidgetMode(false);
+      }
+      const page = resolveDiscoverPage(pageOverride);
+      await openDiscoveryView('header', page);
+    } catch (err) {
+      console.warn('Failed to open discovery view', err);
     }
   };
 
-  const handleHeaderAction = (actionId) => {
+  useEffect(() => {
+    if (!queryDiscover) {
+      discoverHandledRef.current = false;
+      return;
+    }
+    if (discoverHandledRef.current) {
+      return;
+    }
+    discoverHandledRef.current = true;
+    if (isInWidgetMode) {
+      setIsInWidgetMode(false);
+    }
+    openDiscoveryView('query', resolveDiscoverPage(queryDiscover));
+    try {
+      const params = new URLSearchParams(location.search || '');
+      params.delete('discover');
+      const nextSearch = params.toString();
+      navigate(
+        { pathname: location.pathname, search: nextSearch ? `?${nextSearch}` : '' },
+        { replace: true }
+      );
+    } catch (_) {
+      /* ignore navigation cleanup errors */
+    }
+  }, [queryDiscover, isInWidgetMode, location.pathname, location.search, navigate, openDiscoveryView, setIsInWidgetMode]);
+
+  const handleHeaderAction = (actionId, action = null) => {
     if (actionId === 'discover') {
-      handleDiscoverClick();
+      const page = action?.page || action?.target || action?.payload?.page || null;
+      handleDiscoverClick(page);
     }
   };
 
@@ -3225,11 +3450,7 @@ useEffect(() => {
 
   const toggleSidePanel = () => {
     if (layoutMode === 'view') {
-      setLayoutMode('split');
-      setIsSidePanelOpen(true);
-      if (isMobileView) {
-        setMobileDrawerState('expanded');
-      }
+      exitViewMode();
       return;
     }
     setIsSidePanelOpen((open) => {
@@ -3281,17 +3502,6 @@ useEffect(() => {
       console.log(`🖼️ [UI] Panel ${next ? 'opening' : 'closing'} - keeping artifact cached`);
       return next;
     });
-  };
-
-  const exitViewMode = () => {
-    setLayoutMode('split');
-    setIsSidePanelOpen(true);
-    if (isMobileView) {
-      setMobileDrawerState('expanded');
-    }
-    if (widgetOverlayOpen) {
-      setWidgetOverlayOpen(false);
-    }
   };
 
   // Simplified artifact restore effect: only restore when chatExists === true and connection is open
@@ -3441,13 +3651,138 @@ useEffect(() => {
       ? 'Return to chat'
       : (isMobileView ? 'Artifact drawer' : undefined);
 
+  const handleViewWidgetAsk = useCallback(() => {
+    setWidgetOverlayOpen(false);
+    handleConversationModeChange('ask');
+  }, [handleConversationModeChange, setWidgetOverlayOpen]);
+
+  const handleViewWidgetWorkflow = useCallback(() => {
+    setWidgetOverlayOpen(false);
+    handleConversationModeChange('workflow');
+  }, [handleConversationModeChange, setWidgetOverlayOpen]);
+
+  const viewWidget = isViewMode ? (
+    <div className={`flex flex-col-reverse items-end gap-2 ${widgetOverlayOpen ? 'mr-[20px] mb-[40px]' : 'mr-3 mb-3'}`}>
+      {!widgetOverlayOpen && (
+        <button
+          type="button"
+          onClick={() => setWidgetOverlayOpen(true)}
+          className="pointer-events-auto group relative w-20 h-20 rounded-2xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] shadow-[0_8px_32px_rgba(15,23,42,0.6)] border-2 border-[rgba(var(--color-primary-light-rgb),0.5)] hover:shadow-[0_16px_48px_rgba(51,240,250,0.4)] hover:scale-105 transition-all duration-300 flex items-center justify-center"
+          title="Open chat"
+          aria-label="Open chat"
+        >
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[rgba(var(--color-primary-light-rgb),0.2)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <img
+            src="/mozaik_logo.svg"
+            alt="Mozaiks"
+            className="w-11 h-11 relative z-10 group-hover:scale-110 transition-transform"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = '/mozaik.png';
+            }}
+          />
+        </button>
+      )}
+
+      <div
+        className="w-[26rem] max-w-[calc(100vw-2.5rem)] h-[50vh] md:h-[70vh] min-h-[360px] transition-all duration-300"
+        style={{
+          opacity: widgetOverlayOpen ? 1 : 0,
+          transform: widgetOverlayOpen ? 'translateY(0)' : 'translateY(1.5rem)',
+          pointerEvents: widgetOverlayOpen ? 'auto' : 'none',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setWidgetOverlayOpen(false)}
+          className="pointer-events-auto relative group mt-[-1px] z-20"
+          title="Minimize chat"
+        >
+          <div className="w-32 h-8 rounded-t-2xl bg-gradient-to-r from-[rgba(var(--color-primary-rgb),0.4)] to-[rgba(var(--color-secondary-rgb),0.4)] border-t border-l border-r border-[rgba(var(--color-primary-light-rgb),0.4)] backdrop-blur-sm flex items-center justify-center group-hover:bg-gradient-to-r group-hover:from-[rgba(var(--color-primary-rgb),0.6)] group-hover:to-[rgba(var(--color-secondary-rgb),0.6)] transition-all">
+            <svg className="w-5 h-5 text-[var(--color-primary-light)] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </button>
+
+        <div className="h-full bg-gradient-to-br from-gray-900/95 via-slate-900/95 to-black/95 backdrop-blur-xl border border-[rgba(var(--color-primary-light-rgb),0.3)] rounded-2xl rounded-tr-none shadow-2xl overflow-hidden flex flex-col">
+          <div className="flex-shrink-0 bg-[rgba(0,0,0,0.6)] border-b border-[rgba(var(--color-primary-light-rgb),0.2)] backdrop-blur-xl">
+            <div className="flex flex-row items-center justify-between px-3 py-2.5 sm:px-4 sm:py-3">
+              <button
+                type="button"
+                onClick={handleViewWidgetAsk}
+                className="flex items-center gap-2 sm:gap-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)]/60 rounded-xl min-w-0 flex-1"
+                title="Open Chat Station"
+              >
+                <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg flex-shrink-0 bg-gradient-to-br from-[var(--color-secondary)] to-[var(--color-primary)]">
+                  <span className="text-xl sm:text-2xl" role="img" aria-hidden="true">🧠</span>
+                </span>
+                <span className="text-left min-w-0 flex-1">
+                  <span className="block text-sm sm:text-lg font-bold text-white tracking-tight truncate">MozaiksAI</span>
+                  <span className="block text-[10px] sm:text-xs text-gray-400 truncate">Chat Station</span>
+                </span>
+              </button>
+
+              <button
+                onClick={handleViewWidgetWorkflow}
+                className="group relative p-2 rounded-lg bg-gradient-to-r from-[rgba(var(--color-primary-rgb),0.1)] to-[rgba(var(--color-secondary-rgb),0.1)] border border-[rgba(var(--color-primary-light-rgb),0.3)] hover:border-[rgba(var(--color-primary-light-rgb),0.6)] transition-all duration-300 backdrop-blur-sm flex-shrink-0"
+                title="Resume Workflow"
+              >
+                <img
+                  src="/mozaik_logo.svg"
+                  className="w-8 h-8 opacity-70 group-hover:opacity-100 transition-all duration-300 group-hover:scale-105"
+                  alt="Workflow"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/mozaik.png';
+                  }}
+                />
+                <div className="absolute inset-0 bg-[rgba(var(--color-primary-light-rgb),0.1)] rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-hidden">
+            <ChatInterface
+              messages={messages}
+              onSendMessage={sendMessage}
+              loading={loading}
+              onAgentAction={handleAgentAction}
+              connectionStatus={connectionStatus}
+              transportType={transportType}
+              workflowName={currentWorkflowName}
+              structuredOutputs={getWorkflow(currentWorkflowName)?.structuredOutputs || {}}
+              startupMode={workflowConfig?.getWorkflowConfig(currentWorkflowName)?.startup_mode}
+              initialMessageToUser={workflowConfig?.getWorkflowConfig(currentWorkflowName)?.initial_message_to_user}
+              onRetry={retryConnection}
+              submitInputRequest={submitInputRequest}
+              conversationMode={conversationMode}
+              onConversationModeChange={handleConversationModeChange}
+              onStartGeneralChat={handleStartGeneralChat}
+              generalChatSummary={generalChatSummary}
+              isOnChatPage={false}
+              generalSessionsLoading={generalSessionsLoading}
+              showAskHistoryMenu={false}
+              hideHeader={true}
+              disableMobileShellChrome={true}
+              plainContainer={true}
+              artifactContext={currentArtifactContext}
+              onArtifactAction={sendArtifactAction}
+              actionStatusMap={actionStatusMap}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   const shouldReserveArtifactSpace = conversationMode === 'workflow';
   const mobileChatPaddingBottomClass = shouldReserveArtifactSpace
     ? (mobileDrawerState === 'expanded' ? 'pb-[0.75rem]' : 'pb-[4.5em]')
     : 'pb-2';
   const mobileChatTopMarginClass = shouldReserveArtifactSpace ? 'mt-[1.25rem]' : 'mt-[1.25rem]';
 
-  const isChatPageSurface = isPrimaryChatRoute && !isInWidgetMode;
+  const isChatPageSurface = isPrimaryChatRoute && !isInWidgetMode && !isViewMode;
   // Show sidebar on desktop in both Ask and Workflow modes for consistent tighter layout
   const showAskHistorySidebar = isChatPageSurface && !isMobileView;
   const showMobileAskHistoryMenu = isChatPageSurface && isMobileView && conversationMode === 'ask';
@@ -3574,7 +3909,7 @@ useEffect(() => {
       />
       
       {/* Main content area that fills remaining screen height - no scrolling */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden pt-16 md:pt-16">{/* Padding for header */}
+      <div className={`flex-1 flex flex-col min-h-0 overflow-hidden ${mainPaddingClass}`}>{/* Padding for header */}
         {workflowCompleted ? (
           /* Workflow Completion Screen */
           <div className="flex-1 flex items-center justify-center px-4">
@@ -3632,6 +3967,7 @@ useEffect(() => {
                     workflowName={currentWorkflowName}
                     onArtifactAction={sendArtifactAction}
                     actionStatusMap={actionStatusMap}
+                    floatingWidget={viewWidget}
                   />
                 }
                 hasUnseenChat={hasUnseenChat}
@@ -3695,6 +4031,7 @@ useEffect(() => {
                     workflowName={currentWorkflowName}
                     onArtifactAction={sendArtifactAction}
                     actionStatusMap={actionStatusMap}
+                    floatingWidget={viewWidget}
                   />
                 }
               />
@@ -3702,56 +4039,7 @@ useEffect(() => {
           </div>
         )}
       </div>
-      {isViewMode && (
-        <>
-          <button
-            type="button"
-            onClick={() => setWidgetOverlayOpen(true)}
-            className="fixed right-4 bottom-6 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] shadow-[0_12px_30px_rgba(0,0,0,0.5)] border border-[rgba(var(--color-primary-light-rgb),0.5)] flex items-center justify-center text-white text-xl widget-safe-bottom"
-            title="Open chat"
-            aria-label="Open chat"
-          >
-            💬
-          </button>
-
-          {widgetOverlayOpen && (
-            <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/70 backdrop-blur-sm">
-              <div className="w-full md:max-w-3xl md:h-[80vh] h-[85vh] p-2">
-                <ChatInterface
-                  messages={messages}
-                  onSendMessage={sendMessage}
-                  loading={loading}
-                  onAgentAction={handleAgentAction}
-                  onArtifactToggle={null}
-                  artifactToggleLabel={artifactToggleLabel}
-                  connectionStatus={connectionStatus}
-                  transportType={transportType}
-                  workflowName={currentWorkflowName}
-                  structuredOutputs={getWorkflow(currentWorkflowName)?.structuredOutputs || {}}
-                  startupMode={workflowConfig?.getWorkflowConfig(currentWorkflowName)?.startup_mode}
-                  initialMessageToUser={workflowConfig?.getWorkflowConfig(currentWorkflowName)?.initial_message_to_user}
-                  onRetry={retryConnection}
-                  submitInputRequest={submitInputRequest}
-                  onBrandClick={undefined}
-                  conversationMode={conversationMode}
-                  onConversationModeChange={handleConversationModeChange}
-                  onStartGeneralChat={handleStartGeneralChat}
-                  generalChatSummary={generalChatSummary}
-                  isOnChatPage={true}
-                  generalSessionsLoading={generalSessionsLoading}
-                  showAskHistoryMenu={false}
-                  overlayMode
-                  onOverlayClose={() => setWidgetOverlayOpen(false)}
-                  artifactContext={currentArtifactContext}
-                  onArtifactAction={sendArtifactAction}
-                  actionStatusMap={actionStatusMap}
-                />
-              </div>
-            </div>
-          )}
-        </>
-      )}
-      <Footer chatTheme={chatTheme} />
+      
     </div>
   );
 };

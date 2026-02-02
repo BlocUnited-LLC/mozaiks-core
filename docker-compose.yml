@@ -129,6 +129,20 @@ services:
     volumes:
       - redis_data:/data
 
+  falkordb:
+    image: falkordb/falkordb:latest
+    ports:
+      - "6380:6379"
+    volumes:
+      - falkordb_data:/data
+    environment:
+      - FALKORDB_ARGS=--requirepass ""
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   rabbitmq:
     image: rabbitmq:3-management
     ports:
@@ -157,5 +171,6 @@ services:
 volumes:
   mongodb_data:
   redis_data:
+  falkordb_data:
   rabbitmq_data:
   keycloak_data:

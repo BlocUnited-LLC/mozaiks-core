@@ -496,32 +496,53 @@ const ModernChatInterface = ({
             </button>
           )}
 
-          {/* Desktop: Mozaiks Logo Button - context-aware behavior */}
+          {/* Mozaiks Logo Button - context-aware behavior */}
           {/* In Workflow mode: toggles artifact panel | In Ask mode: switches to Workflow mode */}
           {isOnChatPage && (
-            <button
-              onClick={() => {
-                if (conversationMode === 'workflow' && onArtifactToggle) {
-                  // In workflow mode, toggle the artifact panel
-                  onArtifactToggle();
-                } else if (conversationMode === 'ask') {
-                  // In ask mode, switch to workflow mode
-                  handleModeToggle();
-                } else if (onArtifactToggle) {
-                  // Fallback: toggle artifact if available
-                  onArtifactToggle();
-                }
-              }}
-              className="hidden md:block group relative p-2 md:p-3 rounded-lg bg-gradient-to-r from-[rgba(var(--color-primary-rgb),0.1)] to-[rgba(var(--color-secondary-rgb),0.1)] border border-[rgba(var(--color-primary-light-rgb),0.3)] hover:border-[rgba(var(--color-primary-light-rgb),0.6)] transition-all duration-300 backdrop-blur-sm artifact-hover-glow flex-shrink-0"
-              title={conversationMode === 'ask' ? 'Switch to Workflow Mode' : (artifactToggleLabel || 'Toggle Artifact Canvas')}
-            >
-              <img
-                src="/mozaik_logo.svg"
-                className="w-8 h-8 md:w-10 md:h-10 opacity-70 group-hover:opacity-100 transition-all duration-300 group-hover:scale-105"
-                alt={conversationMode === 'ask' ? 'Switch to Workflow' : 'Artifact Canvas'}
-              />
-              <div className="absolute inset-0 bg-[rgba(var(--color-primary-light-rgb),0.1)] rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
-            </button>
+            <>
+              <button
+                onClick={() => {
+                  if (conversationMode === 'workflow' && onArtifactToggle) {
+                    // In workflow mode, toggle the artifact panel
+                    onArtifactToggle();
+                  } else if (conversationMode === 'ask') {
+                    // In ask mode, switch to workflow mode
+                    handleModeToggle();
+                  } else if (onArtifactToggle) {
+                    // Fallback: toggle artifact if available
+                    onArtifactToggle();
+                  }
+                }}
+                className="hidden md:block group relative p-2 md:p-3 rounded-lg bg-gradient-to-r from-[rgba(var(--color-primary-rgb),0.1)] to-[rgba(var(--color-secondary-rgb),0.1)] border border-[rgba(var(--color-primary-light-rgb),0.3)] hover:border-[rgba(var(--color-primary-light-rgb),0.6)] transition-all duration-300 backdrop-blur-sm artifact-hover-glow flex-shrink-0"
+                title={conversationMode === 'ask' ? 'Switch to Workflow Mode' : (artifactToggleLabel || 'Toggle Artifact Canvas')}
+              >
+                <img
+                  src="/mozaik_logo.svg"
+                  className="w-8 h-8 md:w-10 md:h-10 opacity-70 group-hover:opacity-100 transition-all duration-300 group-hover:scale-105"
+                  alt={conversationMode === 'ask' ? 'Switch to Workflow' : 'Artifact Canvas'}
+                />
+                <div className="absolute inset-0 bg-[rgba(var(--color-primary-light-rgb),0.1)] rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
+              </button>
+              <button
+                onClick={() => {
+                  if (conversationMode === 'workflow' && onArtifactToggle) {
+                    onArtifactToggle();
+                  } else if (conversationMode === 'ask') {
+                    handleModeToggle();
+                  } else if (onArtifactToggle) {
+                    onArtifactToggle();
+                  }
+                }}
+                className="md:hidden group relative p-2 rounded-lg bg-gradient-to-r from-[rgba(var(--color-primary-rgb),0.15)] to-[rgba(var(--color-secondary-rgb),0.15)] border border-[rgba(var(--color-primary-light-rgb),0.35)] hover:border-[rgba(var(--color-primary-light-rgb),0.7)] transition-all duration-300 backdrop-blur-sm flex-shrink-0"
+                title={conversationMode === 'ask' ? 'Switch to Workflow Mode' : (artifactToggleLabel || 'Toggle Artifact Canvas')}
+              >
+                <img
+                  src="/mozaik_logo.svg"
+                  className="w-7 h-7 opacity-80 group-hover:opacity-100 transition-all duration-300 group-hover:scale-105"
+                  alt={conversationMode === 'ask' ? 'Switch to Workflow' : 'Artifact Canvas'}
+                />
+              </button>
+            </>
           )}
 
           {/* Desktop: Artifact Canvas Toggle Button - only show when NOT on chat page */}

@@ -11,13 +11,19 @@ import useTheme from '../styles/useTheme';
  * Displays all created workflows/apps with search, filtering, and quick actions.
  * Users can view, resume, export, or delete their generated applications.
  */
-const MyWorkflowsPage = () => {
+const MyWorkflowsPage = ({ payload = null, embedded = false }) => {
   const navigate = useNavigate();
+  const isEmbedded = Boolean(
+    embedded ||
+    payload?.embedded ||
+    payload?.presentation === 'artifact' ||
+    payload?.view === 'artifact'
+  );
   const {
     config,
     user
   } = useChatUI();
-  useWidgetMode(); // Enable persistent chat widget for this page
+  useWidgetMode({ enabled: !isEmbedded, showWidget: !isEmbedded }); // Enable persistent chat widget for this page
   const [workflows, setWorkflows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -171,7 +177,7 @@ const MyWorkflowsPage = () => {
 
   const handleHeaderAction = (actionId) => {
     if (actionId === 'discover') {
-      navigate('/chat');
+      navigate('/chat?discover=1');
     }
   };
 
@@ -196,11 +202,16 @@ const MyWorkflowsPage = () => {
     );
   };
 
+  const containerClass = isEmbedded
+    ? 'flex flex-col h-full bg-gradient-to-br from-gray-900 via-gray-800 to-black'
+    : 'flex flex-col h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black';
+  const mainPaddingClass = isEmbedded ? 'pt-0' : 'pt-16 sm:pt-20 md:pt-16';
+
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      <Header chatTheme={chatTheme} onAction={handleHeaderAction} />
+    <div className={containerClass}>
+      {!isEmbedded && <Header chatTheme={chatTheme} onAction={handleHeaderAction} />}
       
-      <main className="flex-1 overflow-hidden flex flex-col pt-16 sm:pt-20 md:pt-16">
+      <main className={`flex-1 overflow-hidden flex flex-col ${mainPaddingClass}`}>
         {/* Page Header */}
         <div className="flex-shrink-0 px-6 py-6 border-b border-gray-700/50 bg-gradient-to-r from-[rgba(var(--color-primary-rgb),0.05)] to-[rgba(var(--color-secondary-rgb),0.05)] backdrop-blur-xl">
           <div className="max-w-7xl mx-auto">

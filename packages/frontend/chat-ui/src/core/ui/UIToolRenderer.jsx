@@ -27,7 +27,10 @@ const UIToolRenderer = ({ event, onResponse, submitInputRequest, className = '',
 
   if (typeof uiToolRenderer === 'function') {
     try {
-      const rendered = uiToolRenderer(event, onResponse, submitInputRequest);
+      const rendered = uiToolRenderer(event, onResponse, submitInputRequest, {
+        onArtifactAction,
+        actionStatusMap,
+      });
       if (rendered !== null && rendered !== undefined) {
         return <div className={className}>{rendered}</div>;
       }
